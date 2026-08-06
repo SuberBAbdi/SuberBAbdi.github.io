@@ -1,0 +1,828 @@
+<!DOCTYPE html>
+<html lang="en" class="scroll-smooth">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Suber_Abdi Portfolio</title>
+<meta name="description" content="Suber Abdi, Software Engineering with Electronics student, University of Westminster. Microwave Engineer intern at Leonardo. RF/microwave, embedded firmware, robotics.">
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+<script>
+  tailwind.config = {
+    theme: {
+      extend: {
+        colors: {
+          base: '#0c0c0d',
+          panel: '#131315',
+          line: '#27272a',
+          lineSoft: '#1a1a1c',
+          ink: '#f1f1ef',
+          dim: '#a3a3a8',
+          faint: '#68686d',
+        },
+        fontFamily: {
+          display: ['Outfit', 'ui-sans-serif', 'system-ui'],
+          sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+          mono: ['"JetBrains Mono"', 'ui-monospace', 'monospace'],
+        }
+      }
+    }
+  }
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+  body{ font-family:'Inter', ui-sans-serif, system-ui; background:#0c0c0d; font-size:16px; }
+  .font-display{ font-family:'Outfit', ui-sans-serif, system-ui; }
+  .font-mono{ font-family:'JetBrains Mono', ui-monospace, monospace; }
+  ::selection{ background:#f1f1ef; color:#0c0c0d; }
+
+  .tag{
+    font-family:'JetBrains Mono', monospace; font-size:11.5px; letter-spacing:0.06em;
+    padding:5px 10px; border:1px solid #27272a; color:#c4c4c8; text-transform:uppercase;
+  }
+
+  .btn-block{
+    font-family:'JetBrains Mono', monospace; font-size:13px; letter-spacing:0.06em; text-transform:uppercase;
+    padding:15px 20px; text-align:center; transition:all .15s ease;
+  }
+  .btn-solid{ background:#f1f1ef; color:#0c0c0d; font-weight:700; }
+  .btn-solid:hover{ background:#ffffff; }
+  .btn-line{ border:1px solid #27272a; color:#f1f1ef; font-weight:600; }
+  .btn-line:hover{ border-color:#6b6b70; background:#161618; }
+
+  .focus-ring:focus-visible{ outline:2px solid #f1f1ef; outline-offset:2px; }
+
+  .spec-row{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #1a1a1c; font-family:'JetBrains Mono', monospace; font-size:12.5px; gap:12px; }
+  .spec-row:last-child{ border-bottom:none; }
+  .spec-row .k{ color:#68686d; text-transform:uppercase; letter-spacing:0.04em; }
+  .spec-row .v{ color:#f1f1ef; text-align:right; }
+
+  .bullet-list{ list-style:none; padding:0; margin:0; }
+  .bullet-list li{ position:relative; padding-left:16px; }
+  .bullet-list li::before{ content:'•'; position:absolute; left:0; color:#68686d; }
+
+  .case-card{ cursor:pointer; transition:background-color .15s ease; }
+  .case-card:hover{ background:#131315; }
+  .case-card .arrow{ transition:transform .18s ease; }
+  .case-card:hover .arrow{ transform:translateX(4px); color:#f1f1ef; }
+  .case-card h4{ color:#f1f1ef; transition:transform .18s ease, color .15s ease; transform-origin:left center; }
+  .case-card:hover h4{ color:#ffffff; transform:scale(1.05); }
+
+  #projectDetailView{ display:none; }
+  #projectDetailView.open{ display:block; animation:fadeIn .2s ease-out; }
+  @keyframes fadeIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
+
+  /* ===== Static header accent + side square-wave channels ===== */
+
+  .scan-header{ position:relative; }
+  .scan-header::after{
+    content:''; position:absolute; bottom:-1px; left:0;
+    height:1px; width:130px;
+    background:linear-gradient(90deg, #a3a3a8, transparent);
+    pointer-events:none;
+  }
+
+  .side-signal{
+    position:fixed; top:0; bottom:0; width:48px;
+    pointer-events:none; z-index:-1; overflow:hidden;
+  }
+  .side-signal-left{ left:max(6px, calc(50% - 756px)); }
+  .side-signal-right{ right:max(6px, calc(50% - 756px)); transform:scaleX(-1); }
+  .side-signal svg{
+    display:block; width:48px;
+    --half:800px;
+    animation:waveScroll 16s linear infinite;
+  }
+  .wave-base{ fill:none; stroke:#27272a; stroke-width:1.5; opacity:.9; }
+  .wave-pulse{
+    fill:none; stroke:#a3a3a8; stroke-width:1.5; opacity:.30;
+    stroke-dasharray:45 955;
+    animation:wavePulse 6s linear infinite;
+  }
+  @keyframes waveScroll{
+    from{ transform:translateY(0); }
+    to{ transform:translateY(calc(-1 * var(--half))); }
+  }
+  @keyframes wavePulse{
+    from{ stroke-dashoffset:1000; }
+    to{ stroke-dashoffset:0; }
+  }
+
+  /* ===== Floating hardware widgets ===== */
+  .hw-widget{
+    position:fixed; z-index:30; pointer-events:none;
+    background:rgba(19,19,21,.88); border:1px solid #27272a;
+    font-family:'JetBrains Mono', monospace;
+    backdrop-filter:blur(2px);
+  }
+  .hw-head{
+    display:flex; align-items:center; gap:6px;
+    padding:5px 8px; border-bottom:1px solid #1a1a1c;
+    font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; color:#68686d;
+  }
+  .hw-dot{ width:5px; height:5px; border-radius:50%; background:#a3a3a8; }
+  .hw-dot.live{ animation:hwBlink 1.2s steps(1) infinite; }
+  @keyframes hwBlink{ 50%{ opacity:.25; } }
+
+  /* 1. Logic analyzer */
+  #hwLogic{ right:14px; bottom:14px; width:212px; }
+  #hwLogic canvas{ display:block; width:100%; height:112px; }
+
+  /* 2. Register map */
+  #hwReg{ right:14px; top:14px; width:212px; }
+  #hwReg .hw-body{ padding:7px 9px; font-size:10.5px; line-height:1.75; color:#a3a3a8; white-space:pre; }
+  #hwReg .v{ color:#f1f1ef; }
+  #hwReg .flag{ color:#68686d; }
+
+  /* 3. Serial terminal (Shrunk to prevent overlap) */
+  #hwTerm{ left:14px; bottom:14px; width:210px; transform: scale(0.9); transform-origin: bottom left; }
+  #hwTerm .hw-body{ padding:7px 9px; font-size:9.5px; line-height:1.6; color:#a3a3a8; min-height:80px; }
+  #hwTerm .ts{ color:#68686d; }
+  #hwTerm .ok{ color:#f1f1ef; }
+  #hwTerm .cursor{ display:inline-block; width:6px; height:10px; background:#a3a3a8; animation:hwBlink 1s steps(1) infinite; vertical-align:-1px; }
+
+  /* Widgets are decorative: desktop only */
+  @media (max-width:1023px){
+    .hw-widget{ display:none !important; }
+  }
+
+  ::-webkit-scrollbar{ width:10px; }
+  ::-webkit-scrollbar-track{ background:#0c0c0d; }
+  ::-webkit-scrollbar-thumb{ background:#27272a; }
+
+  @media (prefers-reduced-motion: reduce){
+    *{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
+  }
+</style>
+</head>
+<body class="text-[#e6e6e4] antialiased">
+
+<!-- Random Background Hardware Scatter -->
+<div class="fixed inset-0 pointer-events-none z-[-2] overflow-hidden opacity-10">
+  <!-- Capacitor -->
+  <svg class="absolute top-[20%] left-[8%]" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M4 12H0"/><path d="M24 12H20"/></svg>
+  <!-- Resistor -->
+  <svg class="absolute top-[60%] right-[7%] rotate-45" width="32" height="12" viewBox="0 0 32 12" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M0 6h6l2-4 4 8 4-8 4 8 4-8 2 4h6"/></svg>
+  <!-- Small IC -->
+  <svg class="absolute bottom-[25%] left-[5%] -rotate-12" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="6" y="6" width="12" height="12"/><path d="M6 8H2"/><path d="M6 12H2"/><path d="M6 16H2"/><path d="M22 8h-4"/><path d="M22 12h-4"/><path d="M22 16h-4"/></svg>
+  <!-- Schematic Pointer -->
+  <svg class="absolute top-[15%] right-[10%]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v7"/><path d="M12 15v7"/><path d="M2 12h7"/><path d="M15 12h7"/></svg>
+</div>
+
+<!-- Side-channel RF waveforms (desktop only) -->
+<div class="side-signal side-signal-left hidden lg:block" aria-hidden="true">
+  <svg preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path class="wave-base"></path>
+    <path class="wave-pulse" pathLength="1000"></path>
+  </svg>
+</div>
+<div class="side-signal side-signal-right hidden lg:block" aria-hidden="true">
+  <svg preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+    <path class="wave-base"></path>
+    <path class="wave-pulse" pathLength="1000"></path>
+  </svg>
+</div>
+
+<!-- ===== Floating hardware widgets (decorative, desktop only) ===== -->
+
+<!-- 1. Logic analyzer -->
+<div id="hwLogic" class="hw-widget" aria-hidden="true">
+  <div class="hw-head"><span class="hw-dot live"></span><span id="hwLogicStatus">SAMPLING: 24 MHz</span></div>
+  <canvas id="hwLogicCanvas" width="212" height="112"></canvas>
+</div>
+
+<!-- 2. MCU register map -->
+<div id="hwReg" class="hw-widget" aria-hidden="true">
+  <div class="hw-head"><span class="hw-dot live"></span>MCU_STATUS [PIC16F]</div>
+  <div class="hw-body" id="hwRegBody"></div>
+</div>
+
+<!-- 3. Serial terminal -->
+<div id="hwTerm" class="hw-widget" aria-hidden="true">
+  <div class="hw-head"><span class="hw-dot live"></span>/dev/ttyUSB0 · 115200 8N1</div>
+  <div class="hw-body" id="hwTermBody"></div>
+</div>
+
+
+<div class="max-w-[1400px] mx-auto px-3 sm:px-4 lg:px-6 py-6 lg:py-10">
+
+  <div class="flex flex-col gap-8 lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start">
+
+    <!-- ================= LEFT: PROFILE ================= -->
+    <aside id="leftSidebar" class="lg:col-span-3 lg:sticky lg:top-8 transition-all duration-300 ease-in-out origin-left">
+      
+      <!-- TOGGLE BUTTON -->
+      <button onclick="toggleLeftSidebar()" class="focus-ring mb-4 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white transition-colors" id="leftToggleBtn">
+        <i data-lucide="panel-left-close" class="w-4 h-4"></i> Hide Profile
+      </button>
+
+      <div id="leftProfileContent" class="transition-opacity duration-300">
+        <h1 class="font-display font-extrabold uppercase leading-[0.92] text-4xl sm:text-5xl lg:text-[2.6rem] text-white">
+          Suber<br>Abdi
+        </h1>
+        <p class="font-mono text-xs uppercase tracking-widest text-dim mt-3">
+          Software Engineering with<br>Electronics · Graduate 2027
+        </p>
+
+        <div class="mt-5 flex flex-col gap-2">
+          <span class="tag inline-flex items-center gap-2 w-fit">
+            <span class="w-1.5 h-1.5 bg-[#f1f1ef] rounded-full"></span> Open to Work
+          </span>
+          <span class="tag inline-flex items-center gap-2 w-fit">
+            <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> Greater London · On-site / Hybrid / Remote
+          </span>
+        </div>
+
+        <div class="mt-6 grid grid-cols-1 gap-2.5">
+          <a href="Suber_Abdi_CV.pdf" download class="btn-solid btn-block focus-ring flex items-center justify-center gap-2">
+            <i data-lucide="download" class="w-4 h-4"></i> Download Resume
+          </a>
+          <a href="https://www.linkedin.com/in/suber-abdi-889182331/recent-activity/all/" target="_blank" rel="noopener" class="btn-line btn-block focus-ring flex items-center justify-center gap-2">
+            <i data-lucide="linkedin" class="w-4 h-4"></i> Feed
+          </a>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-line">
+          <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Toolchain</p>
+          <div class="flex flex-wrap gap-1.5">
+            <span class="tag">C / C++</span>
+            <span class="tag">Python</span>
+            <span class="tag">Assembly</span>
+            <span class="tag">MATLAB</span>
+            <span class="tag">KiCAD</span>
+            <span class="tag">Arduino</span>
+            <span class="tag">PIC16F877A</span>
+            <span class="tag">Mbed / Keil</span>
+            <span class="tag">Keysight ADS</span>
+            <span class="tag">SPI / I2C</span>
+            <span class="tag">Fusion 360</span>
+            <span class="tag">Azure</span>
+            <span class="tag">Confluence</span>
+          </div>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-line">
+          <p class="font-mono text-xs uppercase tracking-widest text-faint mb-2">Contact Me</p>
+          <div class="spec-row"><span class="k">Email</span><a href="mailto:suberabdi54@gmail.com" class="v hover:text-white transition-colors">suberabdi54@gmail.com</a></div>
+          <div class="spec-row"><span class="k">GitHub</span><a href="https://github.com/SuberBAbdi" target="_blank" rel="noopener" class="v hover:text-white transition-colors">SuberBAbdi ↗</a></div>
+          <div class="spec-row"><span class="k">LinkedIn</span><a href="https://www.linkedin.com/in/suber-abdi-889182331/" target="_blank" rel="noopener" class="v hover:text-white transition-colors">View Profile ↗</a></div>
+          <div class="spec-row"><span class="k">Location</span><span class="v">London, UK</span></div>
+          <div class="spec-row"><span class="k">Right to Work</span><span class="v">United Kingdom</span></div>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-line">
+          <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Mentor Note</p>
+          <p class="text-sm text-dim leading-relaxed italic">
+            "A diligent, effective communicator who secured his own placement at Leonardo."
+          </p>
+          <p class="font-mono text-xs text-faint mt-2">- Matthew Kingham, GEEP Mentor · Johnson Matthey</p>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ================= CENTER: MAIN FEED ================= -->
+    <div id="centerColumn" class="lg:col-span-6 transition-all duration-300 ease-in-out">
+      <div id="feedView" class="flex flex-col gap-12 lg:pt-32">
+
+        <!-- Projects -->
+        <div>
+          <div class="scan-header border-b border-line pb-4 mb-3">
+            <p class="font-display font-extrabold uppercase text-2xl sm:text-3xl text-white tracking-tight">Projects</p>
+          </div>
+
+          <div id="projectGrid" class="flex flex-col"></div>
+        </div>
+
+        <!-- Career timeline -->
+        <div>
+          <p class="scan-header font-display font-extrabold uppercase text-2xl sm:text-3xl text-white tracking-tight border-b border-line pb-4 mb-5">Experience</p>
+          <div class="flex flex-col gap-7">
+
+            <div>
+              <div class="flex items-start justify-between flex-wrap gap-2">
+                <h4 class="font-display font-semibold text-white text-base sm:text-lg">Microwave Engineer (Internship)</h4>
+                <span class="font-mono text-xs text-faint uppercase">Jun 2026 — Present</span>
+              </div>
+              <p class="font-mono text-xs text-dim mt-0.5 uppercase tracking-wide">Leonardo · Luton, UK · Hybrid</p>
+              <ul class="bullet-list mt-3 text-sm text-dim space-y-1.5">
+                <li>Designed and evaluated RF/microwave components up to 40 GHz, including TRMs and up/down converters.</li>
+                <li>Modelled integrated RF/digital boards using industry-standard simulation tools to optimise performance.</li>
+                <li>Validated hardware in anechoic chambers and lab environments against strict safety standards.</li>
+                <li>Collaborated cross-functionally with mechanical, systems and manufacturing teams.</li>
+                <li>Skills applied: KiCAD, Microsoft Azure, Confluence.</li>
+              </ul>
+            </div>
+
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Single-project detail view -->
+      <div id="projectDetailView">
+        <button onclick="closeProject()" class="focus-ring inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white transition-colors mb-6">
+          <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Portfolio
+        </button>
+        <div id="projectDetailContent"></div>
+      </div>
+
+    </div>
+
+    <!-- ================= RIGHT: LINKEDIN MODULES ================= -->
+    <aside id="rightSidebar" class="lg:col-span-3 flex flex-col gap-8 transition-opacity duration-300 ease-in-out">
+
+      <!-- About Me -->
+      <div>
+        <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">About Me</p>
+        <p class="text-sm text-dim leading-relaxed">
+          Software Engineering with Electronics student at the University of Westminster with
+          hands-on experience across robotics, embedded systems, programming and hardware/software
+          integration. Currently on a summer placement at Leonardo, contributing to RF component
+          design for electronic warfare self-protection systems. Actively building a robotic arm
+          through the SCC programme, and open to placements in embedded systems, robotics,
+          automation and firmware development.
+        </p>
+      </div>
+
+      <!-- Education -->
+      <div class="pt-6 border-t border-line">
+        <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Education</p>
+        <h4 class="font-display font-semibold text-white text-sm">BEng Software Engineering with Electronics</h4>
+        <p class="text-sm text-dim mt-0.5">University of Westminster, London</p>
+        <p class="font-mono text-xs text-faint mt-1 uppercase">Sep 2024 — Jun 2027 (Expected)</p>
+        <p class="text-sm text-dim mt-2 leading-relaxed">
+          <span class="text-white font-medium">Dissertation:</span> Analysis and Design of Wireless
+          Energy Harvesters for IoT Applications - designing, simulating and testing a harvester
+          including an antenna filter at 3.6 GHz for IoT and sub-6GHz 5G.
+        </p>
+        <p class="text-sm text-white font-medium mt-4">Important Modules</p>
+        <ul class="bullet-list mt-2 text-sm text-dim space-y-1.5">
+          <li>Sensors &amp; Signals</li>
+          <li>Embedded System Project (WBL)</li>
+          <li>Operating Systems and System Programming</li>
+          <li>Real-Time Embedded Systems</li>
+          <li>FPGA Design Project</li>
+        </ul>
+      </div>
+
+      <!-- Top Skills -->
+      <div class="pt-6 border-t border-line">
+        <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Top Skills</p>
+        <div class="flex flex-wrap gap-1.5">
+          <span class="tag">Communication</span>
+          <span class="tag">C++</span>
+          <span class="tag">Microcontrollers</span>
+        </div>
+      </div>
+
+      <!-- Courses -->
+      <div class="pt-6 border-t border-line">
+        <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Courses</p>
+        <h4 class="font-display font-semibold text-white text-sm">GEEP Graduate Programme</h4>
+        <p class="text-sm text-dim mt-1 leading-relaxed">Royal Academy of Engineering - bootcamps, mock interviews, assessment centres and mentoring for underrepresented engineering talent.</p>
+      </div>
+
+      <!-- Volunteering -->
+      <div class="pt-6 border-t border-line">
+        <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Volunteering</p>
+        <h4 class="font-display font-semibold text-white text-sm">Volunteer, CARIS Haringey</h4>
+        <p class="font-mono text-xs text-faint mt-1 uppercase">Aug 2024</p>
+        <p class="text-sm text-dim mt-2 leading-relaxed">Led recreational activities for children aged 8-14 during a summer community programme, ensuring a safe and engaging environment.</p>
+      </div>
+
+      <!-- Following -->
+      <div class="pt-6 border-t border-line">
+        <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Following</p>
+        <div class="spec-row"><span class="k">Company</span><span class="v">Leonardo Electronics</span></div>
+        <div class="spec-row"><span class="k">Company</span><span class="v">Westminster SU</span></div>
+      </div>
+
+    </aside>
+
+  </div>
+
+  <footer class="mt-14 pt-6 border-t border-line flex flex-col sm:flex-row justify-between gap-2">
+    <p class="font-mono text-xs text-faint uppercase tracking-wide">Suber Abdi — London, UK</p>
+    <p class="font-mono text-xs text-faint uppercase tracking-wide">Built for recruiters, not scrollers</p>
+  </footer>
+</div>
+
+<script>
+  lucide.createIcons();
+
+  const projects = [
+    {
+      id: 'harvester',
+      status: 'Dissertation · In Progress',
+      title: 'Wireless Energy Harvester for IoT',
+      overview: 'Final-year dissertation analysing, designing, simulating and testing a wireless energy harvester - including an antenna filter at 3.6 GHz - aimed at efficient, battery-free power delivery for IoT and sub-6GHz 5G devices.',
+      stack: 'Antenna filter design, RF-to-DC conversion path, IoT power budget analysis at 3.6 GHz.',
+      challenges: 'Balancing antenna gain against filter selectivity at 3.6GHz while staying within the size and cost constraints typical of IoT devices.',
+      outcome: 'In progress - design, simulation and testing stages ahead of final submission.',
+      tags: ['RF Design', 'Antenna Filters', 'IoT Power'],
+      github: null
+    },
+    {
+      id: 'arm',
+      status: 'Complete · Apr–Jul 2026',
+      title: 'SCC Robotic Arm',
+      overview: 'Research project designing a guide and toolkit enabling CS and Engineering students to build their own robotic arms using first-year programming and electronics skills - evaluating the easiest way to build a low-budget arm and how structured resources improve learning outcomes.',
+      stack: 'Prototype arm builds, wiring loom design, instructional guide, voluntary student questionnaire for evaluation.',
+      challenges: 'Testing prototype arms for assembly difficulty, mechanical reliability, wiring layout and responsiveness, then refining both hardware and documentation from that feedback.',
+      outcome: 'Public toolkit released to CS/Engineering students, with findings feeding back into an accessible, reliable beginner robotics resource.',
+      tags: ['Embedded', 'Robotics', 'Documentation'],
+      github: 'https://github.com/SuberBAbdi/SCC-Robotic-Arm'
+    },
+    {
+      id: 'micromouse',
+      status: 'Complete · Feb–Apr 2026',
+      title: 'Micro Mouse — Autonomous Maze-Solving Robot',
+      overview: 'A team embedded-systems project to build a robot capable of solving a maze without human input, from mechanical design through to firmware.',
+      stack: 'C++ on Mbed via Keil Studio, ultrasonic/IR sensor fusion for wall-following, 3D-printed chassis, GitHub for version control.',
+      challenges: 'Coordinating a team codebase, tuning sensor thresholds for reliable wall-following, and iterating the maze-solving algorithm under time pressure.',
+      outcome: 'Delivered a working autonomous robot as a team, from wiring through firmware to a live maze-run demo.',
+      tags: ['C++', 'Mbed', '3D Printing'],
+      github: 'https://github.com/SuberBAbdi'
+    },
+    {
+      id: 'anpr',
+      status: 'Complete · Dec 2025–Jan 2026',
+      title: 'Number Plate Recognition System',
+      overview: 'A MATLAB-based computer vision tool with a custom GUI that processes vehicle images from a dataset to isolate and identify licence plates, improving image quality before extraction.',
+      stack: 'Greyscale conversion → thresholding → noise removal → morphological operations → binarization, wrapped in a custom MATLAB GUI.',
+      challenges: 'Handling inconsistent lighting and image noise across the input set while keeping the pipeline fast enough for a responsive GUI.',
+      outcome: 'Working end-to-end plate isolation and identification with a usable GUI front-end.',
+      tags: ['MATLAB', 'Image Processing'],
+      github: null,
+      report: 'https://SuberBAbdi.github.io/Number Plate Recognition System/Number_Plate_Recognition_System_Report.pdf',
+      codeFile: 'https://SuberBAbdi.github.io/Number Plate Recognition System/Number_Plate_Recognition_System_Code.m',
+      presentation: 'https://SuberBAbdi.github.io/Number Plate Recognition System/Number_Plate_Recognition_System_Presentation.pptx',
+      images: [
+        'https://SuberBAbdi.github.io/Number Plate Recognition System/1768409533740.jpg',
+        'https://SuberBAbdi.github.io/Number Plate Recognition System/1768409807786.jpg'
+      ]
+    },
+    {
+      id: 'radar',
+      status: 'Complete · Sep–Oct 2025',
+      title: 'Arduino Radar System',
+      overview: 'A hardware radar rig that sweeps an ultrasonic sensor across a field of view and plots detected objects in real time on a Processing (open-source) display.',
+      stack: 'Breadboard, jumper wires, Arduino Nano, HC-SR04 ultrasonic sensor, SG90 servo motor, live visualisation in Processing.',
+      challenges: 'Synchronising servo sweep angle with ultrasonic distance readings to plot an accurate, smooth radar sweep in real time.',
+      outcome: 'A fully functional radar demo with live on-screen visualisation.',
+      tags: ['Arduino', 'Ultrasonic Sensing', 'Processing'],
+      github: null
+    },
+    {
+      id: 'dfmini',
+      status: 'Complete · Aug 2025',
+      title: 'DFMiniPlayer Voltage-Triggered Audio System',
+      overview: 'A small embedded audio project used to build confidence with voltage-triggered logic and serial audio modules ahead of the Arduino Radar System build.',
+      stack: 'DFMiniPlayer module, speaker output, C++ firmware, voltage-range triggering logic.',
+      challenges: 'Mapping analogue voltage ranges reliably to distinct playback triggers without false positives.',
+      outcome: 'Working voltage-triggered playback system, used directly as preparation for the radar project.',
+      tags: ['C++', 'Arduino', 'Audio'],
+      github: null
+    },
+    {
+      id: 'dac',
+      status: 'Complete · Mar–May 2025',
+      title: 'DAC with PIC16F877A',
+      overview: 'A microcontroller instrumentation project converting analogue thermistor readings into a digital display using low-level Assembly firmware.',
+      stack: 'PIC16F877A with onboard Analogue Front-End (AFE), two thermistors, character LCD output, written entirely in Assembly using MPLAB X.',
+      challenges: 'Working at the register level in Assembly to manage ADC timing and LCD refresh without the abstractions of a higher-level language.',
+      outcome: 'Working DAC with live dual-thermistor readout on LCD, built and tested end-to-end.',
+      tags: ['Assembly', 'PIC16F877A', 'MPLAB X'],
+      github: null
+    }
+  ];
+
+  // ---- Sidebar Layout Controls ---------------------------------------
+  let leftSidebarOpen = true;
+  function toggleLeftSidebar() {
+    const leftAside = document.getElementById('leftSidebar');
+    const centerCol = document.getElementById('centerColumn');
+    const toggleBtn = document.getElementById('leftToggleBtn');
+    const profileContent = document.getElementById('leftProfileContent');
+    const isProjectOpen = document.getElementById('projectDetailView').classList.contains('open');
+    
+    leftSidebarOpen = !leftSidebarOpen;
+    if (!leftSidebarOpen) {
+      // Close left sidebar
+      profileContent.classList.add('opacity-0', 'pointer-events-none');
+      setTimeout(() => { profileContent.classList.add('hidden'); }, 300);
+      
+      leftAside.classList.replace('lg:col-span-3', 'lg:col-span-1');
+      if (isProjectOpen) {
+        centerCol.classList.replace('lg:col-span-9', 'lg:col-span-11');
+      } else {
+        centerCol.classList.replace('lg:col-span-6', 'lg:col-span-8');
+      }
+      toggleBtn.innerHTML = `<i data-lucide="panel-left-open" class="w-4 h-4"></i> Show`;
+    } else {
+      // Open left sidebar
+      profileContent.classList.remove('hidden');
+      setTimeout(() => { profileContent.classList.remove('opacity-0', 'pointer-events-none'); }, 50);
+      
+      leftAside.classList.replace('lg:col-span-1', 'lg:col-span-3');
+      if (isProjectOpen) {
+        centerCol.classList.replace('lg:col-span-11', 'lg:col-span-9');
+      } else {
+        centerCol.classList.replace('lg:col-span-8', 'lg:col-span-6');
+      }
+      toggleBtn.innerHTML = `<i data-lucide="panel-left-close" class="w-4 h-4"></i> Hide Profile`;
+    }
+    lucide.createIcons();
+  }
+
+  // ---- Shortened, clickable project rows -----------------------------
+  const grid = document.getElementById('projectGrid');
+  grid.innerHTML = projects.map((p, i) => `
+    <div class="case-card group focus-ring px-3 py-4 border-t border-l border-r border-line ${i === projects.length - 1 ? 'border-b' : ''}" tabindex="0" role="button"
+         aria-label="View ${p.title}" onclick="openProject('${p.id}')"
+         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProject('${p.id}');}">
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+          <span class="font-mono text-xs text-faint shrink-0">${String(i + 1).padStart(2, '0')}</span>
+          <div class="min-w-0 flex-1">
+            <p class="font-mono text-[11px] text-faint uppercase tracking-wider truncate">${p.status}</p>
+            <h4 class="font-display font-semibold text-lg sm:text-xl leading-snug truncate">${p.title}</h4>
+          </div>
+        </div>
+        <i data-lucide="arrow-up-right" class="arrow w-5 h-5 text-dim shrink-0"></i>
+      </div>
+    </div>
+  `).join('');
+  lucide.createIcons();
+
+  // ---- Single-project detail view (swaps the whole feed) -------------
+  const feedView = document.getElementById('feedView');
+  const detailView = document.getElementById('projectDetailView');
+  const detailContent = document.getElementById('projectDetailContent');
+
+  function openProject(id) {
+    const p = projects.find(x => x.id === id);
+    if (!p) return;
+
+    // Build the detail content (including the new ANPR assets)
+    let extraAssets = '';
+    if (p.report || p.codeFile || p.presentation || p.images) {
+      extraAssets += `<div class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">`;
+      if (p.report) extraAssets += `<a href="${p.report}" target="_blank" class="focus-ring flex items-center gap-2 p-3 bg-panel border border-line hover:border-faint text-sm text-dim hover:text-white transition-colors"><i data-lucide="file-text" class="w-4 h-4"></i> View Report (PDF)</a>`;
+      if (p.codeFile) extraAssets += `<a href="${p.codeFile}" target="_blank" class="focus-ring flex items-center gap-2 p-3 bg-panel border border-line hover:border-faint text-sm text-dim hover:text-white transition-colors"><i data-lucide="code" class="w-4 h-4"></i> View Code (.m)</a>`;
+      if (p.presentation) extraAssets += `<a href="${p.presentation}" target="_blank" class="focus-ring flex items-center gap-2 p-3 bg-panel border border-line hover:border-faint text-sm text-dim hover:text-white transition-colors sm:col-span-2"><i data-lucide="monitor-play" class="w-4 h-4"></i> View Presentation</a>`;
+      extraAssets += `</div>`;
+      
+      if (p.images && p.images.length > 0) {
+        extraAssets += `<div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">`;
+        p.images.forEach(img => {
+          extraAssets += `<img src="${img}" alt="Project Image" class="w-full h-auto border border-line rounded-sm opacity-80 hover:opacity-100 transition-opacity">`;
+        });
+        extraAssets += `</div>`;
+      }
+    }
+
+    detailContent.innerHTML = `
+      <p class="font-mono text-xs text-faint uppercase tracking-wider">${p.status}</p>
+      <h3 class="font-display font-extrabold text-3xl sm:text-4xl text-white mt-2 leading-[1.05]">${p.title}</h3>
+
+      <p class="text-base text-[#d2d2d0] mt-6 leading-relaxed max-w-2xl">${p.overview}</p>
+
+      <div class="grid sm:grid-cols-2 gap-px bg-line mt-7 max-w-2xl">
+        <div class="bg-panel p-4">
+          <p class="font-mono text-xs text-dim uppercase tracking-wider mb-1.5">Technical Stack</p>
+          <p class="text-sm text-dim leading-relaxed">${p.stack}</p>
+        </div>
+        <div class="bg-panel p-4">
+          <p class="font-mono text-xs text-dim uppercase tracking-wider mb-1.5">Trade-offs</p>
+          <p class="text-sm text-dim leading-relaxed">${p.challenges}</p>
+        </div>
+        <div class="bg-panel p-4 sm:col-span-2">
+          <p class="font-mono text-xs text-dim uppercase tracking-wider mb-1.5">Outcome</p>
+          <p class="text-sm text-dim leading-relaxed">${p.outcome}</p>
+        </div>
+      </div>
+      
+      ${extraAssets}
+
+      <div class="flex flex-wrap gap-1.5 mt-6">
+        ${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+      </div>
+
+      ${p.github ? `
+      <div class="mt-7 pt-6 border-t border-line max-w-2xl">
+        <a href="${p.github}" target="_blank" rel="noopener"
+           class="focus-ring inline-flex items-center gap-1.5 text-sm border border-line px-3.5 py-2.5 text-[#d2d2d0] hover:border-faint hover:text-white transition-colors">
+          <i data-lucide="github" class="w-4 h-4"></i> GitHub Code <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+        </a>
+      </div>` : ''}
+    `;
+
+    // Hide Right Sidebar & Expand Center
+    document.getElementById('rightSidebar').classList.add('opacity-0', 'pointer-events-none');
+    setTimeout(() => { document.getElementById('rightSidebar').classList.add('hidden'); }, 300);
+    
+    const centerCol = document.getElementById('centerColumn');
+    if(leftSidebarOpen) {
+        centerCol.classList.replace('lg:col-span-6', 'lg:col-span-9');
+    } else {
+        centerCol.classList.replace('lg:col-span-8', 'lg:col-span-11');
+    }
+
+    feedView.style.display = 'none';
+    detailView.classList.add('open');
+    lucide.createIcons();
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    history.replaceState(null, '', `#project-${id}`);
+  }
+
+  function closeProject() {
+    detailView.classList.remove('open');
+    feedView.style.display = 'flex';
+    
+    // Restore Right Sidebar & Center Column
+    const centerCol = document.getElementById('centerColumn');
+    if(leftSidebarOpen) {
+        centerCol.classList.replace('lg:col-span-9', 'lg:col-span-6');
+    } else {
+        centerCol.classList.replace('lg:col-span-11', 'lg:col-span-8');
+    }
+    
+    document.getElementById('rightSidebar').classList.remove('hidden');
+    setTimeout(() => { document.getElementById('rightSidebar').classList.remove('opacity-0', 'pointer-events-none'); }, 50);
+
+    history.replaceState(null, '', window.location.pathname);
+  }
+
+  // Deep-link support: open directly if URL has #project-<id> on load
+  window.addEventListener('DOMContentLoaded', () => {
+    const match = window.location.hash.match(/^#project-(.+)$/);
+    if (match && projects.some(p => p.id === match[1])) openProject(match[1]);
+  });
+
+  // ---- Side-channel square-wave signals ------------------------------
+  (function () {
+    const svgs = document.querySelectorAll('.side-signal svg');
+    if (!svgs.length) return;
+
+    const PERIOD = 96;   // px per full square-wave cycle
+    const AMP = 10;      // half swing
+    const CX = 24;       // centre of the 48px channel
+
+    function build() {
+      const half = Math.ceil(window.innerHeight / PERIOD) * PERIOD;
+      const total = half * 2;
+      const hi = CX + AMP, lo = CX - AMP;
+
+      let d = `M ${hi} 0`;
+      let x = hi;
+      for (let y = PERIOD / 2; y <= total; y += PERIOD / 2) {
+        d += ` V ${y}`;            // hold level
+        x = (x === hi) ? lo : hi;  // toggle
+        d += ` H ${x}`;            // instant edge
+      }
+
+      svgs.forEach(svg => {
+        svg.setAttribute('viewBox', `0 0 48 ${total}`);
+        svg.style.height = total + 'px';
+        svg.style.setProperty('--half', half + 'px');
+        svg.querySelectorAll('path').forEach(p => p.setAttribute('d', d));
+      });
+    }
+
+    window.addEventListener('resize', build);
+    build();
+  })();
+
+  // ---- Floating hardware widgets -------------------------------------
+  (function () {
+    if (window.matchMedia('(max-width: 1023px)').matches) return;
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    // 1. Logic analyzer -------------------------------------------------
+    const laCanvas = document.getElementById('hwLogicCanvas');
+    if (laCanvas) {
+      const ctx = laCanvas.getContext('2d');
+      const W = laCanvas.width, H = laCanvas.height;
+      const chans = ['MOSI', 'MISO', 'SCK', 'CS', 'TX', 'RX'].map((name, i) => ({
+        name,
+        y0: 10 + i * 17,
+        bits: Array.from({ length: W }, () => Math.random() < 0.5 ? 1 : 0),
+        state: 1,
+        hot: 0 // pulse brightness after a toggle
+      }));
+      // SCK is a clean clock
+      chans[2].clock = true;
+      let tick = 0;
+
+      function step() {
+        tick++;
+        for (const c of chans) {
+          if (c.clock) {
+            if (tick % 6 === 0) { c.state ^= 1; c.hot = 1; }
+          } else if (Math.random() < 0.06) {
+            c.state ^= 1; c.hot = 1;
+          }
+          c.bits.push(c.state);
+          c.bits.shift();
+          c.hot *= 0.92;
+        }
+        ctx.clearRect(0, 0, W, H);
+        ctx.font = '8px "JetBrains Mono", monospace';
+        for (const c of chans) {
+          // label
+          ctx.fillStyle = '#68686d';
+          ctx.fillText(c.name, 4, c.y0 + 4);
+          // trace
+          const g = Math.round(163 + c.hot * 80); // pulse toward white on activity
+          ctx.strokeStyle = `rgba(${g},${g},${g + 5},0.9)`;
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          const x0 = 34, span = W - x0 - 4, amp = 5;
+          let prev = c.bits[0];
+          ctx.moveTo(x0, c.y0 + (prev ? -amp : amp));
+          for (let x = 1; x < span; x++) {
+            const b = c.bits[c.bits.length - span + x];
+            const yy = c.y0 + (b ? -amp : amp);
+            if (b !== prev) ctx.lineTo(x0 + x, c.y0 + (prev ? -amp : amp));
+            ctx.lineTo(x0 + x, yy);
+            prev = b;
+          }
+          ctx.stroke();
+        }
+      }
+
+      if (reduceMotion) { step(); }
+      else {
+        let last = 0;
+        (function loop(t) {
+          if (t - last > 50) { step(); last = t; }
+          requestAnimationFrame(loop);
+        })(0);
+      }
+
+      const statuses = ['SAMPLING: 24 MHz', 'DECODING I2C', 'DECODING SPI', 'TRIG: SCK ↑'];
+      let si = 0;
+      const statusEl = document.getElementById('hwLogicStatus');
+      if (!reduceMotion) setInterval(() => {
+        si = (si + 1) % statuses.length;
+        statusEl.textContent = statuses[si];
+      }, 4000);
+    }
+
+    // 2. Register map ---------------------------------------------------
+    const regBody = document.getElementById('hwRegBody');
+    if (regBody) {
+      let portb = 0b10110010, timer1 = 0xFA2C;
+      function hex(n, w) { return '0x' + n.toString(16).toUpperCase().padStart(w, '0'); }
+      function bin(n) { return '0b' + n.toString(2).padStart(8, '0'); }
+      function renderReg() {
+        const adcon = 0x40 | (Math.random() < 0.5 ? 0x01 : 0x03);
+        // flip 1–2 random bits on PORTB
+        portb ^= (1 << Math.floor(Math.random() * 8));
+        if (Math.random() < 0.4) portb ^= (1 << Math.floor(Math.random() * 8));
+        timer1 = (timer1 + 0x0100 + Math.floor(Math.random() * 0x0EFF)) & 0xFFFF;
+        regBody.innerHTML =
+          `ADCON0 : <span class="v">${hex(adcon, 2)}</span> <span class="flag">[ADC ACTIVE]</span>\n` +
+          `PORTB  : <span class="v">${bin(portb)}</span>\n` +
+          `TIMER1 : <span class="v">${hex(timer1, 4)}</span> <span class="flag">(PULSING...)</span>`;
+      }
+      renderReg();
+      if (!reduceMotion) setInterval(renderReg, 900);
+    }
+
+    // 3. Serial terminal ------------------------------------------------
+    const termBody = document.getElementById('hwTermBody');
+    if (termBody) {
+      let h = 0, m = 12, s = 4;
+      const lines = [];
+      function ts() {
+        s += 1 + Math.floor(Math.random() * 3);
+        if (s > 59) { s -= 60; m++; }
+        if (m > 59) { m -= 60; h++; }
+        const p = n => String(n).padStart(2, '0');
+        return `[${p(h)}:${p(m)}:${p(s)}]`;
+      }
+      function randByte() { return '0x' + Math.floor(Math.random() * 256).toString(16).toUpperCase().padStart(2, '0'); }
+      function makeLine() {
+        const r = Math.random();
+        if (r < 0.3) return `${ts()} ADC_READ: ${(2.5 + Math.random() * 0.6).toFixed(2)}V -> <span class="ok">MARGIN_OK</span>`;
+        if (r < 0.55) return `${ts()} TEMP: ${(22 + Math.random() * 4).toFixed(1)}°C <span class="ok">[IN BOUNDS]</span>`;
+        if (r < 0.8) return `${ts()} SPI_TX: ${randByte()} ${randByte()} ${randByte()}`;
+        return `${ts()} I2C ACK @0x3C`;
+      }
+      function renderTerm() {
+        lines.push(makeLine());
+        if (lines.length > 5) lines.shift();
+        termBody.innerHTML = lines.map(l => l.replace(/^(\[[\d:]+\])/, '<span class="ts">$1</span>')).join('<br>') + ' <span class="cursor"></span>';
+      }
+      renderTerm(); renderTerm(); renderTerm();
+      if (!reduceMotion) setInterval(renderTerm, 2200);
+    }
+  })();
+</script>
+
+</body>
+</html>
