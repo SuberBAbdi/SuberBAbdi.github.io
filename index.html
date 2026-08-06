@@ -1,12 +1,18 @@
 <!DOCTYPE html>
 <html lang="en" class="scroll-smooth">
 <head>
-<meta charset="UTF-8">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Suber_Abdi Portfolio</title>
+<title>Suber Abdi Portfolio</title>
 <meta name="description" content="Suber Abdi, Software Engineering with Electronics student, University of Westminster. Microwave Engineer intern at Leonardo. RF/microwave, embedded firmware, robotics.">
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+<!-- Three.js Libraries for 3D Model Rendering -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+
 <script>
   tailwind.config = {
     theme: {
@@ -29,8 +35,8 @@
     }
   }
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="preconnect" href="https://fonts.googleapis.com/">
+<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
 <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
   body{ font-family:'Inter', ui-sans-serif, system-ui; background:#0c0c0d; font-size:16px; }
@@ -74,7 +80,10 @@
   #projectDetailView.open{ display:block; animation:fadeIn .2s ease-out; }
   @keyframes fadeIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
 
-  /* ===== Static header accent + side square-wave channels ===== */
+  .writing-mode-vertical {
+    writing-mode: vertical-rl;
+    transform: rotate(180deg);
+  }
 
   .scan-header{ position:relative; }
   .scan-header::after{
@@ -110,7 +119,6 @@
     to{ stroke-dashoffset:0; }
   }
 
-  /* ===== Floating hardware widgets ===== */
   .hw-widget{
     position:fixed; z-index:30; pointer-events:none;
     background:rgba(19,19,21,.88); border:1px solid #27272a;
@@ -126,24 +134,20 @@
   .hw-dot.live{ animation:hwBlink 1.2s steps(1) infinite; }
   @keyframes hwBlink{ 50%{ opacity:.25; } }
 
-  /* 1. Logic analyzer */
   #hwLogic{ right:14px; bottom:14px; width:212px; }
   #hwLogic canvas{ display:block; width:100%; height:112px; }
 
-  /* 2. Register map */
   #hwReg{ right:14px; top:14px; width:212px; }
   #hwReg .hw-body{ padding:7px 9px; font-size:10.5px; line-height:1.75; color:#a3a3a8; white-space:pre; }
   #hwReg .v{ color:#f1f1ef; }
   #hwReg .flag{ color:#68686d; }
 
-  /* 3. Serial terminal (Shrunk to prevent overlap) */
   #hwTerm{ left:14px; bottom:14px; width:210px; transform: scale(0.9); transform-origin: bottom left; }
   #hwTerm .hw-body{ padding:7px 9px; font-size:9.5px; line-height:1.6; color:#a3a3a8; min-height:80px; }
   #hwTerm .ts{ color:#68686d; }
   #hwTerm .ok{ color:#f1f1ef; }
   #hwTerm .cursor{ display:inline-block; width:6px; height:10px; background:#a3a3a8; animation:hwBlink 1s steps(1) infinite; vertical-align:-1px; }
 
-  /* Widgets are decorative: desktop only */
   @media (max-width:1023px){
     .hw-widget{ display:none !important; }
   }
@@ -155,98 +159,313 @@
   @media (prefers-reduced-motion: reduce){
     *{ animation-duration:.01ms !important; transition-duration:.01ms !important; }
   }
+
+  /* ===== Reusable modal system ===== */
+  body.modal-open{ overflow:hidden; }
+
+  .modal-overlay{
+    position:fixed; inset:0; z-index:900;
+    display:none; align-items:center; justify-content:center;
+    padding:20px;
+    background:rgba(6,6,7,.86);
+    backdrop-filter:blur(5px);
+    opacity:0; transition:opacity .2s ease;
+  }
+  .modal-overlay.open{ display:flex; }
+  .modal-overlay.shown{ opacity:1; }
+
+  .modal-panel{
+    width:100%; max-height:88vh;
+    display:flex; flex-direction:column;
+    background:#0f0f11; border:1px solid #27272a;
+    box-shadow:0 24px 60px rgba(0,0,0,.6);
+    transform:translateY(10px) scale(.985);
+    transition:transform .2s ease;
+  }
+  .modal-overlay.shown .modal-panel{ transform:none; }
+  .modal-lg{ max-width:880px; }
+  .modal-md{ max-width:660px; }
+  .modal-sm{ max-width:520px; }
+
+  .modal-head{
+    display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
+    padding:16px 20px; border-bottom:1px solid #1a1a1c; flex-shrink:0;
+  }
+  .modal-eyebrow{
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.1em;
+    text-transform:uppercase; color:#68686d;
+  }
+  .modal-title{
+    font-family:'Outfit', ui-sans-serif, system-ui; font-weight:700;
+    font-size:1.3rem; color:#ffffff; line-height:1.2; margin-top:3px;
+  }
+  .modal-close{
+    flex-shrink:0; width:30px; height:30px; line-height:1;
+    border:1px solid #27272a; background:transparent; color:#a3a3a8;
+    font-size:16px; transition:all .15s ease;
+  }
+  .modal-close:hover{ border-color:#6b6b70; color:#ffffff; background:#161618; }
+
+  /* Header Section Carousel Nav Buttons */
+  .modal-nav-btn{
+    width:30px; height:30px; border:1px solid #27272a; background:transparent;
+    color:#f1f1ef; font-size:14px; display:inline-flex; align-items:center;
+    justify-content:center; transition:all .15s ease; cursor:pointer;
+  }
+  .modal-nav-btn:hover:not(:disabled){ background:#f1f1ef; color:#0c0c0d; }
+  .modal-nav-btn:disabled{ opacity:.25; cursor:not-allowed; border-color:#1a1a1c; color:#68686d; }
+
+  .modal-body{ overflow-y:auto; padding:20px; }
+  .modal-body p{ font-size:.9rem; line-height:1.7; color:#a3a3a8; }
+  .modal-section{ margin-top:22px; padding-top:18px; border-top:1px solid #1a1a1c; }
+  .modal-section:first-child{ margin-top:0; padding-top:0; border-top:none; }
+  .modal-label{
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.1em;
+    text-transform:uppercase; color:#68686d; margin-bottom:9px;
+  }
+
+  /* ===== Carousel (swipeable multi-image) ===== */
+  .carousel{ position:relative; border:1px solid #27272a; background:#0c0c0d; overflow:hidden; }
+  .carousel-viewport{ overflow:hidden; }
+  .carousel-track{ display:flex; transition:transform .32s cubic-bezier(.4,0,.2,1); }
+  .carousel-slide{ min-width:100%; }
+  .carousel-slide img{ width:100%; display:block; max-height:440px; object-fit:contain; background:#0c0c0d; }
+  .carousel-ph{
+    display:flex; align-items:center; justify-content:center; height:220px;
+    font-family:'JetBrains Mono', monospace; font-size:10.5px; color:#68686d;
+    letter-spacing:.08em; text-transform:uppercase; text-align:center; padding:0 20px;
+  }
+  .carousel-cap{
+    font-family:'JetBrains Mono', monospace; font-size:10.5px; color:#a3a3a8;
+    padding:9px 12px; border-top:1px solid #1a1a1c; letter-spacing:.03em;
+  }
+  .carousel-btn{
+    position:absolute; top:38%; transform:translateY(-50%);
+    width:32px; height:44px; border:1px solid #27272a;
+    background:rgba(12,12,13,.85); color:#f1f1ef; font-size:15px;
+    display:flex; align-items:center; justify-content:center; transition:all .15s ease;
+  }
+  .carousel-btn:hover{ background:#f1f1ef; color:#0c0c0d; }
+  .carousel-btn[disabled]{ opacity:.28; pointer-events:none; }
+  .carousel-prev{ left:8px; }
+  .carousel-next{ right:8px; }
+  .carousel-dots{ display:flex; gap:8px; align-items:center; justify-content:center; padding:12px 0 6px; }
+  .carousel-dot{ width:8px; height:8px; border-radius:50%; background:#27272a; border:none; padding:0; transition:background .15s ease, transform .15s ease; cursor:pointer; }
+  .carousel-dot.active{ background:#f1f1ef; transform:scale(1.1); }
+  .carousel-count{
+    position:absolute; top:8px; right:8px;
+    font-family:'JetBrains Mono', monospace; font-size:10px; color:#a3a3a8;
+    background:rgba(12,12,13,.85); border:1px solid #27272a; padding:2px 7px;
+  }
+
+  /* ===== Clickable sidebar module ===== */
+  .module-btn{ display:block; width:100%; text-align:left; background:transparent; border:none; padding:0; cursor:pointer; }
+  .module-btn .module-title{ transition:color .15s ease; }
+  .module-btn:hover .module-title{ color:#ffffff; }
+  .module-btn:hover .module-more{ color:#f1f1ef; }
+  .module-more{
+    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.08em;
+    text-transform:uppercase; color:#68686d; margin-top:8px;
+    display:inline-flex; align-items:center; gap:5px; transition:color .15s ease;
+  }
+
+  /* ===== Boot / loading screen ===== */
+  html.is-loading, html.is-loading body{ overflow:hidden; height:100%; }
+  #loadScreen{
+    position:fixed; inset:0; z-index:999;
+    background:#0c0c0d;
+    display:flex; align-items:center; justify-content:center;
+    transition:opacity .5s ease, visibility 0s linear 0s;
+  }
+  #loadScreen.ls-hide{
+    opacity:0; visibility:hidden; pointer-events:none;
+    transition:opacity .5s ease, visibility 0s linear .5s;
+  }
+  .ls-inner{ width:260px; display:flex; flex-direction:column; align-items:flex-start; gap:16px; }
+  .ls-mark{
+    font-family:'Outfit', ui-sans-serif, system-ui; font-weight:800; text-transform:uppercase;
+    font-size:1.6rem; letter-spacing:0.02em; color:#f1f1ef; align-self:center;
+  }
+  .ls-mark span{ color:#68686d; }
+  .ls-bar{ width:100%; height:2px; background:#1a1a1c; overflow:hidden; }
+  .ls-bar-fill{ height:100%; width:0%; background:#f1f1ef; transition:width .15s ease-out; }
+  .ls-row{ display:flex; align-items:center; gap:8px; width:100%; font-family:'JetBrains Mono', monospace; }
+  .ls-log{
+    font-size:11px; color:#68686d; letter-spacing:.02em; text-transform:uppercase;
+    flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .ls-pct{ font-size:11px; color:#a3a3a8; font-variant-numeric:tabular-nums; }
+  .ls-dot{ width:5px; height:5px; border-radius:50%; background:#a3a3a8; flex-shrink:0; animation:hwBlink 1.2s steps(1) infinite; }
+
 </style>
 </head>
-<body class="text-[#e6e6e4] antialiased">
+<body class="text-[#e6e6e4] antialiased min-h-screen flex flex-col justify-between">
 
-<!-- Random Background Hardware Scatter -->
-<div class="fixed inset-0 pointer-events-none z-[-2] overflow-hidden opacity-10">
-  <!-- Capacitor -->
-  <svg class="absolute top-[20%] left-[8%]" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="4" y="6" width="16" height="12" rx="2"/><path d="M4 12H0"/><path d="M24 12H20"/></svg>
-  <!-- Resistor -->
-  <svg class="absolute top-[60%] right-[7%] rotate-45" width="32" height="12" viewBox="0 0 32 12" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M0 6h6l2-4 4 8 4-8 4 8 4-8 2 4h6"/></svg>
-  <!-- Small IC -->
-  <svg class="absolute bottom-[25%] left-[5%] -rotate-12" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="6" y="6" width="12" height="12"/><path d="M6 8H2"/><path d="M6 12H2"/><path d="M6 16H2"/><path d="M22 8h-4"/><path d="M22 12h-4"/><path d="M22 16h-4"/></svg>
-  <!-- Schematic Pointer -->
-  <svg class="absolute top-[15%] right-[10%]" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><circle cx="12" cy="12" r="3"/><path d="M12 2v7"/><path d="M12 15v7"/><path d="M2 12h7"/><path d="M15 12h7"/></svg>
+<div id="loadScreen" role="status" aria-live="polite">
+  <div class="ls-inner">
+    <div class="ls-mark">SUBER<span>ABDI</span></div>
+    <div class="ls-bar"><div class="ls-bar-fill" id="lsBarFill"></div></div>
+    <div class="ls-row">
+      <span class="ls-dot"></span>
+      <span class="ls-log" id="lsLog">INITIALIZING PORTFOLIO...</span>
+      <span class="ls-pct" id="lsPct">0%</span>
+    </div>
+  </div>
+</div>
+<script>
+(function(){
+  document.documentElement.classList.add('is-loading');
+
+  function run(){
+    var screen = document.getElementById('loadScreen');
+    var bar = document.getElementById('lsBarFill');
+    var log = document.getElementById('lsLog');
+    var pctEl = document.getElementById('lsPct');
+    if (!screen) return;
+
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var steps = [
+      'INITIALIZING PORTFOLIO...',
+      'MOUNTING PROJECT DATA...',
+      'CALIBRATING RF FRONT-END...',
+      'LINKING PROFILE...',
+      'READY.'
+    ];
+    var pct = 0, stepIdx = 0, finished = false;
+
+    function finish(){
+      if (finished) return;
+      finished = true;
+      screen.classList.add('ls-hide');
+      document.documentElement.classList.remove('is-loading');
+      setTimeout(function(){ if (screen.parentNode) screen.parentNode.removeChild(screen); }, 550);
+    }
+
+    if (reduceMotion) { finish(); return; }
+
+    function tick(){
+      pct = Math.min(100, pct + (Math.random() * 16 + 8));
+      bar.style.width = pct + '%';
+      pctEl.textContent = Math.floor(pct) + '%';
+      var nextStep = Math.floor((pct / 100) * (steps.length - 1));
+      if (nextStep > stepIdx) { stepIdx = nextStep; log.textContent = steps[stepIdx]; }
+      if (pct >= 100) {
+        log.textContent = steps[steps.length - 1];
+        setTimeout(finish, 220);
+      } else {
+        setTimeout(tick, 110 + Math.random() * 130);
+      }
+    }
+    tick();
+
+    setTimeout(finish, 4000);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', run);
+  } else {
+    run();
+  }
+})();
+</script>
+
+<div class="fixed inset-0 pointer-events-none z-[-2] overflow-hidden opacity-20">
+  <svg class="absolute top-[2%] left-[42%]" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="6" y="6" width="12" height="12" rx="1"></rect><path d="M6 9H2M6 12H2M6 15H2 M18 9h4M18 12h4M18 15h4 M9 6V2M12 6V2M15 6V2 M9 18v4M12 18v4M15 18v4"></path></svg>
+  <svg class="absolute top-[6%] left-[48%] -rotate-12" width="28" height="36" viewBox="0 0 24 32" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="6" y="4" width="12" height="24" rx="1"></rect><path d="M6 8H2M6 14H2M6 20H2M6 26H2 M18 8h4M18 14h4M18 20h4M18 26h4"></path><path d="M10 4a2 2 0 0 1 4 0"></path></svg>
+  <svg class="absolute top-[3%] left-[56%]" width="38" height="14" viewBox="0 0 36 14" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M0 7h7l2-5 4 10 4-10 4 10 4-10 2 5h7"></path></svg>
+  <svg class="absolute top-[8%] left-[36%]" width="32" height="32" viewBox="0 0 30 30" fill="none" stroke="#a3a3a8" stroke-width="1.5"><circle cx="6" cy="6" r="3"></circle><circle cx="24" cy="24" r="3"></circle><path d="M6 9v6l12 12"></path></svg>
+  <svg class="absolute top-[9%] left-[53%]" width="30" height="24" viewBox="0 0 28 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M2 6h6M2 18h6M8 3h6a9 9 0 0 1 9 9 9 9 0 0 1-9 9H8V3zM23 12h3"></path></svg>
+  <svg class="absolute top-[4%] left-[64%]" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="7" y="5" width="10" height="14" rx="2"></rect><path d="M12 2v3M12 19v3"></path></svg>
+  <svg class="absolute top-[38%] left-[2%]" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="6" y="6" width="12" height="12" rx="1"></rect><path d="M6 9H2M6 12H2M6 15H2 M18 9h4M18 12h4M18 15h4 M9 6V2M12 6V2M15 6V2 M9 18v4M12 18v4M15 18v4"></path></svg>
+  <svg class="absolute top-[46%] left-[4%] rotate-45" width="28" height="36" viewBox="0 0 24 32" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="6" y="4" width="12" height="24" rx="1"></rect><path d="M6 8H2M6 14H2M6 20H2M6 26H2 M18 8h4M18 14h4M18 20h4M18 26h4"></path><path d="M10 4a2 2 0 0 1 4 0"></path></svg>
+  <svg class="absolute top-[54%] left-[1.5%]" width="40" height="16" viewBox="0 0 32 12" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M0 6h6l2-4 4 8 4-8 4 8 4-8 2 4h6"></path></svg>
+  <svg class="absolute top-[62%] left-[3%]" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><circle cx="12" cy="12" r="9"></circle><path d="M7 12h5M12 7v10M12 9l5-3M12 15l5 3"></path></svg>
+  <svg class="absolute top-[42%] left-[6%]" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M2 12h8M14 12h8M10 5v14M14 5v14"></path></svg>
+  <svg class="absolute top-[50%] left-[7.5%]" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M2 12h6M16 12h6M8 6l8 6-8 6V6zM16 6v12"></path></svg>
+  <svg class="absolute top-[36%] right-[2%]" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="6" y="6" width="12" height="12" rx="1"></rect><path d="M6 9H2M6 12H2M6 15H2 M18 9h4M18 12h4M18 15h4 M9 6V2M12 6V2M15 6V2 M9 18v4M12 18v4M15 18v4"></path></svg>
+  <svg class="absolute top-[45%] right-[3.5%] -rotate-90" width="28" height="36" viewBox="0 0 24 32" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="6" y="4" width="12" height="24" rx="1"></rect><path d="M6 8H2M6 14H2M6 20H2M6 26H2 M18 8h4M18 14h4M18 20h4M18 26h4"></path><path d="M10 4a2 2 0 0 1 4 0"></path></svg>
+  <svg class="absolute top-[53%] right-[1.5%]" width="42" height="16" viewBox="0 0 36 14" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M0 7h7l2-5 4 10 4-10 4 10 4-10 2 5h7"></path></svg>
+  <svg class="absolute top-[60%] right-[3%]" width="32" height="32" viewBox="0 0 30 30" fill="none" stroke="#a3a3a8" stroke-width="1.5"><circle cx="6" cy="6" r="3"></circle><circle cx="24" cy="24" r="3"></circle><path d="M6 9v6l12 12"></path></svg>
+  <svg class="absolute top-[40%] right-[7%]" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M12 2v20M12 2l-6 6M12 2l6 6M4 8h16"></path></svg>
+  <svg class="absolute top-[51%] right-[6.5%]" width="30" height="24" viewBox="0 0 28 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M2 6h6M2 18h6M8 3h6a9 9 0 0 1 9 9 9 9 0 0 1-9 9H8V3zM23 12h3"></path></svg>
+  <svg class="absolute top-[18%] left-[7%]" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="4" y="6" width="16" height="12" rx="2"></rect><path d="M4 12H0"></path><path d="M24 12H20"></path></svg>
+  <svg class="absolute top-[15%] right-[10%]" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v7"></path><path d="M12 15v7"></path><path d="M2 12h7"></path><path d="M15 12h7"></path></svg>
+  <svg class="absolute bottom-[20%] left-[5%]" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="6" y="6" width="12" height="12"></rect><path d="M6 8H2"></path><path d="M6 12H2"></path><path d="M6 16H2"></path><path d="M22 8h-4"></path><path d="M22 12h-4"></path><path d="M22 16h-4"></path></svg>
+  <svg class="absolute bottom-[18%] right-[12%] rotate-45" width="36" height="14" viewBox="0 0 36 14" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M0 7h7l2-5 4 10 4-10 4 10 4-10 2 5h7"></path></svg>
 </div>
 
-<!-- Side-channel RF waveforms (desktop only) -->
 <div class="side-signal side-signal-left hidden lg:block" aria-hidden="true">
-  <svg preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-    <path class="wave-base"></path>
-    <path class="wave-pulse" pathLength="1000"></path>
+  <svg preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 2304" style="height: 2304px; --half: 1152px;">
+    <path class="wave-base" d="M 34 0 V 48 H 14 V 96 H 34 V 144 H 14 V 192 H 34 V 240 H 14 V 288 H 34 V 336 H 14 V 384 H 34 V 432 H 14 V 480 H 34 V 528 H 14 V 576 H 34 V 624 H 14 V 672 H 34 V 720 H 14 V 768 H 34 V 816 H 14 V 864 H 34 V 912 H 14 V 960 H 34 V 1008 H 14 V 1056 H 34 V 1104 H 14 V 1152 H 34 V 1200 H 14 V 1248 H 34 V 1296 H 14 V 1344 H 34 V 1392 H 14 V 1440 H 34 V 1488 H 14 V 1536 H 34 V 1584 H 14 V 1632 H 34 V 1680 H 14 V 1728 H 34 V 1776 H 14 V 1824 H 34 V 1872 H 14 V 1920 H 34 V 1968 H 14 V 2016 H 34 V 2064 H 14 V 2112 H 34 V 2160 H 14 V 2208 H 34 V 2256 H 14 V 2304 H 34"></path>
+    <path class="wave-pulse" pathLength="1000" d="M 34 0 V 48 H 14 V 96 H 34 V 144 H 14 V 192 H 34 V 240 H 14 V 288 H 34 V 336 H 14 V 384 H 34 V 432 H 14 V 480 H 34 V 528 H 14 V 576 H 34 V 624 H 14 V 672 H 34 V 720 H 14 V 768 H 34 V 816 H 14 V 864 H 34 V 912 H 14 V 960 H 34 V 1008 H 14 V 1056 H 34 V 1104 H 14 V 1152 H 34 V 1200 H 14 V 1248 H 34 V 1296 H 14 V 1344 H 34 V 1392 H 14 V 1440 H 34 V 1488 H 14 V 1536 H 34 V 1584 H 14 V 1632 H 34 V 1680 H 14 V 1728 H 34 V 1776 H 14 V 1824 H 34 V 1872 H 14 V 1920 H 34 V 1968 H 14 V 2016 H 34 V 2064 H 14 V 2112 H 34 V 2160 H 14 V 2208 H 34 V 2256 H 14 V 2304 H 34"></path>
   </svg>
 </div>
 <div class="side-signal side-signal-right hidden lg:block" aria-hidden="true">
-  <svg preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-    <path class="wave-base"></path>
-    <path class="wave-pulse" pathLength="1000"></path>
+  <svg preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 2304" style="height: 2304px; --half: 1152px;">
+    <path class="wave-base" d="M 34 0 V 48 H 14 V 96 H 34 V 144 H 14 V 192 H 34 V 240 H 14 V 288 H 34 V 336 H 14 V 384 H 34 V 432 H 14 V 480 H 34 V 528 H 14 V 576 H 34 V 624 H 14 V 672 H 34 V 720 H 14 V 768 H 34 V 816 H 14 V 864 H 34 V 912 H 14 V 960 H 34 V 1008 H 14 V 1056 H 34 V 1104 H 14 V 1152 H 34 V 1200 H 14 V 1248 H 34 V 1296 H 14 V 1344 H 34 V 1392 H 14 V 1440 H 34 V 1488 H 14 V 1536 H 34 V 1584 H 14 V 1632 H 34 V 1680 H 14 V 1728 H 34 V 1776 H 14 V 1824 H 34 V 1872 H 14 V 1920 H 34 V 1968 H 14 V 2016 H 34 V 2064 H 14 V 2112 H 34 V 2160 H 14 V 2208 H 34 V 2256 H 14 V 2304 H 34"></path>
+    <path class="wave-pulse" pathLength="1000" d="M 34 0 V 48 H 14 V 96 H 34 V 144 H 14 V 192 H 34 V 240 H 14 V 288 H 34 V 336 H 14 V 384 H 34 V 432 H 14 V 480 H 34 V 528 H 14 V 576 H 34 V 624 H 14 V 672 H 34 V 720 H 14 V 768 H 34 V 816 H 14 V 864 H 34 V 912 H 14 V 960 H 34 V 1008 H 14 V 1056 H 34 V 1104 H 14 V 1152 H 34 V 1200 H 14 V 1248 H 34 V 1296 H 14 V 1344 H 34 V 1392 H 14 V 1440 H 34 V 1488 H 14 V 1536 H 34 V 1584 H 14 V 1632 H 34 V 1680 H 14 V 1728 H 34 V 1776 H 14 V 1824 H 34 V 1872 H 14 V 1920 H 34 V 1968 H 14 V 2016 H 34 V 2064 H 14 V 2112 H 34 V 2160 H 14 V 2208 H 34 V 2256 H 14 V 2304 H 34"></path>
   </svg>
 </div>
 
-<!-- ===== Floating hardware widgets (decorative, desktop only) ===== -->
-
-<!-- 1. Logic analyzer -->
 <div id="hwLogic" class="hw-widget" aria-hidden="true">
-  <div class="hw-head"><span class="hw-dot live"></span><span id="hwLogicStatus">SAMPLING: 24 MHz</span></div>
+  <div class="hw-head"><span class="hw-dot live"></span><span id="hwLogicStatus">DECODING SPI</span></div>
   <canvas id="hwLogicCanvas" width="212" height="112"></canvas>
 </div>
-
-<!-- 2. MCU register map -->
 <div id="hwReg" class="hw-widget" aria-hidden="true">
   <div class="hw-head"><span class="hw-dot live"></span>MCU_STATUS [PIC16F]</div>
-  <div class="hw-body" id="hwRegBody"></div>
+  <div class="hw-body" id="hwRegBody">ADCON0 : <span class="v">0x41</span> <span class="flag">[ADC ACTIVE]</span>
+PORTB  : <span class="v">0b01111010</span>
+TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></div>
 </div>
-
-<!-- 3. Serial terminal -->
 <div id="hwTerm" class="hw-widget" aria-hidden="true">
   <div class="hw-head"><span class="hw-dot live"></span>/dev/ttyUSB0 · 115200 8N1</div>
-  <div class="hw-body" id="hwTermBody"></div>
+  <div class="hw-body" id="hwTermBody"><span class="ts">[00:15:25]</span> SPI_TX: 0xB3 0x28 0x73<br><span class="ts">[00:15:27]</span> I2C ACK @0x3C<br><span class="ts">[00:15:29]</span> ADC_READ: 2.93V -&gt; <span class="ok">MARGIN_OK</span><br><span class="ts">[00:15:30]</span> TEMP: 25.7°C <span class="ok">[IN BOUNDS]</span><br><span class="ts">[00:15:32]</span> ADC_READ: 2.69V -&gt; <span class="ok">MARGIN_OK</span> <span class="cursor"></span></div>
 </div>
 
+<div class="max-w-[1400px] w-full mx-auto px-3 sm:px-4 lg:px-6 py-6 lg:py-10 flex-1 flex flex-col justify-between">
 
-<div class="max-w-[1400px] mx-auto px-3 sm:px-4 lg:px-6 py-6 lg:py-10">
-
-  <div class="flex flex-col gap-8 lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start">
+  <div class="flex-1 flex flex-col gap-8 lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start relative pb-12 lg:pb-16">
 
     <!-- ================= LEFT: PROFILE ================= -->
-    <aside id="leftSidebar" class="lg:col-span-3 lg:sticky lg:top-8 transition-all duration-300 ease-in-out origin-left">
+    <aside id="leftSidebar" class="lg:col-span-3 lg:sticky lg:top-8 transition-all duration-300 ease-in-out origin-left relative pt-16 lg:pt-0">
       
-      <!-- TOGGLE BUTTON -->
-      <button onclick="toggleLeftSidebar()" class="focus-ring mb-4 inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white transition-colors" id="leftToggleBtn">
-        <i data-lucide="panel-left-close" class="w-4 h-4"></i> Hide Profile
-      </button>
+      <button onclick="toggleLeftSidebar()" aria-label="Toggle Profile" class="focus-ring absolute top-4 right-0 p-2.5 bg-line border border-faint text-white hover:bg-ink hover:text-base hover:border-ink transition-all duration-300 flex items-center justify-center z-10 shadow-lg rounded-sm" id="leftToggleBtn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="panel-left-close" aria-hidden="true" class="lucide lucide-panel-left-close w-5 h-5"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M15 3v18"></path><path d="m8 9-3 3 3 3"></path></svg></button>
 
-      <div id="leftProfileContent" class="transition-opacity duration-300">
+      <div id="leftCollapsedIndicator" class="hidden absolute top-14 inset-x-0 pt-2 flex flex-col items-center gap-4 transition-opacity duration-300">
+        <span class="writing-mode-vertical font-mono text-xs uppercase tracking-widest text-dim hover:text-white transition-colors cursor-pointer select-none" onclick="toggleLeftSidebar()">
+          SUBER ABDI <span class="text-faint">· SOFTWARE &amp; ELECTRONICS</span>
+        </span>
+      </div>
+
+      <div id="leftProfileContent" class="transition-opacity duration-300 mt-2 lg:mt-0">
         <h1 class="font-display font-extrabold uppercase leading-[0.92] text-4xl sm:text-5xl lg:text-[2.6rem] text-white">
           Suber<br>Abdi
         </h1>
-        <p class="font-mono text-xs uppercase tracking-widest text-dim mt-3">
+        <p class="font-mono text-xs uppercase tracking-widest text-dim mt-3 pr-4">
           Software Engineering with<br>Electronics · Graduate 2027
         </p>
 
         <div class="mt-5 flex flex-col gap-2">
           <span class="tag inline-flex items-center gap-2 w-fit">
-            <span class="w-1.5 h-1.5 bg-[#f1f1ef] rounded-full"></span> Open to Work
+            <span class="w-4 flex items-center justify-center shrink-0"><span class="w-1.5 h-1.5 rounded-full" style="background:#22c55e"></span></span> Open to Work
           </span>
           <span class="tag inline-flex items-center gap-2 w-fit">
-            <i data-lucide="map-pin" class="w-3.5 h-3.5"></i> Greater London · On-site / Hybrid / Remote
+            <span class="w-4 flex items-center justify-center shrink-0">
+              <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="map-pin" aria-hidden="true" style="color:#ef4444" class="lucide lucide-map-pin w-3.5 h-3.5"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"></path><circle cx="12" cy="10" r="3"></circle></svg>
+            </span> 
+            Greater London, UK
           </span>
         </div>
 
         <div class="mt-6 grid grid-cols-1 gap-2.5">
-          <a href="Suber_Abdi_CV.pdf" download class="btn-solid btn-block focus-ring flex items-center justify-center gap-2">
-            <i data-lucide="download" class="w-4 h-4"></i> Download Resume
-          </a>
-          <a href="https://www.linkedin.com/in/suber-abdi-889182331/recent-activity/all/" target="_blank" rel="noopener" class="btn-line btn-block focus-ring flex items-center justify-center gap-2">
-            <i data-lucide="linkedin" class="w-4 h-4"></i> Feed
+          <a href="Suber_Abdi_CV.pdf" download="" class="btn-solid btn-block focus-ring flex items-center justify-center gap-2">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="download" aria-hidden="true" class="lucide lucide-download w-4 h-4"><path d="M12 15V3"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path></svg> Resume
           </a>
         </div>
 
         <div class="mt-8 pt-6 border-t border-line">
           <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Toolchain</p>
-          <div class="flex flex-wrap gap-1.5">
+          <div class="flex flex-wrap gap-1.5" id="toolchain-container">
             <span class="tag">C / C++</span>
             <span class="tag">Python</span>
             <span class="tag">Assembly</span>
@@ -256,18 +475,15 @@
             <span class="tag">PIC16F877A</span>
             <span class="tag">Mbed / Keil</span>
             <span class="tag">Keysight ADS</span>
-            <span class="tag">SPI / I2C</span>
-            <span class="tag">Fusion 360</span>
-            <span class="tag">Azure</span>
-            <span class="tag">Confluence</span>
+            <button class="tag hover:text-white hover:border-dim transition-colors cursor-pointer focus-ring" onclick="openModal('toolchain')">See More (+4)</button>
           </div>
         </div>
 
         <div class="mt-8 pt-6 border-t border-line">
           <p class="font-mono text-xs uppercase tracking-widest text-faint mb-2">Contact Me</p>
-          <div class="spec-row"><span class="k">Email</span><a href="mailto:suberabdi54@gmail.com" class="v hover:text-white transition-colors">suberabdi54@gmail.com</a></div>
+          <div class="spec-row"><span class="k">Email</span><a href="mailto:suberabdi54@gmail.com" class="v hover:text-white transition-colors">suberabdi54@gmail.com ↗</a></div>
           <div class="spec-row"><span class="k">GitHub</span><a href="https://github.com/SuberBAbdi" target="_blank" rel="noopener" class="v hover:text-white transition-colors">SuberBAbdi ↗</a></div>
-          <div class="spec-row"><span class="k">LinkedIn</span><a href="https://www.linkedin.com/in/suber-abdi-889182331/" target="_blank" rel="noopener" class="v hover:text-white transition-colors">View Profile ↗</a></div>
+          <div class="spec-row"><span class="k">LinkedIn</span><a href="https://www.linkedin.com/in/suber-abdi-889182331/" target="_blank" rel="noopener" class="v hover:text-white transition-colors">Profile ↗</a></div>
           <div class="spec-row"><span class="k">Location</span><span class="v">London, UK</span></div>
           <div class="spec-row"><span class="k">Right to Work</span><span class="v">United Kingdom</span></div>
         </div>
@@ -275,9 +491,9 @@
         <div class="mt-8 pt-6 border-t border-line">
           <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Mentor Note</p>
           <p class="text-sm text-dim leading-relaxed italic">
-            "A diligent, effective communicator who secured his own placement at Leonardo."
+            "I have had the priveledge of mentoring Suber as part of the GEEP programme. Suber has shown to be very diligent in his work ethic and very effective in his communication as shown in securing a internship with Leonardo. I wish you all the best for the future in the placement and your third year."
           </p>
-          <p class="font-mono text-xs text-faint mt-2">- Matthew Kingham, GEEP Mentor · Johnson Matthey</p>
+          <p class="font-mono text-xs text-faint mt-2">- <a href="https://www.linkedin.com/in/matthew-kingham-9059a081/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base%3BhbmdhNLhTima1YsNmyUtcQ%3D%3D" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-2">Matthew Kingham</a>, GEEP Mentor · Johnson Matthey</p>
         </div>
       </div>
     </aside>
@@ -286,44 +502,44 @@
     <div id="centerColumn" class="lg:col-span-6 transition-all duration-300 ease-in-out">
       <div id="feedView" class="flex flex-col gap-12 lg:pt-32">
 
-        <!-- Projects -->
         <div>
           <div class="scan-header border-b border-line pb-4 mb-3">
             <p class="font-display font-extrabold uppercase text-2xl sm:text-3xl text-white tracking-tight">Projects</p>
           </div>
 
-          <div id="projectGrid" class="flex flex-col"></div>
+          <div id="projectGrid" class="flex flex-col">
+            <!-- Populated via JS -->
+          </div>
+          <div id="projectToggleContainer">
+            <!-- Populated via JS -->
+          </div>
         </div>
 
-        <!-- Career timeline -->
         <div>
           <p class="scan-header font-display font-extrabold uppercase text-2xl sm:text-3xl text-white tracking-tight border-b border-line pb-4 mb-5">Experience</p>
           <div class="flex flex-col gap-7">
-
             <div>
               <div class="flex items-start justify-between flex-wrap gap-2">
                 <h4 class="font-display font-semibold text-white text-base sm:text-lg">Microwave Engineer (Internship)</h4>
-                <span class="font-mono text-xs text-faint uppercase">Jun 2026 — Present</span>
+                <span class="font-mono text-xs text-faint uppercase">Jun 2026 - Aug 2026</span>
               </div>
-              <p class="font-mono text-xs text-dim mt-0.5 uppercase tracking-wide">Leonardo · Luton, UK · Hybrid</p>
+              <p class="font-mono text-xs text-dim mt-0.5 uppercase tracking-wide">Leonardo · Luton, England, UK · Hybrid</p>
+              <p class="text-sm text-dim mt-3 leading-relaxed">Working within a multi-disciplinary team to design and evaluate advanced RF components used in electronic warfare self-protection systems.</p>
               <ul class="bullet-list mt-3 text-sm text-dim space-y-1.5">
-                <li>Designed and evaluated RF/microwave components up to 40 GHz, including TRMs and up/down converters.</li>
-                <li>Modelled integrated RF/digital boards using industry-standard simulation tools to optimise performance.</li>
-                <li>Validated hardware in anechoic chambers and lab environments against strict safety standards.</li>
-                <li>Collaborated cross-functionally with mechanical, systems and manufacturing teams.</li>
-                <li>Skills applied: KiCAD, Microsoft Azure, Confluence.</li>
+                <li><strong>RF Circuit & Component Design:</strong> Assist in designing and developing microwave and RF components operating up to 40 GHz, including transmit/receive modules (TRMs) and up/down converters.</li>
+                <li><strong>Simulation & Modelling:</strong> Use industry-standard simulation tools (Keysight ADS) to model integrated RF/digital boards and optimise component performance.</li>
+                <li><strong>Laboratory Testing:</strong> Test and validate hardware designs in anechoic chambers and state-of-the-art lab environments, ensuring compliance with strict environmental and safety standards.</li>
+                <li><strong>Cross-Disciplinary Collaboration:</strong> Partner with mechanical, systems, and manufacturing teams to ensure seamless integration of RF modules into larger defence platforms.</li>
               </ul>
             </div>
-
           </div>
         </div>
 
       </div>
 
-      <!-- Single-project detail view -->
       <div id="projectDetailView">
         <button onclick="closeProject()" class="focus-ring inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white transition-colors mb-6">
-          <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Portfolio
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-left" aria-hidden="true" class="lucide lucide-arrow-left w-3.5 h-3.5"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg> Back to Portfolio
         </button>
         <div id="projectDetailContent"></div>
       </div>
@@ -333,10 +549,12 @@
     <!-- ================= RIGHT: LINKEDIN MODULES ================= -->
     <aside id="rightSidebar" class="lg:col-span-3 flex flex-col gap-8 transition-opacity duration-300 ease-in-out">
 
-      <!-- About Me -->
       <div>
-        <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">About Me</p>
-        <p class="text-sm text-dim leading-relaxed">
+        <div class="flex items-center justify-between mb-3">
+          <p class="font-mono text-xs uppercase tracking-widest text-faint">About Me</p>
+          <button id="aboutToggleBtn" onclick="const t = document.getElementById('aboutText'); t.classList.toggle('line-clamp-3'); this.innerText = t.classList.contains('line-clamp-3') ? 'See More' : 'See Less';" class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring">See More</button>
+        </div>
+        <p id="aboutText" class="text-sm text-dim leading-relaxed line-clamp-3 transition-all duration-300">
           Software Engineering with Electronics student at the University of Westminster with
           hands-on experience across robotics, embedded systems, programming and hardware/software
           integration. Currently on a summer placement at Leonardo, contributing to RF component
@@ -346,64 +564,67 @@
         </p>
       </div>
 
-      <!-- Education -->
       <div class="pt-6 border-t border-line">
         <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Education</p>
-        <h4 class="font-display font-semibold text-white text-sm">BEng Software Engineering with Electronics</h4>
-        <p class="text-sm text-dim mt-0.5">University of Westminster, London</p>
+        <h4 class="font-display font-semibold text-white text-sm">University of Westminster, London</h4>
+        <p class="text-sm text-dim mt-0.5">BEng Software Engineering with Electronics</p>
         <p class="font-mono text-xs text-faint mt-1 uppercase">Sep 2024 — Jun 2027 (Expected)</p>
-        <p class="text-sm text-dim mt-2 leading-relaxed">
-          <span class="text-white font-medium">Dissertation:</span> Analysis and Design of Wireless
-          Energy Harvesters for IoT Applications - designing, simulating and testing a harvester
-          including an antenna filter at 3.6 GHz for IoT and sub-6GHz 5G.
-        </p>
-        <p class="text-sm text-white font-medium mt-4">Important Modules</p>
-        <ul class="bullet-list mt-2 text-sm text-dim space-y-1.5">
-          <li>Sensors &amp; Signals</li>
-          <li>Embedded System Project (WBL)</li>
-          <li>Operating Systems and System Programming</li>
-          <li>Real-Time Embedded Systems</li>
-          <li>FPGA Design Project</li>
-        </ul>
+
+        <h4 class="font-display font-semibold text-white text-sm pt-4 cursor-pointer hover:underline" onclick="openProject('harvester'); return false;">Analysis and Design of Wireless Energy Harvesters for IoT Applications <i data-lucide="link" class="w-3.5 h-3.5 text-faint inline-block align-text-bottom ml-1 shrink-0"></i></h4>
+        <p class="text-sm text-dim mt-0.5 leading-relaxed">The project aims to familiarise the student with the concept and implementation of efficient 
+wireless energy harvesters for IoT and sub-6GHz 5G applications. The student would be 
+expected to analyse, design, and simulate, and possibly implement and test a wireless 
+energy harvester including one antenna filter at 3.6 GHz. .</p>
+
+        <button class="module-btn focus-ring mt-4" onclick="openModal('modules')">
+          <h4 class="module-title font-display font-semibold text-dim text-sm">View Key Modules ↗</h4>
+        </button>
       </div>
 
-      <!-- Top Skills -->
       <div class="pt-6 border-t border-line">
         <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Top Skills</p>
         <div class="flex flex-wrap gap-1.5">
           <span class="tag">Communication</span>
           <span class="tag">C++</span>
           <span class="tag">Microcontrollers</span>
+          <span class="tag">RF Design</span>
+          <button class="tag hover:text-white hover:border-dim transition-colors cursor-pointer focus-ring" onclick="openModal('skills')">See More (+2)</button>
         </div>
       </div>
 
-      <!-- Courses -->
       <div class="pt-6 border-t border-line">
-        <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Courses</p>
-        <h4 class="font-display font-semibold text-white text-sm">GEEP Graduate Programme</h4>
-        <p class="text-sm text-dim mt-1 leading-relaxed">Royal Academy of Engineering - bootcamps, mock interviews, assessment centres and mentoring for underrepresented engineering talent.</p>
+        <div class="flex items-center justify-between">
+          <p class="font-mono text-xs uppercase tracking-widest text-faint">Courses</p>
+          <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openModalCategory('courses', 0)">View All ↗</button>
+        </div>
       </div>
 
-      <!-- Volunteering -->
       <div class="pt-6 border-t border-line">
-        <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Volunteering</p>
-        <h4 class="font-display font-semibold text-white text-sm">Volunteer, CARIS Haringey</h4>
-        <p class="font-mono text-xs text-faint mt-1 uppercase">Aug 2024</p>
-        <p class="text-sm text-dim mt-2 leading-relaxed">Led recreational activities for children aged 8-14 during a summer community programme, ensuring a safe and engaging environment.</p>
+        <div class="flex items-center justify-between">
+          <p class="font-mono text-xs uppercase tracking-widest text-faint">Part-Time Experience</p>
+          <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openModalCategory('partTime', 0)">View All ↗</button>
+        </div>
       </div>
 
-      <!-- Following -->
       <div class="pt-6 border-t border-line">
-        <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Following</p>
-        <div class="spec-row"><span class="k">Company</span><span class="v">Leonardo Electronics</span></div>
-        <div class="spec-row"><span class="k">Company</span><span class="v">Westminster SU</span></div>
+        <div class="flex items-center justify-between">
+          <p class="font-mono text-xs uppercase tracking-widest text-faint">Volunteering</p>
+          <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openModalCategory('volunteering', 0)">View All ↗</button>
+        </div>
+      </div>
+
+      <div class="pt-6 border-t border-line">
+        <div class="flex items-center justify-between">
+          <p class="font-mono text-xs uppercase tracking-widest text-faint">Following</p>
+          <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openModalCategory('following', 0)">View All ↗</button>
+        </div>
       </div>
 
     </aside>
 
   </div>
 
-  <footer class="mt-14 pt-6 border-t border-line flex flex-col sm:flex-row justify-between gap-2">
+  <footer class="mt-auto pt-8 border-t border-line flex flex-col sm:flex-row justify-between gap-2">
     <p class="font-mono text-xs text-faint uppercase tracking-wide">Suber Abdi — London, UK</p>
     <p class="font-mono text-xs text-faint uppercase tracking-wide">Built for recruiters, not scrollers</p>
   </footer>
@@ -421,6 +642,8 @@
       stack: 'Antenna filter design, RF-to-DC conversion path, IoT power budget analysis at 3.6 GHz.',
       challenges: 'Balancing antenna gain against filter selectivity at 3.6GHz while staying within the size and cost constraints typical of IoT devices.',
       outcome: 'In progress - design, simulation and testing stages ahead of final submission.',
+      has3DModel: true,
+      stlPath: 'Suber_Abdi_Antenna_Enclosure.stl',
       tags: ['RF Design', 'Antenna Filters', 'IoT Power'],
       github: null
     },
@@ -460,8 +683,8 @@
       codeFile: 'https://SuberBAbdi.github.io/Number Plate Recognition System/Number_Plate_Recognition_System_Code.m',
       presentation: 'https://SuberBAbdi.github.io/Number Plate Recognition System/Number_Plate_Recognition_System_Presentation.pptx',
       images: [
-        'https://SuberBAbdi.github.io/Number Plate Recognition System/1768409533740.jpg',
-        'https://SuberBAbdi.github.io/Number Plate Recognition System/1768409807786.jpg'
+        'https://SuberBAbdi.github.io/Number Plate Recognition System/1768409533742.jpg',
+        'https://SuberBAbdi.github.io/Number Plate Recognition System/1768409807855.jpg'
       ]
     },
     {
@@ -499,20 +722,22 @@
     }
   ];
 
-  // ---- Sidebar Layout Controls ---------------------------------------
   let leftSidebarOpen = true;
   function toggleLeftSidebar() {
     const leftAside = document.getElementById('leftSidebar');
     const centerCol = document.getElementById('centerColumn');
     const toggleBtn = document.getElementById('leftToggleBtn');
     const profileContent = document.getElementById('leftProfileContent');
+    const collapsedIndicator = document.getElementById('leftCollapsedIndicator');
     const isProjectOpen = document.getElementById('projectDetailView').classList.contains('open');
     
     leftSidebarOpen = !leftSidebarOpen;
     if (!leftSidebarOpen) {
-      // Close left sidebar
       profileContent.classList.add('opacity-0', 'pointer-events-none');
-      setTimeout(() => { profileContent.classList.add('hidden'); }, 300);
+      setTimeout(() => { 
+        profileContent.classList.add('hidden'); 
+        collapsedIndicator.classList.remove('hidden');
+      }, 300);
       
       leftAside.classList.replace('lg:col-span-3', 'lg:col-span-1');
       if (isProjectOpen) {
@@ -520,9 +745,11 @@
       } else {
         centerCol.classList.replace('lg:col-span-6', 'lg:col-span-8');
       }
-      toggleBtn.innerHTML = `<i data-lucide="panel-left-open" class="w-4 h-4"></i> Show`;
+      toggleBtn.classList.remove('top-4', 'right-0');
+      toggleBtn.classList.add('top-0', 'left-1/2', '-translate-x-1/2');
+      toggleBtn.innerHTML = `<i data-lucide="panel-left-open" class="w-5 h-5"></i>`;
     } else {
-      // Open left sidebar
+      collapsedIndicator.classList.add('hidden');
       profileContent.classList.remove('hidden');
       setTimeout(() => { profileContent.classList.remove('opacity-0', 'pointer-events-none'); }, 50);
       
@@ -532,55 +759,291 @@
       } else {
         centerCol.classList.replace('lg:col-span-8', 'lg:col-span-6');
       }
-      toggleBtn.innerHTML = `<i data-lucide="panel-left-close" class="w-4 h-4"></i> Hide Profile`;
+      toggleBtn.classList.remove('top-0', 'left-1/2', '-translate-x-1/2');
+      toggleBtn.innerHTML = `<i data-lucide="panel-left-close" class="w-5 h-5"></i>`;
     }
     lucide.createIcons();
   }
 
-  // ---- Shortened, clickable project rows -----------------------------
-  const grid = document.getElementById('projectGrid');
-  grid.innerHTML = projects.map((p, i) => `
-    <div class="case-card group focus-ring px-3 py-4 border-t border-l border-r border-line ${i === projects.length - 1 ? 'border-b' : ''}" tabindex="0" role="button"
-         aria-label="View ${p.title}" onclick="openProject('${p.id}')"
-         onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProject('${p.id}');}">
-      <div class="flex items-center justify-between gap-3">
-        <div class="flex items-center gap-3 min-w-0 flex-1">
-          <span class="font-mono text-xs text-faint shrink-0">${String(i + 1).padStart(2, '0')}</span>
-          <div class="min-w-0 flex-1">
-            <p class="font-mono text-[11px] text-faint uppercase tracking-wider truncate">${p.status}</p>
-            <h4 class="font-display font-semibold text-lg sm:text-xl leading-snug truncate">${p.title}</h4>
+  let projectsExpanded = false;
+  function renderProjectGrid() {
+    const grid = document.getElementById('projectGrid');
+    const toggleContainer = document.getElementById('projectToggleContainer');
+    
+    const limit = projectsExpanded ? projects.length : 3;
+    const visible = projects.slice(0, limit);
+    
+    grid.innerHTML = visible.map((p, i) => `
+      <div class="case-card group focus-ring px-3 py-4 border-t border-l border-r border-line ${i === visible.length - 1 && !projectsExpanded ? 'border-b rounded-b-sm' : (i === projects.length - 1 ? 'border-b rounded-b-sm' : '')}" tabindex="0" role="button"
+           aria-label="View ${p.title}" onclick="openProject('${p.id}')"
+           onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProject('${p.id}');}">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3 min-w-0 flex-1">
+            <span class="font-mono text-xs text-faint shrink-0">${String(projects.indexOf(p) + 1).padStart(2, '0')}</span>
+            <div class="min-w-0 flex-1">
+              <p class="font-mono text-[11px] text-faint uppercase tracking-wider truncate">${p.status}</p>
+              <h4 class="font-display font-semibold text-lg sm:text-xl leading-snug truncate">${p.title}</h4>
+            </div>
           </div>
+          <i data-lucide="arrow-up-right" class="arrow w-5 h-5 text-dim shrink-0"></i>
         </div>
-        <i data-lucide="arrow-up-right" class="arrow w-5 h-5 text-dim shrink-0"></i>
       </div>
-    </div>
-  `).join('');
-  lucide.createIcons();
+    `).join('');
 
-  // ---- Single-project detail view (swaps the whole feed) -------------
+    if (projects.length > 3) {
+      toggleContainer.innerHTML = `
+        <button onclick="toggleProjects()" class="w-full py-3.5 flex items-center justify-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white bg-panel border-x border-b border-line hover:border-faint transition-colors rounded-b-sm focus-ring mt-0 relative top-[-1px]">
+          ${projectsExpanded ? 'Retract Projects <i data-lucide="chevron-up" class="w-4 h-4"></i>' : 'Expand All Projects <i data-lucide="chevron-down" class="w-4 h-4"></i>'}
+        </button>
+      `;
+    } else {
+      toggleContainer.innerHTML = '';
+    }
+    lucide.createIcons();
+  }
+
+  function toggleProjects() {
+    projectsExpanded = !projectsExpanded;
+    renderProjectGrid();
+  }
+
+  renderProjectGrid();
+
+  function togglePdfViewer(url) {
+    const container = document.getElementById('pdfViewerContainer');
+    const iframe = document.getElementById('pdfIframe');
+    if (!container || !iframe) return;
+
+    if (container.classList.contains('hidden')) {
+      iframe.src = url;
+      container.classList.remove('hidden');
+    } else {
+      container.classList.add('hidden');
+      iframe.src = '';
+    }
+  }
+
+  function generateCarouselHTML(slides, idPrefix) {
+    if (!slides || slides.length === 0) return '';
+    let trackHTML = '';
+    let dotsHTML = '';
+    slides.forEach((s, i) => {
+      let mediaHTML = '';
+      if (s.src.toLowerCase().endsWith('.pdf')) {
+        mediaHTML = `<iframe src="${s.src}" class="w-full h-[400px] border-none bg-white"></iframe>`;
+      } else {
+        mediaHTML = `<img src="${s.src}" alt="${s.cap}">`;
+      }
+      
+      trackHTML += `
+        <div class="carousel-slide shrink-0 w-full" id="${idPrefix}-slide-${i}">
+          ${mediaHTML}
+          ${s.cap ? `<div class="carousel-cap">${s.cap}</div>` : ''}
+        </div>
+      `;
+      dotsHTML += `<button class="carousel-dot ${i === 0 ? 'active' : ''}" onclick="goToSlide('${idPrefix}', ${i})"></button>`;
+    });
+
+    return `
+      <div class="carousel mt-6 rounded-sm" id="${idPrefix}-carousel" data-current="0" data-total="${slides.length}">
+        <div class="carousel-count"><span id="${idPrefix}-count">1</span> / ${slides.length}</div>
+        <div class="carousel-viewport relative">
+          <div class="carousel-track flex transition-transform duration-300" id="${idPrefix}-track">
+            ${trackHTML}
+          </div>
+          ${slides.length > 1 ? `
+          <button class="carousel-btn carousel-prev" onclick="moveSlide('${idPrefix}', -1)" disabled>❮</button>
+          <button class="carousel-btn carousel-next" onclick="moveSlide('${idPrefix}', 1)">❯</button>
+          ` : ''}
+        </div>
+        ${slides.length > 1 ? `<div class="carousel-dots" id="${idPrefix}-dots">${dotsHTML}</div>` : ''}
+      </div>
+    `;
+  }
+
   const feedView = document.getElementById('feedView');
   const detailView = document.getElementById('projectDetailView');
   const detailContent = document.getElementById('projectDetailContent');
+
+  let active3DAnimationId = null;
+
+  function init3DViewer(containerId, stlFilePath) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    container.innerHTML = '';
+
+    const width = container.clientWidth || 600;
+    const height = container.clientHeight || 320;
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0x0c0c0d);
+
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
+    camera.position.set(100, 100, 100);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setSize(width, height);
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    container.appendChild(renderer.domElement);
+
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    scene.add(ambientLight);
+
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+    dirLight1.position.set(1, 1, 1).normalize();
+    scene.add(dirLight1);
+
+    const dirLight2 = new THREE.DirectionalLight(0x555555, 0.5);
+    dirLight2.position.set(-1, -1, -1).normalize();
+    scene.add(dirLight2);
+
+    let controls;
+    if (THREE.OrbitControls) {
+      controls = new THREE.OrbitControls(camera, renderer.domElement);
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.05;
+    }
+
+    let modelMesh = null;
+
+    const loader = new THREE.STLLoader();
+    loader.load(
+      stlFilePath,
+      function (geometry) {
+        const material = new THREE.MeshStandardMaterial({
+          color: 0xd2d2d0,
+          metalness: 0.3,
+          roughness: 0.4
+        });
+        
+        geometry.center();
+        modelMesh = new THREE.Mesh(geometry, material);
+
+        geometry.computeBoundingSphere();
+        const radius = geometry.boundingSphere.radius;
+        camera.position.set(radius * 2, radius * 2, radius * 2);
+        camera.lookAt(0, 0, 0);
+
+        scene.add(modelMesh);
+
+        const loadingOverlay = container.querySelector('.stl-loading');
+        if (loadingOverlay) loadingOverlay.remove();
+      },
+      function (xhr) {
+        const pct = Math.round((xhr.loaded / (xhr.total || 1)) * 100);
+        const loadingOverlay = container.querySelector('.stl-loading');
+        if (loadingOverlay) loadingOverlay.textContent = `LOADING 3D MODEL... ${pct}%`;
+      },
+      function (error) {
+        const loadingOverlay = container.querySelector('.stl-loading');
+        if (loadingOverlay) {
+          loadingOverlay.textContent = '3D CAD Model Placeholder (STL file preview)';
+        }
+      }
+    );
+
+    const placeholderText = document.createElement('div');
+    placeholderText.className = 'stl-loading absolute inset-0 flex items-center justify-center font-mono text-xs text-dim pointer-events-none bg-base/60';
+    placeholderText.textContent = 'LOADING 3D MODEL...';
+    container.appendChild(placeholderText);
+
+    function animate() {
+      active3DAnimationId = requestAnimationFrame(animate);
+      if (controls) controls.update();
+      if (modelMesh && !controls?.isHovered) {
+        modelMesh.rotation.y += 0.005;
+      }
+      renderer.render(scene, camera);
+    }
+    animate();
+
+    const handleResize = () => {
+      if (!container) return;
+      const w = container.clientWidth;
+      const h = container.clientHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    };
+    window.addEventListener('resize', handleResize);
+  }
 
   function openProject(id) {
     const p = projects.find(x => x.id === id);
     if (!p) return;
 
-    // Build the detail content (including the new ANPR assets)
+    if (active3DAnimationId) {
+      cancelAnimationFrame(active3DAnimationId);
+      active3DAnimationId = null;
+    }
+
     let extraAssets = '';
+
+    if (p.has3DModel) {
+      extraAssets += `
+        <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
+          <div class="flex items-center justify-between mb-3">
+            <p class="font-mono text-xs text-dim uppercase tracking-wider">Interactive 3D Cad Model View</p>
+            <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">3D STL View</span>
+          </div>
+          <div id="stlViewerContainer" class="relative w-full h-80 bg-base border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing"></div>
+          <p class="font-mono text-[10px] text-faint mt-2">Click and drag to rotate model · Scroll to zoom</p>
+        </div>
+      `;
+    }
+
     if (p.report || p.codeFile || p.presentation || p.images) {
-      extraAssets += `<div class="mt-8 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">`;
-      if (p.report) extraAssets += `<a href="${p.report}" target="_blank" class="focus-ring flex items-center gap-2 p-3 bg-panel border border-line hover:border-faint text-sm text-dim hover:text-white transition-colors"><i data-lucide="file-text" class="w-4 h-4"></i> View Report (PDF)</a>`;
-      if (p.codeFile) extraAssets += `<a href="${p.codeFile}" target="_blank" class="focus-ring flex items-center gap-2 p-3 bg-panel border border-line hover:border-faint text-sm text-dim hover:text-white transition-colors"><i data-lucide="code" class="w-4 h-4"></i> View Code (.m)</a>`;
-      if (p.presentation) extraAssets += `<a href="${p.presentation}" target="_blank" class="focus-ring flex items-center gap-2 p-3 bg-panel border border-line hover:border-faint text-sm text-dim hover:text-white transition-colors sm:col-span-2"><i data-lucide="monitor-play" class="w-4 h-4"></i> View Presentation</a>`;
+      extraAssets += `<div class="mt-8 flex flex-col gap-3 w-full">`;
+      
+      if (p.report) {
+        extraAssets += `
+        <div class="flex items-center justify-between p-3.5 bg-panel border border-line hover:border-faint transition-colors rounded-sm">
+          <button onclick="togglePdfViewer('${p.report}')" class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors text-left flex-1 cursor-pointer">
+            <i data-lucide="file-text" class="w-4 h-4 text-dim"></i>
+            <span>View Report ↗</span>
+            <span class="font-mono text-[10px] text-faint bg-line px-1.5 py-0.5 rounded uppercase tracking-wider ml-1">Inline PDF</span>
+          </button>
+          <a href="${p.report}" download title="Download Report" class="focus-ring p-2 text-faint hover:text-white hover:bg-line rounded-sm transition-colors flex items-center justify-center">
+            <i data-lucide="download" class="w-4 h-4"></i>
+          </a>
+        </div>
+        <div id="pdfViewerContainer" class="hidden w-full border border-line rounded-sm bg-[#18181b] overflow-hidden">
+          <iframe id="pdfIframe" src="" class="w-full h-[650px] border-0"></iframe>
+        </div>`;
+      }
+
+      if (p.codeFile) {
+        extraAssets += `
+        <div class="flex items-center justify-between p-3.5 bg-panel border border-line hover:border-faint transition-colors rounded-sm">
+          <a href="${p.codeFile}" target="_blank" rel="noopener" class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors flex-1">
+            <i data-lucide="code" class="w-4 h-4 text-dim"></i>
+            <span>View Code (.m) ↗</span>
+          </a>
+          <a href="${p.codeFile}" download title="Download Code" class="focus-ring p-2 text-faint hover:text-white hover:bg-line rounded-sm transition-colors flex items-center justify-center">
+            <i data-lucide="download" class="w-4 h-4"></i>
+          </a>
+        </div>`;
+      }
+
+      if (p.presentation) {
+        extraAssets += `
+        <div class="flex items-center justify-between p-3.5 bg-panel border border-line hover:border-faint transition-colors rounded-sm">
+          <a href="${p.presentation}" target="_blank" rel="noopener" class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors flex-1">
+            <i data-lucide="monitor-play" class="w-4 h-4 text-dim"></i>
+            <span>View Presentation ↗</span>
+          </a>
+          <a href="${p.presentation}" download title="Download Presentation" class="focus-ring p-2 text-faint hover:text-white hover:bg-line rounded-sm transition-colors flex items-center justify-center">
+            <i data-lucide="download" class="w-4 h-4"></i>
+          </a>
+        </div>`;
+      }
+      
       extraAssets += `</div>`;
       
       if (p.images && p.images.length > 0) {
-        extraAssets += `<div class="mt-6 grid grid-cols-1 sm:grid-cols-2 gap-4 max-w-2xl">`;
-        p.images.forEach(img => {
-          extraAssets += `<img src="${img}" alt="Project Image" class="w-full h-auto border border-line rounded-sm opacity-80 hover:opacity-100 transition-opacity">`;
-        });
-        extraAssets += `</div>`;
+        let slides = p.images.map((img, i) => ({ src: img, cap: 'Capture ' + (i+1) }));
+        extraAssets += `<div class="mt-4 w-full">` + generateCarouselHTML(slides, 'proj-' + p.id) + `</div>`;
       }
     }
 
@@ -590,7 +1053,7 @@
 
       <p class="text-base text-[#d2d2d0] mt-6 leading-relaxed max-w-2xl">${p.overview}</p>
 
-      <div class="grid sm:grid-cols-2 gap-px bg-line mt-7 max-w-2xl">
+      <div class="grid sm:grid-cols-2 gap-px bg-line mt-7 w-full">
         <div class="bg-panel p-4">
           <p class="font-mono text-xs text-dim uppercase tracking-wider mb-1.5">Technical Stack</p>
           <p class="text-sm text-dim leading-relaxed">${p.stack}</p>
@@ -615,12 +1078,11 @@
       <div class="mt-7 pt-6 border-t border-line max-w-2xl">
         <a href="${p.github}" target="_blank" rel="noopener"
            class="focus-ring inline-flex items-center gap-1.5 text-sm border border-line px-3.5 py-2.5 text-[#d2d2d0] hover:border-faint hover:text-white transition-colors">
-          <i data-lucide="github" class="w-4 h-4"></i> GitHub Code <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
+          <i data-lucide="github" class="w-4 h-4"></i> GitHub Code ↗ <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
         </a>
       </div>` : ''}
     `;
 
-    // Hide Right Sidebar & Expand Center
     document.getElementById('rightSidebar').classList.add('opacity-0', 'pointer-events-none');
     setTimeout(() => { document.getElementById('rightSidebar').classList.add('hidden'); }, 300);
     
@@ -634,15 +1096,26 @@
     feedView.style.display = 'none';
     detailView.classList.add('open');
     lucide.createIcons();
+
+    if (p.has3DModel) {
+      setTimeout(() => {
+        init3DViewer('stlViewerContainer', p.stlPath || 'Suber_Abdi_Antenna_Enclosure.stl');
+      }, 50);
+    }
+
     window.scrollTo({ top: 0, behavior: 'smooth' });
     history.replaceState(null, '', `#project-${id}`);
   }
 
   function closeProject() {
+    if (active3DAnimationId) {
+      cancelAnimationFrame(active3DAnimationId);
+      active3DAnimationId = null;
+    }
+
     detailView.classList.remove('open');
     feedView.style.display = 'flex';
     
-    // Restore Right Sidebar & Center Column
     const centerCol = document.getElementById('centerColumn');
     if(leftSidebarOpen) {
         centerCol.classList.replace('lg:col-span-9', 'lg:col-span-6');
@@ -656,20 +1129,18 @@
     history.replaceState(null, '', window.location.pathname);
   }
 
-  // Deep-link support: open directly if URL has #project-<id> on load
   window.addEventListener('DOMContentLoaded', () => {
     const match = window.location.hash.match(/^#project-(.+)$/);
     if (match && projects.some(p => p.id === match[1])) openProject(match[1]);
   });
 
-  // ---- Side-channel square-wave signals ------------------------------
   (function () {
     const svgs = document.querySelectorAll('.side-signal svg');
     if (!svgs.length) return;
 
-    const PERIOD = 96;   // px per full square-wave cycle
-    const AMP = 10;      // half swing
-    const CX = 24;       // centre of the 48px channel
+    const PERIOD = 96;   
+    const AMP = 10;      
+    const CX = 24;       
 
     function build() {
       const half = Math.ceil(window.innerHeight / PERIOD) * PERIOD;
@@ -679,9 +1150,9 @@
       let d = `M ${hi} 0`;
       let x = hi;
       for (let y = PERIOD / 2; y <= total; y += PERIOD / 2) {
-        d += ` V ${y}`;            // hold level
-        x = (x === hi) ? lo : hi;  // toggle
-        d += ` H ${x}`;            // instant edge
+        d += ` V ${y}`;            
+        x = (x === hi) ? lo : hi;  
+        d += ` H ${x}`;            
       }
 
       svgs.forEach(svg => {
@@ -701,45 +1172,44 @@
     if (window.matchMedia('(max-width: 1023px)').matches) return;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // 1. Logic analyzer -------------------------------------------------
+    // 1. Logic analyzer
     const laCanvas = document.getElementById('hwLogicCanvas');
     if (laCanvas) {
       const ctx = laCanvas.getContext('2d');
       const W = laCanvas.width, H = laCanvas.height;
-      const chans = ['MOSI', 'MISO', 'SCK', 'CS', 'TX', 'RX'].map((name, i) => ({
-        name,
-        y0: 10 + i * 17,
-        bits: Array.from({ length: W }, () => Math.random() < 0.5 ? 1 : 0),
-        state: 1,
-        hot: 0 // pulse brightness after a toggle
-      }));
-      // SCK is a clean clock
+      
+      const chans = ['MOSI', 'MISO', 'SCK', 'CS', 'TX', 'RX'].map((name, i) => {
+        const period = [18, 24, 8, 48, 32, 28][i];
+        const bits = [];
+        let state = 1;
+        for (let x = 0; x < W; x++) {
+          if (x % period === 0) state ^= 1;
+          bits.push(state);
+        }
+        return { name, y0: 10 + i * 17, bits, state, hot: 0 };
+      });
       chans[2].clock = true;
       let tick = 0;
 
       function step() {
         tick++;
         for (const c of chans) {
-          if (c.clock) {
-            if (tick % 6 === 0) { c.state ^= 1; c.hot = 1; }
-          } else if (Math.random() < 0.06) {
-            c.state ^= 1; c.hot = 1;
+          if (c.clock) { 
+            if (tick % 8 === 0) { c.state ^= 1; c.hot = 1; } 
+          } else if (Math.random() < 0.02) { 
+            c.state ^= 1; c.hot = 1; 
           }
-          c.bits.push(c.state);
-          c.bits.shift();
+          c.bits.push(c.state); 
+          c.bits.shift(); 
           c.hot *= 0.92;
         }
         ctx.clearRect(0, 0, W, H);
         ctx.font = '8px "JetBrains Mono", monospace';
         for (const c of chans) {
-          // label
-          ctx.fillStyle = '#68686d';
-          ctx.fillText(c.name, 4, c.y0 + 4);
-          // trace
-          const g = Math.round(163 + c.hot * 80); // pulse toward white on activity
+          ctx.fillStyle = '#68686d'; ctx.fillText(c.name, 4, c.y0 + 4);
+          const g = Math.round(163 + c.hot * 80); 
           ctx.strokeStyle = `rgba(${g},${g},${g + 5},0.9)`;
-          ctx.lineWidth = 1;
-          ctx.beginPath();
+          ctx.lineWidth = 1; ctx.beginPath();
           const x0 = 34, span = W - x0 - 4, amp = 5;
           let prev = c.bits[0];
           ctx.moveTo(x0, c.y0 + (prev ? -amp : amp));
@@ -757,22 +1227,16 @@
       if (reduceMotion) { step(); }
       else {
         let last = 0;
-        (function loop(t) {
-          if (t - last > 50) { step(); last = t; }
-          requestAnimationFrame(loop);
-        })(0);
+        (function loop(t) { if (t - last > 50) { step(); last = t; } requestAnimationFrame(loop); })(0);
       }
 
       const statuses = ['SAMPLING: 24 MHz', 'DECODING I2C', 'DECODING SPI', 'TRIG: SCK ↑'];
       let si = 0;
       const statusEl = document.getElementById('hwLogicStatus');
-      if (!reduceMotion) setInterval(() => {
-        si = (si + 1) % statuses.length;
-        statusEl.textContent = statuses[si];
-      }, 4000);
+      if (!reduceMotion) setInterval(() => { si = (si + 1) % statuses.length; statusEl.textContent = statuses[si]; }, 4000);
     }
 
-    // 2. Register map ---------------------------------------------------
+    // 2. Register map
     const regBody = document.getElementById('hwRegBody');
     if (regBody) {
       let portb = 0b10110010, timer1 = 0xFA2C;
@@ -780,30 +1244,22 @@
       function bin(n) { return '0b' + n.toString(2).padStart(8, '0'); }
       function renderReg() {
         const adcon = 0x40 | (Math.random() < 0.5 ? 0x01 : 0x03);
-        // flip 1–2 random bits on PORTB
         portb ^= (1 << Math.floor(Math.random() * 8));
         if (Math.random() < 0.4) portb ^= (1 << Math.floor(Math.random() * 8));
         timer1 = (timer1 + 0x0100 + Math.floor(Math.random() * 0x0EFF)) & 0xFFFF;
-        regBody.innerHTML =
-          `ADCON0 : <span class="v">${hex(adcon, 2)}</span> <span class="flag">[ADC ACTIVE]</span>\n` +
-          `PORTB  : <span class="v">${bin(portb)}</span>\n` +
-          `TIMER1 : <span class="v">${hex(timer1, 4)}</span> <span class="flag">(PULSING...)</span>`;
+        regBody.innerHTML = `ADCON0 : <span class="v">${hex(adcon, 2)}</span> <span class="flag">[ADC ACTIVE]</span>\nPORTB  : <span class="v">${bin(portb)}</span>\nTIMER1 : <span class="v">${hex(timer1, 4)}</span> <span class="flag">(PULSING...)</span>`;
       }
-      renderReg();
-      if (!reduceMotion) setInterval(renderReg, 900);
+      renderReg(); if (!reduceMotion) setInterval(renderReg, 900);
     }
 
-    // 3. Serial terminal ------------------------------------------------
+    // 3. Serial terminal
     const termBody = document.getElementById('hwTermBody');
     if (termBody) {
-      let h = 0, m = 12, s = 4;
-      const lines = [];
+      let h = 0, m = 12, s = 4; const lines = [];
       function ts() {
         s += 1 + Math.floor(Math.random() * 3);
-        if (s > 59) { s -= 60; m++; }
-        if (m > 59) { m -= 60; h++; }
-        const p = n => String(n).padStart(2, '0');
-        return `[${p(h)}:${p(m)}:${p(s)}]`;
+        if (s > 59) { s -= 60; m++; } if (m > 59) { m -= 60; h++; }
+        const p = n => String(n).padStart(2, '0'); return `[${p(h)}:${p(m)}:${p(s)}]`;
       }
       function randByte() { return '0x' + Math.floor(Math.random() * 256).toString(16).toUpperCase().padStart(2, '0'); }
       function makeLine() {
@@ -814,14 +1270,394 @@
         return `${ts()} I2C ACK @0x3C`;
       }
       function renderTerm() {
-        lines.push(makeLine());
-        if (lines.length > 5) lines.shift();
+        lines.push(makeLine()); if (lines.length > 5) lines.shift();
         termBody.innerHTML = lines.map(l => l.replace(/^(\[[\d:]+\])/, '<span class="ts">$1</span>')).join('<br>') + ' <span class="cursor"></span>';
       }
       renderTerm(); renderTerm(); renderTerm();
       if (!reduceMotion) setInterval(renderTerm, 2200);
     }
+
   })();
+</script>
+
+<!-- ================= MODAL SHELL ================= -->
+<div id="modalOverlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-panel modal-lg" id="modalPanel">
+    <div class="modal-head">
+      <div>
+        <div class="modal-eyebrow" id="modalEyebrow"></div>
+        <div class="modal-title" id="modalTitle"></div>
+      </div>
+      <div class="flex items-center gap-2">
+        <div id="modalCategoryNav" class="hidden flex items-center gap-1.5 mr-2">
+          <button id="modalPrevCatBtn" class="modal-nav-btn focus-ring" onclick="navigateModalCategory(-1)" title="Previous Item">←</button>
+          <span id="modalCatCounter" class="font-mono text-[11px] text-dim px-1.5">1/1</span>
+          <button id="modalNextCatBtn" class="modal-nav-btn focus-ring" onclick="navigateModalCategory(1)" title="Next Item">→</button>
+        </div>
+        <button class="modal-close focus-ring" onclick="closeModal()" aria-label="Close">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+const CATEGORY_DATA = {
+  courses: [
+    {
+      size: 'modal-lg',
+      eyebrow: 'Course · Royal Academy of Engineering',
+      title: '<a href="https://raeng.org.uk/" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4">GEEP Graduate Programme ↗</a>',
+      slides: [
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GEEP_Certificate.jpg', cap: '1. GEEP Completion Certificate' },
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GEEP_London_Gathering_EoY_2026.jpg', cap: '2. GEEP London Gathering EoY 2026' },
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_001.jpg', cap: '3. GXO Logistics Trip 1' },
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_002.jpg', cap: '4. GXO Logistics Trip 2' },
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_003.jpg', cap: '5. GXO Logistics Trip 3' },
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_004.jpg', cap: '6. GXO Logistics Trip 4' },
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_005.jpg', cap: '7. GXO Logistics Trip 5' },
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_006.jpg', cap: '8. GXO Logistics Trip 6' },
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_007.jpg', cap: '9. GXO Logistics Trip 7' },
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_008.jpg', cap: '10. GXO Logistics Trip 8' },
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_LinkedIn_Post.png', cap: '11. GXO Logistics LinkedIn Post' }
+      ],
+      body: `
+        <div class="modal-section">
+          <p>The Graduate Engineering Engagement Programme is run by the Royal Academy of
+          Engineering to support underrepresented engineering talent into graduate-level
+          roles. It combines technical bootcamps, mock interviews, assessment centres and
+          one-to-one industry mentoring.</p>
+        </div>
+
+        <div class="modal-section">
+          <div class="modal-label">What it covered</div>
+          <ul class="bullet-list text-sm text-dim space-y-1.5">
+            <li>Technical and behavioural interview preparation with practising engineers.</li>
+            <li>Full assessment centre simulations, including group exercises and presentations.</li>
+            <li>Industry mentoring — matched with <a href="https://www.linkedin.com/in/matthew-kingham-9059a081/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base%3BhbmdhNLhTima1YsNmyUtcQ%3D%3D" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-2">Matthew Kingham</a> (Johnson Matthey).</li>
+          </ul>
+        </div>
+        {{CAROUSEL}}
+      `
+    }
+  ],
+  volunteering: [
+    {
+      size: 'modal-md',
+      eyebrow: 'Volunteering',
+      title: 'Volunteer, CARIS Haringey <span class="text-dim text-sm font-normal block mt-1">Aug 2024</span>',
+      body: `
+        <div class="modal-section">
+          <p>Volunteered at CARIS Haringey, a charity supporting homeless families. Assisted with organising and distributing essential supplies to those in need, developing strong community engagement and teamwork skills.</p>
+        </div>
+      `
+    }
+  ],
+  partTime: [
+    {
+      size: 'modal-md',
+      eyebrow: 'Part-Time Experience',
+      title: 'Student Team Leader <span class="text-dim text-sm font-normal block mt-1">Westminster SU · Oct 2026 - Present</span>',
+      body: `
+        <div class="modal-section">
+          <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
+            <li><strong class="text-[#d2d2d0] font-medium">Team Leadership:</strong> Supervised and supported a shift team of up to 7 Student Callers, ensuring team members were up to date on call expectations, campaign resources, and university procedures.</li>
+            <li><strong class="text-[#d2d2d0] font-medium">Operations & Administration:</strong> Managed daily call centre operations, including creating weekly staff rotas, generating daily targeted call lists, and accurately auditing student opt-out information using Microsoft Excel.</li>
+            <li><strong class="text-[#d2d2d0] font-medium">Student Support & Communication:</strong> Handled first-level escalation queries from student callers, providing empathetic and assertive guidance to signpost students to appropriate university welfare and support services.</li>
+            <li><strong class="text-[#d2d2d0] font-medium">Data Management & Confidentiality:</strong> Drafted and sent accurate, confidential follow-up communications via a dedicated call centre mailbox while strictly adhering to data protection guidelines.</li>
+            <li><strong class="text-[#d2d2d0] font-medium">Reporting & Collaboration:</strong> Delivered daily operational updates to the Peer Support Programme Coordinator, tracking shift performance metrics and escalating complex student cases in a timely, professional manner.</li>
+          </ul>
+        </div>
+      `
+    },
+    {
+      size: 'modal-md',
+      eyebrow: 'Part-Time Experience',
+      title: 'Sales Team Member <span class="text-dim text-sm font-normal block mt-1">Krispy Kreme · Feb 2024 - Oct 2026</span>',
+      body: `
+        <div class="modal-section">
+          <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
+            <li><strong class="text-[#d2d2d0] font-medium">Customer Standards:</strong> Maintained strict operational and hygiene standards to ensure an exceptional guest experience.</li>
+            <li><strong class="text-[#d2d2d0] font-medium">Sales & Upselling:</strong> Boosted daily revenue by promoting special offers and driving customer loyalty sign-ups through the rewards app.</li>
+            <li><strong class="text-[#d2d2d0] font-medium">Food Safety & Hygiene:</strong> Maintained a compliant environment by following health, safety, and chemical handling protocols.</li>
+          </ul>
+        </div>
+      `
+    },
+    {
+      size: 'modal-md',
+      eyebrow: 'Part-Time Experience',
+      title: 'Till Operator <span class="text-dim text-sm font-normal block mt-1">Pabulum Ltd · Sep 2022 - Apr 2024</span>',
+      body: `
+        <div class="modal-section">
+          <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
+            <li><strong class="text-[#d2d2d0] font-medium">Cash Handling:</strong> Operated POS till systems accurately, processed payments, and reconciled total sales at the end of each shift.</li>
+            <li><strong class="text-[#d2d2d0] font-medium">Dietary Awareness:</strong> Memorised menu ingredients and daily availability to guide customer choices and accommodate dietary restrictions.</li>
+            <li><strong class="text-[#d2d2d0] font-medium">Safe Food Service:</strong> Monitored and executed the secure, hygienic distribution of food items in line with strict safety guidelines.</li>
+          </ul>
+        </div>
+      `
+    }
+  ],
+  following: [
+    {
+      size: 'modal-md',
+      eyebrow: 'Following',
+      title: 'Organizations & Companies',
+      body: `
+        <div class="modal-section">
+          <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
+            <li><a href="https://www.linkedin.com/company/leonardo-electronics/" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4">Leonardo Electronics ↗</a></li>
+            <li><a href="https://www.linkedin.com/company/westminstersu/" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4">Westminster SU ↗</a></li>
+          </ul>
+        </div>
+      `
+    }
+  ]
+};
+
+const SINGLE_MODALS = {
+  modules: {
+    size: 'modal-md',
+    eyebrow: 'Education',
+    title: 'Key Modules',
+    body: `
+      <div class="modal-section">
+        <p class="text-sm text-dim mb-4">Select a module below to view its details.</p>
+        <div class="space-y-2">
+          <details class="group border border-line p-3 rounded bg-panel open:bg-[#161618] transition-colors cursor-pointer [&_summary::-webkit-details-marker]:hidden">
+            <summary class="font-display font-semibold text-sm text-white outline-none list-none flex justify-between items-center">
+              Sensors & Signals
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-dim group-open:rotate-180 transition-transform"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <p class="text-sm text-dim mt-2 pt-2 border-t border-lineSoft">In-depth study of analogue and digital sensors, signal conditioning, filtering, and data acquisition techniques for embedded systems applications.</p>
+          </details>
+
+          <details class="group border border-line p-3 rounded bg-panel open:bg-[#161618] transition-colors cursor-pointer [&_summary::-webkit-details-marker]:hidden">
+            <summary class="font-display font-semibold text-sm text-white outline-none list-none flex justify-between items-center">
+              Embedded System Project (WBL)
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-dim group-open:rotate-180 transition-transform"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <p class="text-sm text-dim mt-2 pt-2 border-t border-lineSoft">A core work-based learning module focusing on a complete embedded product lifecycle. Included end-to-end prototyping, schematic design, and firmware development.</p>
+          </details>
+
+          <details class="group border border-line p-3 rounded bg-panel open:bg-[#161618] transition-colors cursor-pointer [&_summary::-webkit-details-marker]:hidden">
+            <summary class="font-display font-semibold text-sm text-white outline-none list-none flex justify-between items-center">
+              Operating Systems and System Programming
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-dim group-open:rotate-180 transition-transform"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <p class="text-sm text-dim mt-2 pt-2 border-t border-lineSoft">Operating Systems & Systems Programming
+Level 6 Module | University of Westminster
+Developed deep technical expertise in modern operating system architectures and low-level software development by programming directly within the Linux kernel environment using C.
+
+Core Technical Skills
+Process & Thread Management: Mastered process creation via fork()/exec() and multi-threading with pthreads.
+Concurrency Control: Engineered race-condition fixes using POSIX/System V semaphores and synchronization algorithms.
+Inter-Process Communication (IPC): Implemented data pipelines using shared memory, signals, and pipes.
+Network & Memory Programming: Built network applications via TCP/UDP sockets and simulated low-level memory allocation.
+
+💻 Key Portfolio Projects
+System-Level C Application: Architected an independent Linux service integrating multi-processing, signals, and thread synchronization.
+Performance Evaluation: Produced a critical technical report assessing code optimization, resource efficiency, and structural limitations.</p>
+          </details>
+
+          <details class="group border border-line p-3 rounded bg-panel open:bg-[#161618] transition-colors cursor-pointer [&_summary::-webkit-details-marker]:hidden">
+            <summary class="font-display font-semibold text-sm text-white outline-none list-none flex justify-between items-center">
+              Real-Time Embedded Systems
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-dim group-open:rotate-180 transition-transform"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <p class="text-sm text-dim mt-2 pt-2 border-t border-lineSoft">Applying RTOS principles to microcontrollers. Scheduling algorithms, deterministic task execution, and handling hard real-time constraints in critical systems.</p>
+          </details>
+
+          <details class="group border border-line p-3 rounded bg-panel open:bg-[#161618] transition-colors cursor-pointer [&_summary::-webkit-details-marker]:hidden">
+            <summary class="font-display font-semibold text-sm text-white outline-none list-none flex justify-between items-center">
+              FPGA Design Project
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-dim group-open:rotate-180 transition-transform"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <p class="text-sm text-dim mt-2 pt-2 border-t border-lineSoft">Digital logic design using hardware description languages (Verilog/VHDL), implementing custom IP cores and testing on FPGA development boards.</p>
+          </details>
+        </div>
+      </div>
+    `
+  },
+  toolchain: {
+    size: 'modal-md',
+    eyebrow: 'Skills & Tools',
+    title: 'Complete Toolchain',
+    body: `
+      <div class="modal-section">
+        <div class="flex flex-wrap gap-2">
+            <span class="tag">C / C++</span>
+            <span class="tag">Python</span>
+            <span class="tag">Assembly</span>
+            <span class="tag">MATLAB</span>
+            <span class="tag">KiCAD</span>
+            <span class="tag">Arduino</span>
+            <span class="tag">PIC16F877A</span>
+            <span class="tag">Mbed / Keil</span>
+            <span class="tag">Keysight ADS</span>
+            <span class="tag">SPI / I2C</span>
+            <span class="tag">Fusion 360</span>
+            <span class="tag">Azure</span>
+            <span class="tag">Confluence</span>
+        </div>
+      </div>
+    `
+  },
+  skills: {
+    size: 'modal-md',
+    eyebrow: 'Skills & Tools',
+    title: 'Top Skills',
+    body: `
+      <div class="modal-section">
+        <div class="flex flex-wrap gap-2">
+          <span class="tag">Communication</span>
+          <span class="tag">C++</span>
+          <span class="tag">Microcontrollers</span>
+          <span class="tag">RF Design</span>
+          <span class="tag">Problem Solving</span>
+          <span class="tag">Embedded Systems</span>
+        </div>
+      </div>
+    `
+  }
+};
+
+let currentCategoryKey = null;
+let currentCategoryIndex = 0;
+
+function openModalCategory(categoryKey, index = 0) {
+  const cat = CATEGORY_DATA[categoryKey];
+  if (!cat || !cat.length) return;
+
+  currentCategoryKey = categoryKey;
+  currentCategoryIndex = Math.max(0, Math.min(index, cat.length - 1));
+
+  renderCategoryModalItem();
+
+  const overlay = document.getElementById('modalOverlay');
+  overlay.classList.add('open');
+  document.body.classList.add('modal-open');
+  setTimeout(() => overlay.classList.add('shown'), 10);
+}
+
+function renderCategoryModalItem() {
+  const list = CATEGORY_DATA[currentCategoryKey];
+  const m = list[currentCategoryIndex];
+  if (!m) return;
+
+  document.getElementById('modalEyebrow').textContent = m.eyebrow;
+  document.getElementById('modalTitle').innerHTML = m.title;
+
+  let bodyHTML = m.body;
+  if (bodyHTML.includes('{{CAROUSEL}}')) {
+    bodyHTML = bodyHTML.replace('{{CAROUSEL}}', generateCarouselHTML(m.slides, 'modal-' + currentCategoryKey + '-' + currentCategoryIndex));
+  } else if (m.slides && m.slides.length > 0) {
+    bodyHTML += generateCarouselHTML(m.slides, 'modal-' + currentCategoryKey + '-' + currentCategoryIndex);
+  }
+
+  document.getElementById('modalBody').innerHTML = bodyHTML;
+  document.getElementById('modalPanel').className = `modal-panel ${m.size}`;
+
+  const navEl = document.getElementById('modalCategoryNav');
+  const prevBtn = document.getElementById('modalPrevCatBtn');
+  const nextBtn = document.getElementById('modalNextCatBtn');
+  const counterEl = document.getElementById('modalCatCounter');
+
+  if (list.length > 1 || currentCategoryKey === 'courses' || currentCategoryKey === 'volunteering') {
+    navEl.classList.remove('hidden');
+    counterEl.textContent = `${currentCategoryIndex + 1}/${list.length}`;
+    prevBtn.disabled = (currentCategoryIndex === 0);
+    nextBtn.disabled = (currentCategoryIndex === Math.max(0, list.length - 1));
+  } else {
+    navEl.classList.add('hidden');
+  }
+
+  lucide.createIcons();
+}
+
+function navigateModalCategory(dir) {
+  if (!currentCategoryKey) return;
+  const list = CATEGORY_DATA[currentCategoryKey];
+  if (!list) return;
+
+  const nextIdx = currentCategoryIndex + dir;
+  if (nextIdx >= 0 && nextIdx < list.length) {
+    currentCategoryIndex = nextIdx;
+    renderCategoryModalItem();
+  }
+}
+
+function openModal(id) {
+  if (CATEGORY_DATA[id]) {
+    openModalCategory(id, 0);
+    return;
+  }
+
+  const m = SINGLE_MODALS[id];
+  if (!m) return;
+
+  currentCategoryKey = null;
+  document.getElementById('modalCategoryNav').classList.add('hidden');
+
+  document.getElementById('modalEyebrow').textContent = m.eyebrow;
+  document.getElementById('modalTitle').innerHTML = m.title;
+  document.getElementById('modalBody').innerHTML = m.body;
+  document.getElementById('modalPanel').className = `modal-panel ${m.size}`;
+
+  lucide.createIcons();
+
+  const overlay = document.getElementById('modalOverlay');
+  overlay.classList.add('open');
+  document.body.classList.add('modal-open');
+  setTimeout(() => overlay.classList.add('shown'), 10);
+}
+
+function closeModal() {
+  const overlay = document.getElementById('modalOverlay');
+  overlay.classList.remove('shown');
+  setTimeout(() => {
+    overlay.classList.remove('open');
+    document.body.classList.remove('modal-open');
+  }, 200);
+}
+
+function moveSlide(prefix, dir) {
+  const carousel = document.getElementById(prefix + '-carousel');
+  const track = document.getElementById(prefix + '-track');
+  const current = parseInt(carousel.getAttribute('data-current'));
+  const total = parseInt(carousel.getAttribute('data-total'));
+  
+  let next = current + dir;
+  if (next < 0) next = 0;
+  if (next >= total) next = total - 1;
+  
+  goToSlide(prefix, next);
+}
+
+function goToSlide(prefix, index) {
+  const carousel = document.getElementById(prefix + '-carousel');
+  const track = document.getElementById(prefix + '-track');
+  const dots = document.getElementById(prefix + '-dots')?.querySelectorAll('.carousel-dot');
+  const count = document.getElementById(prefix + '-count');
+  const prevBtn = carousel.querySelector('.carousel-prev');
+  const nextBtn = carousel.querySelector('.carousel-next');
+  const total = parseInt(carousel.getAttribute('data-total'));
+
+  carousel.setAttribute('data-current', index);
+  track.style.transform = `translateX(-${index * 100}%)`;
+  
+  if (count) count.textContent = index + 1;
+  
+  if (dots) {
+    dots.forEach((d, i) => {
+      d.classList.toggle('active', i === index);
+    });
+  }
+  
+  if (prevBtn) prevBtn.disabled = (index === 0);
+  if (nextBtn) nextBtn.disabled = (index === total - 1);
+}
 </script>
 
 </body>
