@@ -643,7 +643,13 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
       challenges: 'Balancing antenna gain against filter selectivity at 3.6GHz while staying within the size and cost constraints typical of IoT devices.',
       outcome: 'In progress - design, simulation and testing stages ahead of final submission.',
       has3DModel: true,
-      stlPath: 'Suber_Abdi_Antenna_Enclosure.stl',
+      // Each entry is one toggleable body in the layer dropdown.
+      // Add more objects here for additional bodies — the viewer picks
+      // them up automatically, no other code changes needed.
+      stlBodies: [
+        { id: 'enclosure', name: 'Antenna Enclosure', path: 'Suber_Abdi_Antenna_Enclosure.stl', visible: true },
+        { id: 'body2', name: 'Body 2', path: 'REPLACE_WITH_SECOND_STL_FILENAME.stl', visible: true } // TODO: swap in the real filename for the second body
+      ],
       tags: ['RF Design', 'Antenna Filters', 'IoT Power'],
       github: null
     },
@@ -866,12 +872,152 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
   const detailContent = document.getElementById('projectDetailContent');
 
   let active3DAnimationId = null;
+  let current3DBodies = {};          // id -> THREE.Mesh, for the layer dropdown
+  let current3DBodiesConfig = [];    // the stlBodies config for the open project
 
-  function init3DViewer(containerId, stlFilePath) {
+  function generatePlasticNormalMap(size) {
+    size = size || 256;
+    const canvas = document.createElement('canvas');
+    canvas.width = canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    const img = ctx.createImageData(size, size);
+    // Fine grain/stipple around a neutral normal (128,128,255) — subtle,
+    // just enough to break up a perfectly smooth plastic highlight.
+    for (let i = 0; i < img.data.length; i += 4) {
+      const n = 128 + (Math.random() - 0.5) * 14;
+      img.data[i] = n;
+      img.data[i + 1] = n;
+      img.data[i + 2] = 255;
+      img.data[i + 3] = 255;
+    }
+    ctx.putImageData(img, 0, 0);
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
+    tex.repeat.set(24, 24);
+    return tex;
+  }
+
+  function makePlasticMaterial(normalMap) {
+    // Matte / slightly textured black plastic — PBR via MeshPhysicalMaterial.
+    return new THREE.MeshPhysicalMaterial({
+      color: 0x0a0a0a,
+      roughness: 0.45,      // kept in the 0.3–0.6 band so it reads as plastic, not wet or chalky
+      metalness: 0.0,
+      normalMap: normalMap,
+      normalScale: new THREE.Vector2(0.12, 0.12),
+      clearcoat: 0.18,
+      clearcoatRoughness: 0.55
+    });
+  }
+
+  function makeViewCubeFaceTexture(label) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 128;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#e7e7e5';
+    ctx.fillRect(0, 0, 128, 128);
+    ctx.strokeStyle = '#0c0c0d';
+    ctx.lineWidth = 5;
+    ctx.strokeRect(2.5, 2.5, 123, 123);
+    ctx.fillStyle = '#0c0c0d';
+    ctx.font = '700 15px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, 64, 64);
+    return new THREE.CanvasTexture(c);
+  }
+
+  function initViewCube(mainCamera, mainControls, container) {
+    const size = 64;
+    const cubeWrap = document.createElement('div');
+    cubeWrap.id = 'viewCubeWrap';
+    cubeWrap.className = 'absolute top-2 right-2 z-10';
+    cubeWrap.style.width = size + 'px';
+    cubeWrap.style.height = size + 'px';
+    container.appendChild(cubeWrap);
+
+    const cubeScene = new THREE.Scene();
+    const cubeCamera = new THREE.OrthographicCamera(-1.7, 1.7, 1.7, -1.7, 0.1, 10);
+    cubeCamera.position.set(0, 0, 4);
+
+    const cubeRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    cubeRenderer.setSize(size, size);
+    cubeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    cubeRenderer.domElement.style.cursor = 'pointer';
+    cubeWrap.appendChild(cubeRenderer.domElement);
+
+    // Box face order in THREE.BoxGeometry is [+X, -X, +Y, -Y, +Z, -Z]
+    const faceLabels = ['RIGHT', 'LEFT', 'TOP', 'BOTTOM', 'FRONT', 'BACK'];
+    const faceDirs = [
+      new THREE.Vector3(1, 0, 0), new THREE.Vector3(-1, 0, 0),
+      new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, -1, 0),
+      new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1)
+    ];
+    const cubeMaterials = faceLabels.map(l => new THREE.MeshBasicMaterial({ map: makeViewCubeFaceTexture(l) }));
+    const cubeMesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), cubeMaterials);
+    cubeScene.add(cubeMesh);
+    cubeScene.add(new THREE.AmbientLight(0xffffff, 1.2));
+
+    const raycaster = new THREE.Raycaster();
+    const ndc = new THREE.Vector2();
+    cubeRenderer.domElement.addEventListener('click', (e) => {
+      const rect = cubeRenderer.domElement.getBoundingClientRect();
+      ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(ndc, cubeCamera);
+      const hit = raycaster.intersectObject(cubeMesh)[0];
+      if (!hit) return;
+      const dir = faceDirs[hit.face.materialIndex];
+      const dist = mainCamera.position.length() || 150;
+      mainCamera.position.copy(dir.clone().multiplyScalar(dist));
+      mainCamera.lookAt(0, 0, 0);
+      if (mainControls) mainControls.update();
+    });
+
+    return function renderViewCube() {
+      cubeMesh.quaternion.copy(mainCamera.quaternion);
+      cubeRenderer.render(cubeScene, cubeCamera);
+    };
+  }
+
+  function toggleLayerDropdown(e) {
+    if (e) e.stopPropagation();
+    const dd = document.getElementById('layerDropdown');
+    if (dd) dd.classList.toggle('hidden');
+  }
+  document.addEventListener('click', (e) => {
+    const dd = document.getElementById('layerDropdown');
+    const btn = document.getElementById('layerToggleBtn');
+    if (dd && !dd.classList.contains('hidden') && !dd.contains(e.target) && e.target !== btn && !btn?.contains(e.target)) {
+      dd.classList.add('hidden');
+    }
+  });
+
+  function renderLayerDropdown() {
+    const dd = document.getElementById('layerDropdown');
+    if (!dd) return;
+    dd.innerHTML = current3DBodiesConfig.map(b => `
+      <label class="flex items-center gap-2 px-2 py-1.5 text-xs text-dim hover:text-white cursor-pointer transition-colors">
+        <input type="checkbox" ${b.visible ? 'checked' : ''} onchange="toggle3DBody('${b.id}', this.checked)" class="accent-white">
+        <span class="font-mono">${b.name}</span>
+      </label>
+    `).join('');
+  }
+
+  function toggle3DBody(bodyId, visible) {
+    const cfg = current3DBodiesConfig.find(b => b.id === bodyId);
+    if (cfg) cfg.visible = visible;
+    const mesh = current3DBodies[bodyId];
+    if (mesh) mesh.visible = visible;
+  }
+
+  function init3DViewer(containerId, stlBodies) {
     const container = document.getElementById(containerId);
     if (!container) return;
 
     container.innerHTML = '';
+    current3DBodies = {};
+    current3DBodiesConfig = stlBodies.map(b => ({ ...b, visible: b.visible !== false }));
 
     const width = container.clientWidth || 600;
     const height = container.clientHeight || 320;
@@ -890,7 +1036,7 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
     const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
     scene.add(ambientLight);
 
-    const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.8);
+    const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.9);
     dirLight1.position.set(1, 1, 1).normalize();
     scene.add(dirLight1);
 
@@ -905,56 +1051,71 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
       controls.dampingFactor = 0.05;
     }
 
-    let modelMesh = null;
-
-    const loader = new THREE.STLLoader();
-    loader.load(
-      stlFilePath,
-      function (geometry) {
-        const material = new THREE.MeshStandardMaterial({
-          color: 0xd2d2d0,
-          metalness: 0.3,
-          roughness: 0.4
-        });
-        
-        geometry.center();
-        modelMesh = new THREE.Mesh(geometry, material);
-
-        geometry.computeBoundingSphere();
-        const radius = geometry.boundingSphere.radius;
-        camera.position.set(radius * 2, radius * 2, radius * 2);
-        camera.lookAt(0, 0, 0);
-
-        scene.add(modelMesh);
-
-        const loadingOverlay = container.querySelector('.stl-loading');
-        if (loadingOverlay) loadingOverlay.remove();
-      },
-      function (xhr) {
-        const pct = Math.round((xhr.loaded / (xhr.total || 1)) * 100);
-        const loadingOverlay = container.querySelector('.stl-loading');
-        if (loadingOverlay) loadingOverlay.textContent = `LOADING 3D MODEL... ${pct}%`;
-      },
-      function (error) {
-        const loadingOverlay = container.querySelector('.stl-loading');
-        if (loadingOverlay) {
-          loadingOverlay.textContent = '3D CAD Model Placeholder (STL file preview)';
-        }
-      }
-    );
+    const normalMap = generatePlasticNormalMap();
+    const sharedMaterial = makePlasticMaterial(normalMap);
+    const modelGroup = new THREE.Group();
+    scene.add(modelGroup);
 
     const placeholderText = document.createElement('div');
     placeholderText.className = 'stl-loading absolute inset-0 flex items-center justify-center font-mono text-xs text-dim pointer-events-none bg-base/60';
     placeholderText.textContent = 'LOADING 3D MODEL...';
     container.appendChild(placeholderText);
 
+    let loadedCount = 0;
+    const totalBodies = current3DBodiesConfig.length;
+    const groupBounds = new THREE.Box3();
+    let anyLoaded = false;
+
+    const loader = new THREE.STLLoader();
+    current3DBodiesConfig.forEach((bodyCfg) => {
+      loader.load(
+        bodyCfg.path,
+        function (geometry) {
+          geometry.center();
+          const mesh = new THREE.Mesh(geometry, sharedMaterial.clone());
+          mesh.visible = bodyCfg.visible;
+          current3DBodies[bodyCfg.id] = mesh;
+          modelGroup.add(mesh);
+
+          geometry.computeBoundingBox();
+          groupBounds.union(geometry.boundingBox);
+          anyLoaded = true;
+
+          loadedCount++;
+          if (loadedCount >= totalBodies) {
+            const sizeVec = new THREE.Vector3();
+            groupBounds.getSize(sizeVec);
+            const radius = Math.max(sizeVec.length() * 0.6, 40);
+            camera.position.set(radius, radius, radius);
+            camera.lookAt(0, 0, 0);
+            const overlay = container.querySelector('.stl-loading');
+            if (overlay) overlay.remove();
+            renderLayerDropdown();
+          }
+        },
+        undefined,
+        function () {
+          loadedCount++;
+          const overlay = container.querySelector('.stl-loading');
+          if (loadedCount >= totalBodies) {
+            if (overlay) {
+              overlay.textContent = anyLoaded ? '' : '3D CAD Model Placeholder (STL file preview)';
+              if (!anyLoaded) { /* keep overlay visible */ } else { overlay.remove(); }
+            }
+            renderLayerDropdown();
+          }
+        }
+      );
+    });
+
+    const renderViewCube = initViewCube(camera, controls, container);
+
     function animate() {
       active3DAnimationId = requestAnimationFrame(animate);
       if (controls) controls.update();
-      if (modelMesh && !controls?.isHovered) {
-        modelMesh.rotation.y += 0.005;
-      }
+      modelGroup.rotation.y += 0.005;
       renderer.render(scene, camera);
+      renderViewCube();
     }
     animate();
 
@@ -985,10 +1146,18 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
         <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
           <div class="flex items-center justify-between mb-3">
             <p class="font-mono text-xs text-dim uppercase tracking-wider">Interactive 3D Cad Model View</p>
-            <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">3D STL View</span>
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">3D STL View</span>
+              <div class="relative">
+                <button id="layerToggleBtn" onclick="toggleLayerDropdown(event)" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Toggle model layers" aria-label="Toggle model layers">
+                  <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                </button>
+                <div id="layerDropdown" class="hidden absolute right-0 top-full mt-1.5 w-52 bg-[#0f0f11] border border-line z-20 p-2"></div>
+              </div>
+            </div>
           </div>
           <div id="stlViewerContainer" class="relative w-full h-80 bg-base border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing"></div>
-          <p class="font-mono text-[10px] text-faint mt-2">Click and drag to rotate model · Scroll to zoom</p>
+          <p class="font-mono text-[10px] text-faint mt-2">Click and drag to rotate model · Scroll to zoom · Click the view cube to snap views</p>
         </div>
       `;
     }
@@ -1099,7 +1268,7 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
 
     if (p.has3DModel) {
       setTimeout(() => {
-        init3DViewer('stlViewerContainer', p.stlPath || 'Suber_Abdi_Antenna_Enclosure.stl');
+        init3DViewer('stlViewerContainer', p.stlBodies || []);
       }, 50);
     }
 
