@@ -491,7 +491,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         <div class="mt-8 pt-6 border-t border-line">
           <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Mentor Note</p>
           <p class="text-sm text-dim leading-relaxed italic">
-            "I have had the priveledge of mentoring Suber as part of the GEEP programme. Suber has shown to be very diligent in his work ethic and very effective in his communication as shown in securing a internship with Leonardo. I wish you all the best for the future in the placement and your third year."
+            "I have had the privilege of mentoring Suber as part of the GEEP programme. Suber has shown to be very diligent in his work ethic and very effective in his communication as shown in securing a internship with Leonardo. I wish you all the best for the future in the placement and your third year."
           </p>
           <p class="font-mono text-xs text-faint mt-2">- <a href="https://www.linkedin.com/in/matthew-kingham-9059a081/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base%3BhbmdhNLhTima1YsNmyUtcQ%3D%3D" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-2">Matthew Kingham</a>, GEEP Mentor · Johnson Matthey</p>
         </div>
@@ -567,18 +567,23 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       <div class="pt-6 border-t border-line">
         <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Education</p>
         <h4 class="font-display font-semibold text-white text-sm">University of Westminster, London</h4>
-        <p class="text-sm text-dim mt-0.5">BEng Software Engineering with Electronics</p>
+        <!-- Course name links out to the official Westminster course page -->
+        <p class="text-sm text-dim mt-0.5">
+          <a href="https://www.westminster.ac.uk/computer-science-and-engineering-courses/2026-27/september/full-time/software-engineering-with-electronics-beng-honours" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-2">BEng Software Engineering with Electronics ↗</a>
+        </p>
         <p class="font-mono text-xs text-faint mt-1 uppercase">Sep 2024 — Jun 2027 (Expected)</p>
+
+        <!-- "View Key Modules" now sits directly under the university info,
+             above the dissertation entry below, per site content ordering. -->
+        <button class="module-btn focus-ring mt-4" onclick="openModal('modules')">
+          <h4 class="module-title font-display font-semibold text-dim text-sm">View Key Modules ↗</h4>
+        </button>
 
         <h4 class="font-display font-semibold text-white text-sm pt-4 cursor-pointer hover:underline" onclick="openProject('harvester'); return false;">Analysis and Design of Wireless Energy Harvesters for IoT Applications <i data-lucide="link" class="w-3.5 h-3.5 text-faint inline-block align-text-bottom ml-1 shrink-0"></i></h4>
         <p class="text-sm text-dim mt-0.5 leading-relaxed">The project aims to familiarise the student with the concept and implementation of efficient 
 wireless energy harvesters for IoT and sub-6GHz 5G applications. The student would be 
 expected to analyse, design, and simulate, and possibly implement and test a wireless 
 energy harvester including one antenna filter at 3.6 GHz. .</p>
-
-        <button class="module-btn focus-ring mt-4" onclick="openModal('modules')">
-          <h4 class="module-title font-display font-semibold text-dim text-sm">View Key Modules ↗</h4>
-        </button>
       </div>
 
       <div class="pt-6 border-t border-line">
@@ -667,7 +672,7 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
     {
       id: 'micromouse',
       status: 'Complete · Feb–Apr 2026',
-      title: 'Micro Mouse — Autonomous Maze-Solving Robot',
+      title: 'Micro Mouse (Autonomous Maze-Solving Robot)',
       overview: 'A team embedded-systems project to build a robot capable of solving a maze without human input, from mechanical design through to firmware.',
       stack: 'C++ on Mbed via Keil Studio, ultrasonic/IR sensor fusion for wall-following, 3D-printed chassis, GitHub for version control.',
       challenges: 'Coordinating a team codebase, tuning sensor thresholds for reliable wall-following, and iterating the maze-solving algorithm under time pressure.',
@@ -765,7 +770,11 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
       } else {
         centerCol.classList.replace('lg:col-span-8', 'lg:col-span-6');
       }
+      // BUGFIX: must re-add the button's expanded-state position classes here,
+      // otherwise after a collapse->expand cycle the button loses its
+      // top-4/right-0 placement and can float over/cover the profile content.
       toggleBtn.classList.remove('top-0', 'left-1/2', '-translate-x-1/2');
+      toggleBtn.classList.add('top-4', 'right-0');
       toggleBtn.innerHTML = `<i data-lucide="panel-left-close" class="w-5 h-5"></i>`;
     }
     lucide.createIcons();
@@ -927,6 +936,12 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
     return new THREE.CanvasTexture(c);
   }
 
+  // ===== Fusion 360-style navigation cube =====
+  // Selectable regions: 6 faces + 12 edges + 8 corners = 26 total, matching
+  // the behaviour of Fusion 360's view cube (face = orthogonal view,
+  // edge/corner = diagonal/isometric-style view). To restyle the cube's
+  // colors, edit `faceBg`/`faceFg` (face texture) and `bevelColor` (edge/
+  // corner regions) below — everything else adapts automatically.
   function initViewCube(mainCamera, mainControls, container) {
     const size = 64;
     const cubeWrap = document.createElement('div');
@@ -946,6 +961,7 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
     cubeRenderer.domElement.style.cursor = 'pointer';
     cubeWrap.appendChild(cubeRenderer.domElement);
 
+    // --- Faces (6) ---
     // Box face order in THREE.BoxGeometry is [+X, -X, +Y, -Y, +Z, -Z]
     const faceLabels = ['RIGHT', 'LEFT', 'TOP', 'BOTTOM', 'FRONT', 'BACK'];
     const faceDirs = [
@@ -958,6 +974,37 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
     cubeScene.add(cubeMesh);
     cubeScene.add(new THREE.AmbientLight(0xffffff, 1.2));
 
+    // --- Edges (12) and corners (8) ---
+    // Small bevel blocks positioned on each edge/corner of the main cube.
+    // Each stores its own snap direction in userData.dir so the click
+    // handler below can treat faces/edges/corners uniformly.
+    const bevelColor = 0xcfcfcd; // slightly darker than the face bg (#e7e7e5) to read as a bevel
+    const bevelMat = new THREE.MeshBasicMaterial({ color: bevelColor });
+    const half = 1.0;      // half-extent of the main 2x2x2 cube
+    const inset = 0.92;    // pull bevel blocks slightly in from the true corner so faces stay clickable
+    const extraMeshes = []; // all edge/corner meshes, for raycasting alongside cubeMesh
+
+    function addBevelBlock(dir, size) {
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(size[0], size[1], size[2]), bevelMat);
+      mesh.position.set(dir.x * inset, dir.y * inset, dir.z * inset);
+      mesh.userData.dir = dir.clone().normalize();
+      cubeScene.add(mesh);
+      extraMeshes.push(mesh);
+    }
+
+    const edgeThick = 0.32, edgeLong = 1.55;
+    // Edges running along X (y,z fixed to corners)
+    [-1, 1].forEach(y => [-1, 1].forEach(z => addBevelBlock(new THREE.Vector3(0, y, z), [edgeLong, edgeThick, edgeThick])));
+    // Edges running along Y
+    [-1, 1].forEach(x => [-1, 1].forEach(z => addBevelBlock(new THREE.Vector3(x, 0, z), [edgeThick, edgeLong, edgeThick])));
+    // Edges running along Z
+    [-1, 1].forEach(x => [-1, 1].forEach(y => addBevelBlock(new THREE.Vector3(x, y, 0), [edgeThick, edgeThick, edgeLong])));
+    // Corners (8)
+    const cornerSize = 0.42;
+    [-1, 1].forEach(x => [-1, 1].forEach(y => [-1, 1].forEach(z =>
+      addBevelBlock(new THREE.Vector3(x, y, z), [cornerSize, cornerSize, cornerSize])
+    )));
+
     const raycaster = new THREE.Raycaster();
     const ndc = new THREE.Vector2();
     cubeRenderer.domElement.addEventListener('click', (e) => {
@@ -965,17 +1012,31 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
       ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
       raycaster.setFromCamera(ndc, cubeCamera);
-      const hit = raycaster.intersectObject(cubeMesh)[0];
-      if (!hit) return;
-      const dir = faceDirs[hit.face.materialIndex];
+
+      // Test edges/corners first (they sit slightly proud of the faces),
+      // then fall back to the flat faces.
+      const extraHit = raycaster.intersectObjects(extraMeshes)[0];
       const dist = mainCamera.position.length() || 150;
+      let dir = null;
+
+      if (extraHit) {
+        dir = extraHit.object.userData.dir;
+      } else {
+        const faceHit = raycaster.intersectObject(cubeMesh)[0];
+        if (faceHit) dir = faceDirs[faceHit.face.materialIndex];
+      }
+      if (!dir) return;
+
       mainCamera.position.copy(dir.clone().multiplyScalar(dist));
       mainCamera.lookAt(0, 0, 0);
       if (mainControls) mainControls.update();
     });
 
     return function renderViewCube() {
-      cubeMesh.quaternion.copy(mainCamera.quaternion);
+      // Rotating the whole cubeScene (not just cubeMesh) mirrors the main
+      // camera's orientation for the cube faces AND all edge/corner bevel
+      // blocks together, since they're all children of cubeScene.
+      cubeScene.quaternion.copy(mainCamera.quaternion);
       cubeRenderer.render(cubeScene, cubeCamera);
     };
   }
@@ -1023,7 +1084,9 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
     const height = container.clientHeight || 320;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0c0c0d);
+    // CHANGE: Fusion-360-style light workbench background instead of the
+    // site's dark theme (0x0c0c0d). Only affects this 3D canvas.
+    scene.background = new THREE.Color(0xf3f3f2);
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(100, 100, 100);
@@ -1033,16 +1096,24 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     container.appendChild(renderer.domElement);
 
-    const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+    // Lighting bumped up slightly vs. the old dark-bg setup so the model reads
+    // clearly against the new light background, matching a CAD-viewer look.
+    const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
     scene.add(ambientLight);
 
     const dirLight1 = new THREE.DirectionalLight(0xffffff, 0.9);
     dirLight1.position.set(1, 1, 1).normalize();
     scene.add(dirLight1);
 
-    const dirLight2 = new THREE.DirectionalLight(0x555555, 0.5);
+    const dirLight2 = new THREE.DirectionalLight(0x888888, 0.5);
     dirLight2.position.set(-1, -1, -1).normalize();
     scene.add(dirLight2);
+
+    // Subtle ground grid, Fusion-360-style workbench reference plane.
+    // Purely cosmetic — safe to remove by deleting this block if not wanted.
+    const cadGrid = new THREE.GridHelper(400, 40, 0xc9c9c7, 0xdedede);
+    cadGrid.position.y = -0.01;
+    scene.add(cadGrid);
 
     let controls;
     if (THREE.OrbitControls) {
@@ -1057,7 +1128,11 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
     scene.add(modelGroup);
 
     const placeholderText = document.createElement('div');
-    placeholderText.className = 'stl-loading absolute inset-0 flex items-center justify-center font-mono text-xs text-dim pointer-events-none bg-base/60';
+    // Dark text + light overlay here (instead of the site's usual light-on-dark)
+    // because this element sits on top of the new white/light CAD viewport.
+    placeholderText.className = 'stl-loading absolute inset-0 flex items-center justify-center font-mono text-xs pointer-events-none';
+    placeholderText.style.background = 'rgba(243,243,242,.7)';
+    placeholderText.style.color = '#555554';
     placeholderText.textContent = 'LOADING 3D MODEL...';
     container.appendChild(placeholderText);
 
@@ -1156,7 +1231,11 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
               </div>
             </div>
           </div>
-          <div id="stlViewerContainer" class="relative w-full h-80 bg-base border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing"></div>
+          <!-- NOTE: this viewport intentionally uses a white/light background
+               (Fusion 360 style) instead of the site's dark theme — this is
+               scoped to the 3D canvas only via inline style, the rest of the
+               site's dark styling is untouched. -->
+          <div id="stlViewerContainer" class="relative w-full h-80 border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing" style="background:#f3f3f2;"></div>
           <p class="font-mono text-[10px] text-faint mt-2">Click and drag to rotate model · Scroll to zoom · Click the view cube to snap views</p>
         </div>
       `;
@@ -1220,6 +1299,12 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
       <p class="font-mono text-xs text-faint uppercase tracking-wider">${p.status}</p>
       <h3 class="font-display font-extrabold text-3xl sm:text-4xl text-white mt-2 leading-[1.05]">${p.title}</h3>
 
+      <!-- Tags now render right under the title so they're immediately visible
+           on open, rather than after the tech stack / assets further down. -->
+      <div class="flex flex-wrap gap-1.5 mt-4">
+        ${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+      </div>
+
       <p class="text-base text-[#d2d2d0] mt-6 leading-relaxed max-w-2xl">${p.overview}</p>
 
       <div class="grid sm:grid-cols-2 gap-px bg-line mt-7 w-full">
@@ -1238,10 +1323,6 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
       </div>
       
       ${extraAssets}
-
-      <div class="flex flex-wrap gap-1.5 mt-6">
-        ${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}
-      </div>
 
       ${p.github ? `
       <div class="mt-7 pt-6 border-t border-line max-w-2xl">
@@ -1487,8 +1568,7 @@ const CATEGORY_DATA = {
         { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_005.jpg', cap: '7. GXO Logistics Trip 5' },
         { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_006.jpg', cap: '8. GXO Logistics Trip 6' },
         { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_007.jpg', cap: '9. GXO Logistics Trip 7' },
-        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_008.jpg', cap: '10. GXO Logistics Trip 8' },
-        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_LinkedIn_Post.png', cap: '11. GXO Logistics LinkedIn Post' }
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_008.jpg', cap: '10. GXO Logistics Trip 8' }
       ],
       body: `
         <div class="modal-section">
@@ -1575,9 +1655,13 @@ const CATEGORY_DATA = {
       title: 'Organizations & Companies',
       body: `
         <div class="modal-section">
+          <!-- To add another followed company: copy a <li> line below, keep the
+               same classes for consistent styling, and update the href + label. -->
           <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
             <li><a href="https://www.linkedin.com/company/leonardo-electronics/" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4">Leonardo Electronics ↗</a></li>
             <li><a href="https://www.linkedin.com/company/westminstersu/" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4">Westminster SU ↗</a></li>
+            <li><a href="https://www.linkedin.com/company/arm/posts/?feedView=all" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4">Arm ↗</a></li>
+            <li><a href="https://www.linkedin.com/company/honeywell/posts/?feedView=all" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4">Honeywell ↗</a></li>
           </ul>
         </div>
       `
