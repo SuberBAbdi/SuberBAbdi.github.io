@@ -49,6 +49,14 @@
     padding:5px 10px; border:1px solid #27272a; color:#c4c4c8; text-transform:uppercase;
   }
 
+  /* Compact version of .tag used on homepage project cards (see
+     renderProjectGrid) — same colours/border, smaller so several tags fit
+     next to a truncated title without overwhelming the card. */
+  .tag-mini{
+    font-family:'JetBrains Mono', monospace; font-size:9.5px; letter-spacing:0.05em;
+    padding:2px 6px; border:1px solid #27272a; color:#9a9a9e; text-transform:uppercase;
+  }
+
   .btn-block{
     font-family:'JetBrains Mono', monospace; font-size:13px; letter-spacing:0.06em; text-transform:uppercase;
     padding:15px 20px; text-align:center; transition:all .15s ease;
@@ -230,6 +238,11 @@
   .carousel-track{ display:flex; transition:transform .32s cubic-bezier(.4,0,.2,1); }
   .carousel-slide{ min-width:100%; }
   .carousel-slide img{ width:100%; display:block; max-height:440px; object-fit:contain; background:#0c0c0d; }
+  /* Deferred-load images (see loadCarouselSlideImage) start faded until their
+     real src has been swapped in and finishes loading, for a smoother reveal
+     instead of a hard pop-in once the network request completes. */
+  .carousel-slide img[data-src]{ opacity:0; min-height:220px; }
+  .carousel-slide img:not([data-src]){ opacity:1; transition:opacity .25s ease; }
   .carousel-ph{
     display:flex; align-items:center; justify-content:center; height:220px;
     font-family:'JetBrains Mono', monospace; font-size:10.5px; color:#68686d;
@@ -503,9 +516,29 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       <div id="feedView" class="flex flex-col gap-12 lg:pt-32">
 
         <div>
-          <div class="scan-header border-b border-line pb-4 mb-3">
+          <div class="scan-header border-b border-line pb-4 mb-3 flex flex-wrap items-center justify-between gap-3">
             <p class="font-display font-extrabold uppercase text-2xl sm:text-3xl text-white tracking-tight">Projects</p>
+
+            <!-- Search + tag filter for the projects list below.
+                 Search matches any word against a project's title, tags,
+                 status, and description text (see getProjectSearchText).
+                 Filter is a single-select of every tag in use, defaulting
+                 to "All Tags". Both are combined (AND) in getFilteredProjects. -->
+            <div class="flex items-center gap-2">
+              <div class="relative">
+                <i data-lucide="search" class="w-3.5 h-3.5 text-faint absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
+                <input type="text" id="projectSearchInput" placeholder="Search projects" autocomplete="off"
+                       oninput="onProjectSearchInput(this.value)"
+                       class="focus-ring bg-transparent border border-line rounded-sm pl-8 pr-2.5 py-1.5 text-xs font-mono text-dim placeholder:text-faint focus:border-faint transition-colors w-32 sm:w-44">
+              </div>
+              <select id="projectTagFilter" onchange="onProjectTagFilterChange(this.value)"
+                      class="focus-ring bg-panel border border-line rounded-sm px-2 py-1.5 text-xs font-mono text-dim focus:border-faint transition-colors cursor-pointer">
+                <option value="all">All Tags</option>
+              </select>
+            </div>
           </div>
+
+          <p id="projectEmptyState" class="hidden text-sm text-dim font-mono py-6 text-center">No projects match your search/filter.</p>
 
           <div id="projectGrid" class="flex flex-col">
             <!-- Populated via JS -->
@@ -571,7 +604,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         <p class="text-sm text-dim mt-0.5">
           <a href="https://www.westminster.ac.uk/computer-science-and-engineering-courses/2026-27/september/full-time/software-engineering-with-electronics-beng-honours" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-2">BEng Software Engineering with Electronics ↗</a>
         </p>
-        <p class="font-mono text-xs text-faint mt-1 uppercase">Sep 2024 — Jun 2027 (Expected)</p>
+        <p class="font-mono text-xs text-faint mt-1 uppercase">Sep 2024 — Jun 2027</p>
 
         <!-- "View Key Modules" now sits directly under the university info,
              above the dissertation entry below, per site content ordering. -->
@@ -580,10 +613,6 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         </button>
 
         <h4 class="font-display font-semibold text-white text-sm pt-4 cursor-pointer hover:underline" onclick="openProject('harvester'); return false;">Analysis and Design of Wireless Energy Harvesters for IoT Applications <i data-lucide="link" class="w-3.5 h-3.5 text-faint inline-block align-text-bottom ml-1 shrink-0"></i></h4>
-        <p class="text-sm text-dim mt-0.5 leading-relaxed">The project aims to familiarise the student with the concept and implementation of efficient 
-wireless energy harvesters for IoT and sub-6GHz 5G applications. The student would be 
-expected to analyse, design, and simulate, and possibly implement and test a wireless 
-energy harvester including one antenna filter at 3.6 GHz. .</p>
       </div>
 
       <div class="pt-6 border-t border-line">
@@ -631,7 +660,7 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
 
   <footer class="mt-auto pt-8 border-t border-line flex flex-col sm:flex-row justify-between gap-2">
     <p class="font-mono text-xs text-faint uppercase tracking-wide">Suber Abdi — London, UK</p>
-    <p class="font-mono text-xs text-faint uppercase tracking-wide">Built for recruiters, not scrollers</p>
+    <p class="font-mono text-xs text-faint uppercase tracking-wide">Designed &amp; built by Suber Abdi</p>
   </footer>
 </div>
 
@@ -651,9 +680,13 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
       // Each entry is one toggleable body in the layer dropdown.
       // Add more objects here for additional bodies — the viewer picks
       // them up automatically, no other code changes needed.
+      // If you leave `name` out (like the PCB entry below), the dropdown
+      // label is derived automatically from the STL filename — so once you
+      // upload your real PCB export to the repo root, just update `path`
+      // to match its filename and the label updates itself, no other edits needed.
       stlBodies: [
         { id: 'enclosure', name: 'Antenna Enclosure', path: 'Controller_Model.stl', visible: true },
-        { id: 'body2', name: 'Body 2', path: 'REPLACE_WITH_SECOND_STL_FILENAME.stl', visible: true } // TODO: swap in the real filename for the second body
+        { id: 'pcb', path: 'PCB.stl', visible: true } // TODO: upload your PCB STL export to the repo root as PCB.stl (or update this path to match whatever filename you use)
       ],
       tags: ['RF Design', 'Antenna Filters', 'IoT Power'],
       github: null
@@ -725,9 +758,34 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
       status: 'Complete · Mar–May 2025',
       title: 'DAC with PIC16F877A',
       overview: 'A microcontroller instrumentation project converting analogue thermistor readings into a digital display using low-level Assembly firmware.',
-      stack: 'PIC16F877A with onboard Analogue Front-End (AFE), two thermistors, character LCD output, written entirely in Assembly using MPLAB X.',
-      challenges: 'Working at the register level in Assembly to manage ADC timing and LCD refresh without the abstractions of a higher-level language.',
-      outcome: 'Working DAC with live dual-thermistor readout on LCD, built and tested end-to-end.',
+      // NOTE: this project intentionally skips stack/challenges/outcome and
+      // uses `sections` instead (see the `p.sections` branch in openProject)
+      // to better reflect the assessment structure (viva + technical report)
+      // this project was actually built and marked against.
+      sections: [
+        {
+          title: 'Assessment Structure',
+          html: `<p>Assessed as a group via a practical viva and presentation (40%, 30% qualifying mark) plus a written technical report, covering the design process, hardware/software implementation, and testing.</p>`
+        },
+        {
+          title: 'Viva & Presentation',
+          html: `<ul class="bullet-list space-y-1">
+            <li>Presented background theory, hardware/software implementation and testing in a 12-minute group technical presentation</li>
+            <li>Answered live technical Q&amp;A and demonstrated the toolchain — Eagle, Simscape, PICSim and MPLAB X</li>
+            <li>Evaluated and repeated test results on request to demonstrate ownership of the solution</li>
+          </ul>`
+        },
+        {
+          title: 'Hardware & Firmware',
+          html: `<p>Designed the Analogue Front-End (AFE) and microcontroller schematic in Eagle — including reset, clock, power regulation, LCD connectivity and sensor-select switching — and modelled the AFE stage in Simscape ahead of committing to the final circuit. Firmware was written entirely in PIC Assembly in MPLAB X, handling ADC sampling and quantisation, decoding readings for the character LCD, LCD timing, and input channel selection.</p>`,
+          span2: true
+        },
+        {
+          title: 'Testing & Outcome',
+          html: `<p>Verified logic in PICSim and MPLAB X's simulator before moving to hardware emulation, then validated the full signal path end-to-end on real hardware. Delivered a working dual-thermistor DAC with live LCD readout, complete Eagle schematics, and full documentation in the final report.</p>`,
+          span2: true
+        }
+      ],
       tags: ['Assembly', 'PIC16F877A', 'MPLAB X'],
       github: null
     }
@@ -781,23 +839,88 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
   }
 
   let projectsExpanded = false;
+  let projectSearchQuery = '';
+  let projectTagFilter = 'all';
+
+  // Builds one lowercase blob of searchable text for a project: title, tags,
+  // status, and whichever description fields it has (default projects use
+  // overview/stack/challenges/outcome; projects using the custom `sections`
+  // layout — see the DAC project — get their section titles/text included
+  // too, with HTML tags stripped out).
+  function getProjectSearchText(p) {
+    const parts = [p.title, p.status, (p.tags || []).join(' '), p.overview || '', p.stack || '', p.challenges || '', p.outcome || ''];
+    if (p.sections) {
+      p.sections.forEach(s => parts.push(s.title, (s.html || '').replace(/<[^>]+>/g, ' ')));
+    }
+    return parts.join(' ').toLowerCase();
+  }
+
+  // Search: matches if EVERY word the user typed appears somewhere in the
+  // project's searchable text (order-independent, so "PIC assembly" matches
+  // the DAC project). Filter: 'all' or an exact tag match.
+  function getFilteredProjects() {
+    const words = projectSearchQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
+    return projects.filter(p => {
+      const matchesTag = projectTagFilter === 'all' || (p.tags || []).includes(projectTagFilter);
+      if (!matchesTag) return false;
+      if (words.length === 0) return true;
+      const text = getProjectSearchText(p);
+      return words.every(w => text.includes(w));
+    });
+  }
+
+  // Populates the tag filter <select> with every unique tag in use across
+  // all projects, in first-seen order. Called once on load — if projects
+  // are ever added/edited with new tags, this picks them up automatically.
+  function populateProjectTagFilter() {
+    const select = document.getElementById('projectTagFilter');
+    if (!select) return;
+    const uniqueTags = [...new Set(projects.flatMap(p => p.tags || []))];
+    uniqueTags.forEach(tag => {
+      const opt = document.createElement('option');
+      opt.value = tag;
+      opt.textContent = tag;
+      select.appendChild(opt);
+    });
+  }
+
+  function onProjectSearchInput(value) {
+    projectSearchQuery = value;
+    renderProjectGrid();
+  }
+
+  function onProjectTagFilterChange(value) {
+    projectTagFilter = value;
+    renderProjectGrid();
+  }
+
   function renderProjectGrid() {
     const grid = document.getElementById('projectGrid');
     const toggleContainer = document.getElementById('projectToggleContainer');
-    
-    const limit = projectsExpanded ? projects.length : 3;
-    const visible = projects.slice(0, limit);
-    
+    const emptyState = document.getElementById('projectEmptyState');
+
+    const filtered = getFilteredProjects();
+    const limit = projectsExpanded ? filtered.length : 3;
+    const visible = filtered.slice(0, limit);
+
+    emptyState.classList.toggle('hidden', filtered.length > 0);
+
     grid.innerHTML = visible.map((p, i) => `
-      <div class="case-card group focus-ring px-3 py-4 border-t border-l border-r border-line ${i === visible.length - 1 && !projectsExpanded ? 'border-b rounded-b-sm' : (i === projects.length - 1 ? 'border-b rounded-b-sm' : '')}" tabindex="0" role="button"
+      <div class="case-card group focus-ring px-3 py-4 border-t border-l border-r border-line ${i === visible.length - 1 ? 'border-b rounded-b-sm' : ''}" tabindex="0" role="button"
            aria-label="View ${p.title}" onclick="openProject('${p.id}')"
            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProject('${p.id}');}">
         <div class="flex items-center justify-between gap-3">
           <div class="flex items-center gap-3 min-w-0 flex-1">
-            <span class="font-mono text-xs text-faint shrink-0">${String(projects.indexOf(p) + 1).padStart(2, '0')}</span>
+            <span class="font-mono text-xs text-faint shrink-0">${String(i + 1).padStart(2, '0')}</span>
             <div class="min-w-0 flex-1">
               <p class="font-mono text-[11px] text-faint uppercase tracking-wider truncate">${p.status}</p>
               <h4 class="font-display font-semibold text-lg sm:text-xl leading-snug truncate">${p.title}</h4>
+              <!-- Tags shown next to/under the title on the homepage card too,
+                   mirroring the project detail view. Uses the smaller
+                   .tag-mini style (defined in <style>) so cards stay compact. -->
+              <div class="flex flex-wrap gap-1 mt-1.5">
+                ${p.tags.map(t => `<span class="tag-mini">${t}</span>`).join('')}
+              </div>
             </div>
           </div>
           <i data-lucide="arrow-up-right" class="arrow w-5 h-5 text-dim shrink-0"></i>
@@ -805,7 +928,7 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
       </div>
     `).join('');
 
-    if (projects.length > 3) {
+    if (filtered.length > 3) {
       toggleContainer.innerHTML = `
         <button onclick="toggleProjects()" class="w-full py-3.5 flex items-center justify-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white bg-panel border-x border-b border-line hover:border-faint transition-colors rounded-b-sm focus-ring mt-0 relative top-[-1px]">
           ${projectsExpanded ? 'Retract Projects <i data-lucide="chevron-up" class="w-4 h-4"></i>' : 'Expand All Projects <i data-lucide="chevron-down" class="w-4 h-4"></i>'}
@@ -822,6 +945,7 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
     renderProjectGrid();
   }
 
+  populateProjectTagFilter();
   renderProjectGrid();
 
   function togglePdfViewer(url) {
@@ -845,9 +969,18 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
     slides.forEach((s, i) => {
       let mediaHTML = '';
       if (s.src.toLowerCase().endsWith('.pdf')) {
+        // PDFs are left as-is (iframes are already lazy by nature — they only
+        // fetch once their container is actually rendered/visible).
         mediaHTML = `<iframe src="${s.src}" class="w-full h-[400px] border-none bg-white"></iframe>`;
+      } else if (i === 0) {
+        // PERF: only the first slide's image loads immediately. All other
+        // slides (below) defer their real src via data-src and only fetch
+        // when the user actually navigates to them — previously all slides'
+        // images fetched at once when a carousel opened, which is what made
+        // multi-image sections (e.g. the GEEP course modal) feel slow to load.
+        mediaHTML = `<img src="${s.src}" alt="${s.cap || ''}" loading="eager" decoding="async">`;
       } else {
-        mediaHTML = `<img src="${s.src}" alt="${s.cap}">`;
+        mediaHTML = `<img data-src="${s.src}" alt="${s.cap || ''}" loading="lazy" decoding="async">`;
       }
       
       trackHTML += `
@@ -874,6 +1007,18 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
         ${slides.length > 1 ? `<div class="carousel-dots" id="${idPrefix}-dots">${dotsHTML}</div>` : ''}
       </div>
     `;
+  }
+
+  // Loads a single slide's real image src from its data-src (no-op if
+  // already loaded or if the slide has no <img data-src> at all, e.g. PDFs).
+  // Called on demand from goToSlide so images only fetch once actually viewed.
+  function loadCarouselSlideImage(prefix, index) {
+    const slide = document.getElementById(`${prefix}-slide-${index}`);
+    const img = slide && slide.querySelector('img[data-src]');
+    if (img) {
+      img.src = img.getAttribute('data-src');
+      img.removeAttribute('data-src');
+    }
   }
 
   const feedView = document.getElementById('feedView');
@@ -907,11 +1052,15 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
   }
 
   function makePlasticMaterial(normalMap) {
-    // Matte / slightly textured black plastic — PBR via MeshPhysicalMaterial.
+    // CHANGE: was near-black (0x0a0a0a), which flattened out surface detail
+    // against the new light viewport background. Switched to a mid-tone
+    // grey-blue (typical CAD/Fusion 360 "generic" part colour) so shading
+    // gradients and fine geometry are easier to read. To retheme this,
+    // just edit `color` below — everything else adapts automatically.
     return new THREE.MeshPhysicalMaterial({
-      color: 0x0a0a0a,
-      roughness: 0.45,      // kept in the 0.3–0.6 band so it reads as plastic, not wet or chalky
-      metalness: 0.0,
+      color: 0x8b95a1,
+      roughness: 0.4,       // kept in the 0.3–0.6 band so it reads as plastic, not wet or chalky
+      metalness: 0.05,
       normalMap: normalMap,
       normalScale: new THREE.Vector2(0.12, 0.12),
       clearcoat: 0.18,
@@ -936,14 +1085,34 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
     return new THREE.CanvasTexture(c);
   }
 
+  // Small coloured letter sprite used for the X/Y/Z axis triad labels next
+  // to the view cube (mirrors makeViewCubeFaceTexture's canvas-texture approach).
+  function makeAxisLabelSprite(letter, colorHex) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = colorHex;
+    ctx.font = '700 44px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(letter, 32, 34);
+    const tex = new THREE.CanvasTexture(c);
+    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+    const sprite = new THREE.Sprite(mat);
+    sprite.scale.set(0.32, 0.32, 1);
+    return sprite;
+  }
+
   // ===== Fusion 360-style navigation cube =====
   // Selectable regions: 6 faces + 12 edges + 8 corners = 26 total, matching
   // the behaviour of Fusion 360's view cube (face = orthogonal view,
-  // edge/corner = diagonal/isometric-style view). To restyle the cube's
-  // colors, edit `faceBg`/`faceFg` (face texture) and `bevelColor` (edge/
-  // corner regions) below — everything else adapts automatically.
+  // edge/corner = diagonal/isometric-style view). Hovering any region
+  // highlights it, and there's a small RGB axis triad + Home button to
+  // round out the Fusion-360 look. To restyle the cube's colours, edit
+  // `faceBg`/`faceFg` (in makeViewCubeFaceTexture) and `bevelColor`/
+  // `hoverColor` below — everything else adapts automatically.
   function initViewCube(mainCamera, mainControls, container) {
-    const size = 64;
+    const size = 104; // was 64 — enlarged to be more visible/usable, like the Fusion 360 cube
     const cubeWrap = document.createElement('div');
     cubeWrap.id = 'viewCubeWrap';
     cubeWrap.className = 'absolute top-2 right-2 z-10';
@@ -952,7 +1121,7 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
     container.appendChild(cubeWrap);
 
     const cubeScene = new THREE.Scene();
-    const cubeCamera = new THREE.OrthographicCamera(-1.7, 1.7, 1.7, -1.7, 0.1, 10);
+    const cubeCamera = new THREE.OrthographicCamera(-1.9, 1.9, 1.9, -1.9, 0.1, 10);
     cubeCamera.position.set(0, 0, 4);
 
     const cubeRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
@@ -976,18 +1145,20 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
 
     // --- Edges (12) and corners (8) ---
     // Small bevel blocks positioned on each edge/corner of the main cube.
-    // Each stores its own snap direction in userData.dir so the click
-    // handler below can treat faces/edges/corners uniformly.
+    // Each gets its OWN material instance (not shared) so it can be tinted
+    // individually on hover, and stores its snap direction in userData.dir
+    // so the click/hover handlers can treat faces/edges/corners uniformly.
     const bevelColor = 0xcfcfcd; // slightly darker than the face bg (#e7e7e5) to read as a bevel
-    const bevelMat = new THREE.MeshBasicMaterial({ color: bevelColor });
     const half = 1.0;      // half-extent of the main 2x2x2 cube
     const inset = 0.92;    // pull bevel blocks slightly in from the true corner so faces stay clickable
     const extraMeshes = []; // all edge/corner meshes, for raycasting alongside cubeMesh
 
     function addBevelBlock(dir, size) {
-      const mesh = new THREE.Mesh(new THREE.BoxGeometry(size[0], size[1], size[2]), bevelMat);
+      const mat = new THREE.MeshBasicMaterial({ color: bevelColor });
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(size[0], size[1], size[2]), mat);
       mesh.position.set(dir.x * inset, dir.y * inset, dir.z * inset);
       mesh.userData.dir = dir.clone().normalize();
+      mesh.userData.baseColor = bevelColor;
       cubeScene.add(mesh);
       extraMeshes.push(mesh);
     }
@@ -1005,37 +1176,109 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
       addBevelBlock(new THREE.Vector3(x, y, z), [cornerSize, cornerSize, cornerSize])
     )));
 
+    // --- RGB axis triad (X=red, Y=green, Z=blue), Fusion-360 style ---
+    // Small gizmo anchored just outside the cube's bottom-front-left corner;
+    // it's a child of cubeScene so it rotates together with the cube.
+    const axisGroup = new THREE.Group();
+    const axisOrigin = new THREE.Vector3(-1.4, -1.4, -1.4);
+    const axisLen = 0.6;
+    const axisDefs = [
+      { dir: new THREE.Vector3(1, 0, 0), color: 0xef4444, label: 'X' }, // red, matches site's map-pin red accent
+      { dir: new THREE.Vector3(0, 1, 0), color: 0x22c55e, label: 'Y' }, // green, matches site's "Open to Work" green
+      { dir: new THREE.Vector3(0, 0, 1), color: 0x3b82f6, label: 'Z' }  // blue
+    ];
+    axisDefs.forEach(a => {
+      const end = axisOrigin.clone().add(a.dir.clone().multiplyScalar(axisLen));
+      const geo = new THREE.BufferGeometry().setFromPoints([axisOrigin, end]);
+      const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: a.color }));
+      axisGroup.add(line);
+      const label = makeAxisLabelSprite(a.label, '#' + a.color.toString(16).padStart(6, '0'));
+      label.position.copy(end).add(a.dir.clone().multiplyScalar(0.22));
+      axisGroup.add(label);
+    });
+    cubeScene.add(axisGroup);
+
+    // --- Hover highlighting ---
+    const hoverColor = 0x9fc9ff; // light blue highlight, same family as focus-ring/link accents
+    let hoveredFaceMat = null;
+    let hoveredExtraMesh = null;
+
+    function clearHover() {
+      if (hoveredFaceMat) { hoveredFaceMat.color.setHex(0xffffff); hoveredFaceMat = null; }
+      if (hoveredExtraMesh) { hoveredExtraMesh.material.color.setHex(hoveredExtraMesh.userData.baseColor); hoveredExtraMesh = null; }
+    }
+
     const raycaster = new THREE.Raycaster();
     const ndc = new THREE.Vector2();
-    cubeRenderer.domElement.addEventListener('click', (e) => {
+
+    function pick(e) {
       const rect = cubeRenderer.domElement.getBoundingClientRect();
       ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
       ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
       raycaster.setFromCamera(ndc, cubeCamera);
-
-      // Test edges/corners first (they sit slightly proud of the faces),
-      // then fall back to the flat faces.
       const extraHit = raycaster.intersectObjects(extraMeshes)[0];
-      const dist = mainCamera.position.length() || 150;
-      let dir = null;
+      if (extraHit) return { kind: 'extra', object: extraHit.object };
+      const faceHit = raycaster.intersectObject(cubeMesh)[0];
+      if (faceHit) return { kind: 'face', material: cubeMesh.material[faceHit.face.materialIndex], dir: faceDirs[faceHit.face.materialIndex] };
+      return null;
+    }
 
-      if (extraHit) {
-        dir = extraHit.object.userData.dir;
+    cubeRenderer.domElement.addEventListener('mousemove', (e) => {
+      const hit = pick(e);
+      if (!hit) { clearHover(); return; }
+      if (hit.kind === 'extra') {
+        if (hoveredExtraMesh === hit.object) return;
+        clearHover();
+        hoveredExtraMesh = hit.object;
+        hoveredExtraMesh.material.color.setHex(hoverColor);
       } else {
-        const faceHit = raycaster.intersectObject(cubeMesh)[0];
-        if (faceHit) dir = faceDirs[faceHit.face.materialIndex];
+        if (hoveredFaceMat === hit.material) return;
+        clearHover();
+        hoveredFaceMat = hit.material;
+        hoveredFaceMat.color.setHex(hoverColor);
       }
-      if (!dir) return;
+    });
+    cubeRenderer.domElement.addEventListener('mouseleave', clearHover);
 
+    function snapTo(dir) {
+      const dist = mainCamera.position.length() || 150;
       mainCamera.position.copy(dir.clone().multiplyScalar(dist));
       mainCamera.lookAt(0, 0, 0);
       if (mainControls) mainControls.update();
+    }
+
+    cubeRenderer.domElement.addEventListener('click', (e) => {
+      const hit = pick(e);
+      if (!hit) return;
+      snapTo(hit.kind === 'extra' ? hit.object.userData.dir : hit.dir);
     });
+
+    // --- Home button (top-left of the widget) ---
+    // Resets the main camera to whichever position init3DViewer recorded
+    // as the model's default framing (camera.userData.homePosition).
+    const homeBtn = document.createElement('button');
+    homeBtn.setAttribute('aria-label', 'Reset view');
+    homeBtn.title = 'Reset view';
+    homeBtn.className = 'absolute -top-1 -left-1 w-5 h-5 flex items-center justify-center rounded-sm';
+    homeBtn.style.cssText = 'background:#fff;border:1px solid #c9c9c7;color:#0c0c0d;cursor:pointer;';
+    homeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M9 22V12h6v10"></path></svg>';
+    homeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const home = mainCamera.userData.homePosition;
+      if (home) {
+        mainCamera.position.copy(home);
+        mainCamera.lookAt(0, 0, 0);
+        if (mainControls) mainControls.update();
+      } else {
+        snapTo(new THREE.Vector3(1, 1, 1)); // fallback: default isometric-style corner
+      }
+    });
+    cubeWrap.appendChild(homeBtn);
 
     return function renderViewCube() {
       // Rotating the whole cubeScene (not just cubeMesh) mirrors the main
-      // camera's orientation for the cube faces AND all edge/corner bevel
-      // blocks together, since they're all children of cubeScene.
+      // camera's orientation for the cube faces, edge/corner bevel blocks,
+      // AND the axis triad together, since they're all children of cubeScene.
       cubeScene.quaternion.copy(mainCamera.quaternion);
       cubeRenderer.render(cubeScene, cubeCamera);
     };
@@ -1054,13 +1297,20 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
     }
   });
 
+  // Derives a human-readable label from an STL filename when a stlBodies
+  // entry doesn't set `name` explicitly, e.g. 'PCB_Rev2.stl' -> 'PCB Rev2'.
+  function deriveNameFromPath(path) {
+    const filename = (path || '').split('/').pop().replace(/\.stl$/i, '');
+    return filename.replace(/[_-]+/g, ' ').trim() || 'Body';
+  }
+
   function renderLayerDropdown() {
     const dd = document.getElementById('layerDropdown');
     if (!dd) return;
     dd.innerHTML = current3DBodiesConfig.map(b => `
       <label class="flex items-center gap-2 px-2 py-1.5 text-xs text-dim hover:text-white cursor-pointer transition-colors">
         <input type="checkbox" ${b.visible ? 'checked' : ''} onchange="toggle3DBody('${b.id}', this.checked)" class="accent-white">
-        <span class="font-mono">${b.name}</span>
+        <span class="font-mono">${b.name || deriveNameFromPath(b.path)}</span>
       </label>
     `).join('');
   }
@@ -1090,6 +1340,9 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
     camera.position.set(100, 100, 100);
+    // Fallback "home" position in case the Home button is clicked before the
+    // model finishes loading and recalculates the real framing below.
+    camera.userData.homePosition = camera.position.clone();
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setSize(width, height);
@@ -1109,17 +1362,27 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
     dirLight2.position.set(-1, -1, -1).normalize();
     scene.add(dirLight2);
 
-    // Subtle ground grid, Fusion-360-style workbench reference plane.
-    // Purely cosmetic — safe to remove by deleting this block if not wanted.
-    const cadGrid = new THREE.GridHelper(400, 40, 0xc9c9c7, 0xdedede);
-    cadGrid.position.y = -0.01;
-    scene.add(cadGrid);
-
     let controls;
     if (THREE.OrbitControls) {
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
+
+      // Auto-rotate the model when idle. To change the speed, edit
+      // autoRotateSpeed (higher = faster); to remove auto-rotation entirely,
+      // delete this block and the two controls.addEventListener calls below.
+      controls.autoRotate = true;
+      controls.autoRotateSpeed = 1.2;
+      let resumeAutoRotateTimer = null;
+      controls.addEventListener('start', () => {
+        controls.autoRotate = false;
+        if (resumeAutoRotateTimer) clearTimeout(resumeAutoRotateTimer);
+      });
+      controls.addEventListener('end', () => {
+        // Resume auto-rotate a couple seconds after the user lets go,
+        // rather than snapping straight back into motion.
+        resumeAutoRotateTimer = setTimeout(() => { controls.autoRotate = true; }, 2000);
+      });
     }
 
     const normalMap = generatePlasticNormalMap();
@@ -1163,6 +1426,8 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
             const radius = Math.max(sizeVec.length() * 0.6, 40);
             camera.position.set(radius, radius, radius);
             camera.lookAt(0, 0, 0);
+            // Record this as "home" so the view cube's Home button can return here.
+            camera.userData.homePosition = camera.position.clone();
             const overlay = container.querySelector('.stl-loading');
             if (overlay) overlay.remove();
             renderLayerDropdown();
@@ -1235,7 +1500,7 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
                (Fusion 360 style) instead of the site's dark theme — this is
                scoped to the 3D canvas only via inline style, the rest of the
                site's dark styling is untouched. -->
-          <div id="stlViewerContainer" class="relative w-full h-80 border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing" style="background:#f3f3f2;"></div>
+          <div id="stlViewerContainer" class="relative w-full h-[28rem] border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing" style="background:#f3f3f2;"></div>
           <p class="font-mono text-[10px] text-faint mt-2">Click and drag to rotate model · Scroll to zoom · Click the view cube to snap views</p>
         </div>
       `;
@@ -1307,6 +1572,19 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
 
       <p class="text-base text-[#d2d2d0] mt-6 leading-relaxed max-w-2xl">${p.overview}</p>
 
+      ${p.sections ? `
+      <!-- Custom section layout: used instead of the default Technical Stack /
+           Trade-offs / Outcome grid when a project defines its own p.sections
+           array. Add { title, html, span2 (optional) } objects to p.sections
+           for any future project that needs a different structure. -->
+      <div class="grid sm:grid-cols-2 gap-px bg-line mt-7 w-full">
+        ${p.sections.map(s => `
+        <div class="bg-panel p-4 ${s.span2 ? 'sm:col-span-2' : ''}">
+          <p class="font-mono text-xs text-dim uppercase tracking-wider mb-1.5">${s.title}</p>
+          <div class="text-sm text-dim leading-relaxed">${s.html}</div>
+        </div>`).join('')}
+      </div>
+      ` : `
       <div class="grid sm:grid-cols-2 gap-px bg-line mt-7 w-full">
         <div class="bg-panel p-4">
           <p class="font-mono text-xs text-dim uppercase tracking-wider mb-1.5">Technical Stack</p>
@@ -1321,6 +1599,7 @@ energy harvester including one antenna filter at 3.6 GHz. .</p>
           <p class="text-sm text-dim leading-relaxed">${p.outcome}</p>
         </div>
       </div>
+      `}
       
       ${extraAssets}
 
@@ -1803,14 +2082,21 @@ function renderCategoryModalItem() {
   document.getElementById('modalTitle').innerHTML = m.title;
 
   let bodyHTML = m.body;
+  const carouselPrefix = 'modal-' + currentCategoryKey + '-' + currentCategoryIndex;
   if (bodyHTML.includes('{{CAROUSEL}}')) {
-    bodyHTML = bodyHTML.replace('{{CAROUSEL}}', generateCarouselHTML(m.slides, 'modal-' + currentCategoryKey + '-' + currentCategoryIndex));
+    bodyHTML = bodyHTML.replace('{{CAROUSEL}}', generateCarouselHTML(m.slides, carouselPrefix));
   } else if (m.slides && m.slides.length > 0) {
-    bodyHTML += generateCarouselHTML(m.slides, 'modal-' + currentCategoryKey + '-' + currentCategoryIndex);
+    bodyHTML += generateCarouselHTML(m.slides, carouselPrefix);
   }
 
   document.getElementById('modalBody').innerHTML = bodyHTML;
   document.getElementById('modalPanel').className = `modal-panel ${m.size}`;
+
+  // PERF: quietly pre-fetch the 2nd slide shortly after opening, so the
+  // first click of "next" is instant rather than waiting on a fresh request.
+  if (m.slides && m.slides.length > 1) {
+    setTimeout(() => loadCarouselSlideImage(carouselPrefix, 1), 250);
+  }
 
   const navEl = document.getElementById('modalCategoryNav');
   const prevBtn = document.getElementById('modalPrevCatBtn');
@@ -1910,6 +2196,11 @@ function goToSlide(prefix, index) {
   
   if (prevBtn) prevBtn.disabled = (index === 0);
   if (nextBtn) nextBtn.disabled = (index === total - 1);
+
+  // PERF: load the slide being shown now, and pre-fetch the next one so
+  // clicking "next" again feels instant instead of waiting on the network.
+  loadCarouselSlideImage(prefix, index);
+  if (index + 1 < total) loadCarouselSlideImage(prefix, index + 1);
 }
 </script>
 
