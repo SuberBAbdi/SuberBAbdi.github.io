@@ -50,7 +50,7 @@
   }
 
   /* Compact version of .tag used on homepage project cards (see
-     renderProjectGrid) — same colours/border, smaller so several tags fit
+     renderProjectGrid) - same colours/border, smaller so several tags fit
      next to a truncated title without overwhelming the card. */
   .tag-mini{
     font-family:'JetBrains Mono', monospace; font-size:9.5px; letter-spacing:0.05em;
@@ -77,6 +77,14 @@
   .bullet-list li{ position:relative; padding-left:16px; }
   .bullet-list li::before{ content:'•'; position:absolute; left:0; color:#68686d; }
 
+  /* Collapsible project search/filter bar (see toggleProjectSearch in JS).
+     Collapsed = just the icon button next to it is visible; expanded =
+     reveals the search input + tag filter. Animates via max-width since
+     display:none/block can't transition. */
+  #projectSearchExpand{ overflow:hidden; transition:max-width .3s ease-in-out, opacity .25s ease-in-out; }
+  #projectSearchExpand.proj-search-collapsed{ max-width:0; opacity:0; }
+  #projectSearchExpand.proj-search-expanded{ max-width:340px; opacity:1; }
+
   .case-card{ cursor:pointer; transition:background-color .15s ease; }
   .case-card:hover{ background:#131315; }
   .case-card .arrow{ transition:transform .18s ease; }
@@ -86,7 +94,11 @@
 
   #projectDetailView{ display:none; }
   #projectDetailView.open{ display:block; animation:fadeIn .2s ease-out; }
+  /* Closing state: mirrors .open's fadeIn but reversed, used briefly by
+     closeProject() before the view actually swaps back to the feed. */
+  #projectDetailView.closing{ display:block; animation:fadeOut .18s ease-in forwards; }
   @keyframes fadeIn{ from{ opacity:0; transform:translateY(6px); } to{ opacity:1; transform:translateY(0); } }
+  @keyframes fadeOut{ from{ opacity:1; transform:translateY(0); } to{ opacity:0; transform:translateY(6px); } }
 
   .writing-mode-vertical {
     writing-mode: vertical-rl;
@@ -444,13 +456,13 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       
       <button onclick="toggleLeftSidebar()" aria-label="Toggle Profile" class="focus-ring absolute top-4 right-0 p-2.5 bg-line border border-faint text-white hover:bg-ink hover:text-base hover:border-ink transition-all duration-300 flex items-center justify-center z-10 shadow-lg rounded-sm" id="leftToggleBtn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="panel-left-close" aria-hidden="true" class="lucide lucide-panel-left-close w-5 h-5"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M15 3v18"></path><path d="m8 9-3 3 3 3"></path></svg></button>
 
-      <div id="leftCollapsedIndicator" class="hidden absolute top-14 inset-x-0 pt-2 flex flex-col items-center gap-4 transition-opacity duration-300">
+      <div id="leftCollapsedIndicator" class="hidden absolute top-14 inset-x-0 pt-2 flex flex-col items-center gap-4 transition-all duration-300 ease-in-out">
         <span class="writing-mode-vertical font-mono text-xs uppercase tracking-widest text-dim hover:text-white transition-colors cursor-pointer select-none" onclick="toggleLeftSidebar()">
           SUBER ABDI <span class="text-faint">· SOFTWARE &amp; ELECTRONICS</span>
         </span>
       </div>
 
-      <div id="leftProfileContent" class="transition-opacity duration-300 mt-2 lg:mt-0">
+      <div id="leftProfileContent" class="transition-all duration-300 ease-in-out mt-2 lg:mt-0">
         <h1 class="font-display font-extrabold uppercase leading-[0.92] text-4xl sm:text-5xl lg:text-[2.6rem] text-white">
           Suber<br>Abdi
         </h1>
@@ -516,25 +528,36 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       <div id="feedView" class="flex flex-col gap-12 lg:pt-32">
 
         <div>
-          <div class="scan-header border-b border-line pb-4 mb-3 flex flex-wrap items-center justify-between gap-3">
+          <div class="scan-header border-b border-line pb-4 mb-3 flex items-center justify-between gap-3">
             <p class="font-display font-extrabold uppercase text-2xl sm:text-3xl text-white tracking-tight">Projects</p>
 
-            <!-- Search + tag filter for the projects list below.
-                 Search matches any word against a project's title, tags,
-                 status, and description text (see getProjectSearchText).
-                 Filter is a single-select of every tag in use, defaulting
-                 to "All Tags". Both are combined (AND) in getFilteredProjects. -->
+            <!-- Search + tag filter for the projects list below. Collapsed to
+                 a single icon button by default to save space; expands on
+                 click (see toggleProjectSearch). Search matches any word
+                 against a project's title, tags, status, and description
+                 text (see getProjectSearchText). Filter is a single-select
+                 of every tag in use, defaulting to "All Tags". Both are
+                 combined (AND) in getFilteredProjects. `items-center` on the
+                 row above keeps this vertically centred with the Projects
+                 heading's midline regardless of which state it's in. -->
             <div class="flex items-center gap-2">
-              <div class="relative">
-                <i data-lucide="search" class="w-3.5 h-3.5 text-faint absolute left-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
-                <input type="text" id="projectSearchInput" placeholder="Search projects" autocomplete="off"
-                       oninput="onProjectSearchInput(this.value)"
-                       class="focus-ring bg-transparent border border-line rounded-sm pl-8 pr-2.5 py-1.5 text-xs font-mono text-dim placeholder:text-faint focus:border-faint transition-colors w-32 sm:w-44">
+              <button id="projectSearchToggleBtn" onclick="toggleProjectSearch()" type="button"
+                      aria-label="Search and filter projects" aria-expanded="false"
+                      class="focus-ring w-8 h-8 flex items-center justify-center border border-line rounded-sm text-dim hover:text-white hover:border-faint transition-colors shrink-0">
+                <i data-lucide="search" class="w-4 h-4"></i>
+              </button>
+              <div id="projectSearchExpand" class="proj-search-collapsed flex items-center gap-2">
+                <div class="relative shrink-0">
+                  <input type="text" id="projectSearchInput" placeholder="Search projects" autocomplete="off"
+                         oninput="onProjectSearchInput(this.value)"
+                         onblur="maybeCollapseProjectSearch()"
+                         class="focus-ring bg-transparent border border-line rounded-sm px-2.5 py-1.5 text-xs font-mono text-dim placeholder:text-faint focus:border-faint transition-colors w-28 sm:w-40">
+                </div>
+                <select id="projectTagFilter" onchange="onProjectTagFilterChange(this.value)" onblur="maybeCollapseProjectSearch()"
+                        class="focus-ring bg-panel border border-line rounded-sm px-2 py-1.5 text-xs font-mono text-dim focus:border-faint transition-colors cursor-pointer shrink-0">
+                  <option value="all">All Tags</option>
+                </select>
               </div>
-              <select id="projectTagFilter" onchange="onProjectTagFilterChange(this.value)"
-                      class="focus-ring bg-panel border border-line rounded-sm px-2 py-1.5 text-xs font-mono text-dim focus:border-faint transition-colors cursor-pointer">
-                <option value="all">All Tags</option>
-              </select>
             </div>
           </div>
 
@@ -554,7 +577,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
             <div>
               <div class="flex items-start justify-between flex-wrap gap-2">
                 <h4 class="font-display font-semibold text-white text-base sm:text-lg">Microwave Engineer (Internship)</h4>
-                <span class="font-mono text-xs text-faint uppercase">Jun 2026 - Aug 2026</span>
+                <span class="font-mono text-xs text-faint uppercase">Jun 2026 - Sep 2026</span>
               </div>
               <p class="font-mono text-xs text-dim mt-0.5 uppercase tracking-wide">Leonardo · Luton, England, UK · Hybrid</p>
               <p class="text-sm text-dim mt-3 leading-relaxed">Working within a multi-disciplinary team to design and evaluate advanced RF components used in electronic warfare self-protection systems.</p>
@@ -580,7 +603,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     </div>
 
     <!-- ================= RIGHT: LINKEDIN MODULES ================= -->
-    <aside id="rightSidebar" class="lg:col-span-3 flex flex-col gap-8 transition-opacity duration-300 ease-in-out">
+    <aside id="rightSidebar" class="lg:col-span-3 flex flex-col gap-8 transition-all duration-300 ease-in-out">
 
       <div>
         <div class="flex items-center justify-between mb-3">
@@ -604,7 +627,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         <p class="text-sm text-dim mt-0.5">
           <a href="https://www.westminster.ac.uk/computer-science-and-engineering-courses/2026-27/september/full-time/software-engineering-with-electronics-beng-honours" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-2">BEng Software Engineering with Electronics ↗</a>
         </p>
-        <p class="font-mono text-xs text-faint mt-1 uppercase">Sep 2024 — Jun 2027</p>
+        <p class="font-mono text-xs text-faint mt-1 uppercase">Sep 2024 - Jun 2027</p>
 
         <!-- "View Key Modules" now sits directly under the university info,
              above the dissertation entry below, per site content ordering. -->
@@ -659,8 +682,8 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
   </div>
 
   <footer class="mt-auto pt-8 border-t border-line flex flex-col sm:flex-row justify-between gap-2">
-    <p class="font-mono text-xs text-faint uppercase tracking-wide">Suber Abdi — London, UK</p>
-    <p class="font-mono text-xs text-faint uppercase tracking-wide">Designed &amp; built by Suber Abdi</p>
+    <p class="font-mono text-xs text-faint uppercase tracking-wide">Suber Abdi - London, UK</p>
+    <p class="font-mono text-xs text-faint uppercase tracking-wide">© 2026</p>
   </footer>
 </div>
 
@@ -678,10 +701,10 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       outcome: 'In progress - design, simulation and testing stages ahead of final submission.',
       has3DModel: true,
       // Each entry is one toggleable body in the layer dropdown.
-      // Add more objects here for additional bodies — the viewer picks
+      // Add more objects here for additional bodies - the viewer picks
       // them up automatically, no other code changes needed.
       // If you leave `name` out (like the PCB entry below), the dropdown
-      // label is derived automatically from the STL filename — so once you
+      // label is derived automatically from the STL filename - so once you
       // upload your real PCB export to the repo root, just update `path`
       // to match its filename and the label updates itself, no other edits needed.
       stlBodies: [
@@ -771,18 +794,18 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
           title: 'Viva & Presentation',
           html: `<ul class="bullet-list space-y-1">
             <li>Presented background theory, hardware/software implementation and testing in a 12-minute group technical presentation</li>
-            <li>Answered live technical Q&amp;A and demonstrated the toolchain — Eagle, Simscape, PICSim and MPLAB X</li>
+            <li>Answered live technical Q&amp;A and demonstrated the toolchain, including KiCad, Simscape, PICSim and MPLAB X</li>
             <li>Evaluated and repeated test results on request to demonstrate ownership of the solution</li>
           </ul>`
         },
         {
           title: 'Hardware & Firmware',
-          html: `<p>Designed the Analogue Front-End (AFE) and microcontroller schematic in Eagle — including reset, clock, power regulation, LCD connectivity and sensor-select switching — and modelled the AFE stage in Simscape ahead of committing to the final circuit. Firmware was written entirely in PIC Assembly in MPLAB X, handling ADC sampling and quantisation, decoding readings for the character LCD, LCD timing, and input channel selection.</p>`,
+          html: `<p>Designed the Analogue Front-End (AFE) and microcontroller schematic in KiCad, including reset, clock, power regulation, LCD connectivity and sensor-select switching, and modelled the AFE stage in Simscape ahead of committing to the final circuit. Firmware was written entirely in PIC Assembly in MPLAB X, handling ADC sampling and quantisation, decoding readings for the character LCD, LCD timing, and input channel selection.</p>`,
           span2: true
         },
         {
           title: 'Testing & Outcome',
-          html: `<p>Verified logic in PICSim and MPLAB X's simulator before moving to hardware emulation, then validated the full signal path end-to-end on real hardware. Delivered a working dual-thermistor DAC with live LCD readout, complete Eagle schematics, and full documentation in the final report.</p>`,
+          html: `<p>Verified logic in PICSim and MPLAB X's simulator before moving to hardware emulation, then validated the full signal path end-to-end on real hardware. Delivered a working dual-thermistor DAC with live LCD readout, complete KiCad schematics, and full documentation in the final report.</p>`,
           span2: true
         }
       ],
@@ -802,10 +825,19 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     
     leftSidebarOpen = !leftSidebarOpen;
     if (!leftSidebarOpen) {
-      profileContent.classList.add('opacity-0', 'pointer-events-none');
-      setTimeout(() => { 
-        profileContent.classList.add('hidden'); 
+      // Collapsing: fade + slide the full profile out, then swap in the
+      // narrow collapsed rail with its own fade + slide in.
+      profileContent.classList.add('opacity-0', 'pointer-events-none', '-translate-x-2');
+      setTimeout(() => {
+        profileContent.classList.add('hidden');
         collapsedIndicator.classList.remove('hidden');
+        collapsedIndicator.classList.add('opacity-0', '-translate-x-2');
+        // Double rAF forces the browser to register the "faded out" starting
+        // state before we remove it, so the transition below actually animates
+        // instead of jumping straight to its end state.
+        requestAnimationFrame(() => requestAnimationFrame(() => {
+          collapsedIndicator.classList.remove('opacity-0', '-translate-x-2');
+        }));
       }, 300);
       
       leftAside.classList.replace('lg:col-span-3', 'lg:col-span-1');
@@ -818,9 +850,19 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       toggleBtn.classList.add('top-0', 'left-1/2', '-translate-x-1/2');
       toggleBtn.innerHTML = `<i data-lucide="panel-left-open" class="w-5 h-5"></i>`;
     } else {
-      collapsedIndicator.classList.add('hidden');
+      // Expanding: fade + slide the collapsed rail out, then swap back to the
+      // full profile with its own fade + slide in.
+      collapsedIndicator.classList.add('opacity-0', '-translate-x-2');
+      setTimeout(() => {
+        collapsedIndicator.classList.add('hidden');
+        collapsedIndicator.classList.remove('opacity-0', '-translate-x-2');
+      }, 300);
+
       profileContent.classList.remove('hidden');
-      setTimeout(() => { profileContent.classList.remove('opacity-0', 'pointer-events-none'); }, 50);
+      profileContent.classList.add('opacity-0', 'pointer-events-none', '-translate-x-2');
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        profileContent.classList.remove('opacity-0', 'pointer-events-none', '-translate-x-2');
+      }));
       
       leftAside.classList.replace('lg:col-span-1', 'lg:col-span-3');
       if (isProjectOpen) {
@@ -845,7 +887,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
   // Builds one lowercase blob of searchable text for a project: title, tags,
   // status, and whichever description fields it has (default projects use
   // overview/stack/challenges/outcome; projects using the custom `sections`
-  // layout — see the DAC project — get their section titles/text included
+  // layout - see the DAC project - get their section titles/text included
   // too, with HTML tags stripped out).
   function getProjectSearchText(p) {
     const parts = [p.title, p.status, (p.tags || []).join(' '), p.overview || '', p.stack || '', p.challenges || '', p.outcome || ''];
@@ -870,7 +912,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
   }
 
   // Populates the tag filter <select> with every unique tag in use across
-  // all projects, in first-seen order. Called once on load — if projects
+  // all projects, in first-seen order. Called once on load - if projects
   // are ever added/edited with new tags, this picks them up automatically.
   function populateProjectTagFilter() {
     const select = document.getElementById('projectTagFilter');
@@ -892,6 +934,35 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
   function onProjectTagFilterChange(value) {
     projectTagFilter = value;
     renderProjectGrid();
+  }
+
+  // Expand/collapse the search+filter bar (icon-only by default to save
+  // space; see #projectSearchExpand / .proj-search-* in <style>).
+  function toggleProjectSearch() {
+    const wrap = document.getElementById('projectSearchExpand');
+    const btn = document.getElementById('projectSearchToggleBtn');
+    const isExpanded = wrap.classList.contains('proj-search-expanded');
+    if (isExpanded) {
+      wrap.classList.replace('proj-search-expanded', 'proj-search-collapsed');
+      btn.setAttribute('aria-expanded', 'false');
+    } else {
+      wrap.classList.replace('proj-search-collapsed', 'proj-search-expanded');
+      btn.setAttribute('aria-expanded', 'true');
+      setTimeout(() => document.getElementById('projectSearchInput').focus(), 200);
+    }
+  }
+
+  // Auto-collapses the bar back to just the icon once focus leaves it,
+  // but only if there's nothing active to show (no search text, no tag
+  // filter applied), otherwise it'd hide an active filter from view.
+  function maybeCollapseProjectSearch() {
+    setTimeout(() => {
+      const wrap = document.getElementById('projectSearchExpand');
+      if (wrap.contains(document.activeElement)) return; // focus just moved between the input/select, keep it open
+      if (projectSearchQuery.trim() !== '' || projectTagFilter !== 'all') return; // an active filter is in use, keep it visible
+      wrap.classList.replace('proj-search-expanded', 'proj-search-collapsed');
+      document.getElementById('projectSearchToggleBtn').setAttribute('aria-expanded', 'false');
+    }, 120); // small delay so moving focus within the bar (input -> select) doesn't collapse it
   }
 
   function renderProjectGrid() {
@@ -969,13 +1040,13 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     slides.forEach((s, i) => {
       let mediaHTML = '';
       if (s.src.toLowerCase().endsWith('.pdf')) {
-        // PDFs are left as-is (iframes are already lazy by nature — they only
+        // PDFs are left as-is (iframes are already lazy by nature - they only
         // fetch once their container is actually rendered/visible).
         mediaHTML = `<iframe src="${s.src}" class="w-full h-[400px] border-none bg-white"></iframe>`;
       } else if (i === 0) {
         // PERF: only the first slide's image loads immediately. All other
         // slides (below) defer their real src via data-src and only fetch
-        // when the user actually navigates to them — previously all slides'
+        // when the user actually navigates to them - previously all slides'
         // images fetched at once when a carousel opened, which is what made
         // multi-image sections (e.g. the GEEP course modal) feel slow to load.
         mediaHTML = `<img src="${s.src}" alt="${s.cap || ''}" loading="eager" decoding="async">`;
@@ -1035,7 +1106,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     canvas.width = canvas.height = size;
     const ctx = canvas.getContext('2d');
     const img = ctx.createImageData(size, size);
-    // Fine grain/stipple around a neutral normal (128,128,255) — subtle,
+    // Fine grain/stipple around a neutral normal (128,128,255) - subtle,
     // just enough to break up a perfectly smooth plastic highlight.
     for (let i = 0; i < img.data.length; i += 4) {
       const n = 128 + (Math.random() - 0.5) * 14;
@@ -1056,7 +1127,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     // against the new light viewport background. Switched to a mid-tone
     // grey-blue (typical CAD/Fusion 360 "generic" part colour) so shading
     // gradients and fine geometry are easier to read. To retheme this,
-    // just edit `color` below — everything else adapts automatically.
+    // just edit `color` below - everything else adapts automatically.
     return new THREE.MeshPhysicalMaterial({
       color: 0x8b95a1,
       roughness: 0.4,       // kept in the 0.3–0.6 band so it reads as plastic, not wet or chalky
@@ -1110,9 +1181,9 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
   // highlights it, and there's a small RGB axis triad + Home button to
   // round out the Fusion-360 look. To restyle the cube's colours, edit
   // `faceBg`/`faceFg` (in makeViewCubeFaceTexture) and `bevelColor`/
-  // `hoverColor` below — everything else adapts automatically.
+  // `hoverColor` below - everything else adapts automatically.
   function initViewCube(mainCamera, mainControls, container) {
-    const size = 104; // was 64 — enlarged to be more visible/usable, like the Fusion 360 cube
+    const size = 104; // was 64 - enlarged to be more visible/usable, like the Fusion 360 cube
     const cubeWrap = document.createElement('div');
     cubeWrap.id = 'viewCubeWrap';
     cubeWrap.className = 'absolute top-2 right-2 z-10';
@@ -1367,22 +1438,6 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       controls = new THREE.OrbitControls(camera, renderer.domElement);
       controls.enableDamping = true;
       controls.dampingFactor = 0.05;
-
-      // Auto-rotate the model when idle. To change the speed, edit
-      // autoRotateSpeed (higher = faster); to remove auto-rotation entirely,
-      // delete this block and the two controls.addEventListener calls below.
-      controls.autoRotate = true;
-      controls.autoRotateSpeed = 1.2;
-      let resumeAutoRotateTimer = null;
-      controls.addEventListener('start', () => {
-        controls.autoRotate = false;
-        if (resumeAutoRotateTimer) clearTimeout(resumeAutoRotateTimer);
-      });
-      controls.addEventListener('end', () => {
-        // Resume auto-rotate a couple seconds after the user lets go,
-        // rather than snapping straight back into motion.
-        resumeAutoRotateTimer = setTimeout(() => { controls.autoRotate = true; }, 2000);
-      });
     }
 
     const normalMap = generatePlasticNormalMap();
@@ -1497,10 +1552,10 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
             </div>
           </div>
           <!-- NOTE: this viewport intentionally uses a white/light background
-               (Fusion 360 style) instead of the site's dark theme — this is
+               (Fusion 360 style) instead of the site's dark theme - this is
                scoped to the 3D canvas only via inline style, the rest of the
                site's dark styling is untouched. -->
-          <div id="stlViewerContainer" class="relative w-full h-[28rem] border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing" style="background:#f3f3f2;"></div>
+          <div id="stlViewerContainer" class="relative w-full h-[36rem] border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing" style="background:#f3f3f2;"></div>
           <p class="font-mono text-[10px] text-faint mt-2">Click and drag to rotate model · Scroll to zoom · Click the view cube to snap views</p>
         </div>
       `;
@@ -1612,8 +1667,9 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       </div>` : ''}
     `;
 
-    document.getElementById('rightSidebar').classList.add('opacity-0', 'pointer-events-none');
-    setTimeout(() => { document.getElementById('rightSidebar').classList.add('hidden'); }, 300);
+    const rightSidebarEl = document.getElementById('rightSidebar');
+    rightSidebarEl.classList.add('opacity-0', 'pointer-events-none', 'translate-x-3');
+    setTimeout(() => { rightSidebarEl.classList.add('hidden'); }, 300);
     
     const centerCol = document.getElementById('centerColumn');
     if(leftSidebarOpen) {
@@ -1642,20 +1698,30 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       active3DAnimationId = null;
     }
 
-    detailView.classList.remove('open');
-    feedView.style.display = 'flex';
-    
-    const centerCol = document.getElementById('centerColumn');
-    if(leftSidebarOpen) {
-        centerCol.classList.replace('lg:col-span-9', 'lg:col-span-6');
-    } else {
-        centerCol.classList.replace('lg:col-span-11', 'lg:col-span-8');
-    }
-    
-    document.getElementById('rightSidebar').classList.remove('hidden');
-    setTimeout(() => { document.getElementById('rightSidebar').classList.remove('opacity-0', 'pointer-events-none'); }, 50);
+    // Play a quick fade+slide-out (see .closing / @keyframes fadeOut) before
+    // actually swapping back to the feed view, instead of vanishing instantly.
+    detailView.classList.add('closing');
+    setTimeout(() => {
+      detailView.classList.remove('open', 'closing');
+      feedView.style.display = 'flex';
 
-    history.replaceState(null, '', window.location.pathname);
+      const centerCol = document.getElementById('centerColumn');
+      if (leftSidebarOpen) {
+        centerCol.classList.replace('lg:col-span-9', 'lg:col-span-6');
+      } else {
+        centerCol.classList.replace('lg:col-span-11', 'lg:col-span-8');
+      }
+
+      const rightSidebarEl = document.getElementById('rightSidebar');
+      rightSidebarEl.classList.remove('hidden');
+      // Double rAF so the "faded out / slid over" starting state is registered
+      // before we remove it, letting the transition actually animate in.
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        rightSidebarEl.classList.remove('opacity-0', 'pointer-events-none', 'translate-x-3');
+      }));
+
+      history.replaceState(null, '', window.location.pathname);
+    }, 180); // matches the .closing fadeOut animation duration
   }
 
   window.addEventListener('DOMContentLoaded', () => {
@@ -1862,7 +1928,7 @@ const CATEGORY_DATA = {
           <ul class="bullet-list text-sm text-dim space-y-1.5">
             <li>Technical and behavioural interview preparation with practising engineers.</li>
             <li>Full assessment centre simulations, including group exercises and presentations.</li>
-            <li>Industry mentoring — matched with <a href="https://www.linkedin.com/in/matthew-kingham-9059a081/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base%3BhbmdhNLhTima1YsNmyUtcQ%3D%3D" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-2">Matthew Kingham</a> (Johnson Matthey).</li>
+            <li>Industry mentoring - matched with <a href="https://www.linkedin.com/in/matthew-kingham-9059a081/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base%3BhbmdhNLhTima1YsNmyUtcQ%3D%3D" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-2">Matthew Kingham</a> (Johnson Matthey).</li>
           </ul>
         </div>
         {{CAROUSEL}}
