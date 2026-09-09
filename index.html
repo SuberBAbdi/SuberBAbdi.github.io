@@ -1123,13 +1123,13 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
   }
 
   function makePlasticMaterial(normalMap) {
-    // CHANGE: was a blue-tinted grey (0x8b95a1). Switched to a flatter,
-    // neutral grey matching Fusion 360's default "generic" body appearance
-    // (no colour tint) so it reads as a plain CAD material rather than a
-    // coloured part. To retheme this, just edit `color` below - everything
-    // else adapts automatically.
+    // CHANGE: was near-black (0x0a0a0a), which flattened out surface detail
+    // against the new light viewport background. Switched to a mid-tone
+    // grey-blue (typical CAD/Fusion 360 "generic" part colour) so shading
+    // gradients and fine geometry are easier to read. To retheme this,
+    // just edit `color` below - everything else adapts automatically.
     return new THREE.MeshPhysicalMaterial({
-      color: 0xb5b5b5,
+      color: 0x8b95a1,
       roughness: 0.4,       // kept in the 0.3–0.6 band so it reads as plastic, not wet or chalky
       metalness: 0.05,
       normalMap: normalMap,
@@ -1508,6 +1508,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     function animate() {
       active3DAnimationId = requestAnimationFrame(animate);
       if (controls) controls.update();
+      modelGroup.rotation.y += 0.005;
       renderer.render(scene, camera);
       renderViewCube();
     }
@@ -1853,4 +1854,421 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       function ts() {
         s += 1 + Math.floor(Math.random() * 3);
         if (s > 59) { s -= 60; m++; } if (m > 59) { m -= 60; h++; }
-        const p = n => String(n).padStar
+        const p = n => String(n).padStart(2, '0'); return `[${p(h)}:${p(m)}:${p(s)}]`;
+      }
+      function randByte() { return '0x' + Math.floor(Math.random() * 256).toString(16).toUpperCase().padStart(2, '0'); }
+      function makeLine() {
+        const r = Math.random();
+        if (r < 0.3) return `${ts()} ADC_READ: ${(2.5 + Math.random() * 0.6).toFixed(2)}V -> <span class="ok">MARGIN_OK</span>`;
+        if (r < 0.55) return `${ts()} TEMP: ${(22 + Math.random() * 4).toFixed(1)}°C <span class="ok">[IN BOUNDS]</span>`;
+        if (r < 0.8) return `${ts()} SPI_TX: ${randByte()} ${randByte()} ${randByte()}`;
+        return `${ts()} I2C ACK @0x3C`;
+      }
+      function renderTerm() {
+        lines.push(makeLine()); if (lines.length > 5) lines.shift();
+        termBody.innerHTML = lines.map(l => l.replace(/^(\[[\d:]+\])/, '<span class="ts">$1</span>')).join('<br>') + ' <span class="cursor"></span>';
+      }
+      renderTerm(); renderTerm(); renderTerm();
+      if (!reduceMotion) setInterval(renderTerm, 2200);
+    }
+
+  })();
+</script>
+
+<!-- ================= MODAL SHELL ================= -->
+<div id="modalOverlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+  <div class="modal-panel modal-lg" id="modalPanel">
+    <div class="modal-head">
+      <div>
+        <div class="modal-eyebrow" id="modalEyebrow"></div>
+        <div class="modal-title" id="modalTitle"></div>
+      </div>
+      <div class="flex items-center gap-2">
+        <div id="modalCategoryNav" class="hidden flex items-center gap-1.5 mr-2">
+          <button id="modalPrevCatBtn" class="modal-nav-btn focus-ring" onclick="navigateModalCategory(-1)" title="Previous Item">←</button>
+          <span id="modalCatCounter" class="font-mono text-[11px] text-dim px-1.5">1/1</span>
+          <button id="modalNextCatBtn" class="modal-nav-btn focus-ring" onclick="navigateModalCategory(1)" title="Next Item">→</button>
+        </div>
+        <button class="modal-close focus-ring" onclick="closeModal()" aria-label="Close">✕</button>
+      </div>
+    </div>
+    <div class="modal-body" id="modalBody"></div>
+  </div>
+</div>
+
+<script>
+const CATEGORY_DATA = {
+  courses: [
+    {
+      size: 'modal-lg',
+      eyebrow: 'Course · Royal Academy of Engineering',
+      title: '<a href="https://raeng.org.uk/" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4">GEEP Graduate Programme ↗</a>',
+      slides: [
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GEEP_Certificate.jpg', cap: '1. GEEP Completion Certificate' },
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GEEP_London_Gathering_EoY_2026.jpg', cap: '2. GEEP London Gathering EoY 2026' },
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_001.jpg', cap: '3. GXO Logistics Trip 1' },
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_002.jpg', cap: '4. GXO Logistics Trip 2' },
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_003.jpg', cap: '5. GXO Logistics Trip 3' },
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_004.jpg', cap: '6. GXO Logistics Trip 4' },
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_005.jpg', cap: '7. GXO Logistics Trip 5' },
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_006.jpg', cap: '8. GXO Logistics Trip 6' },
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_007.jpg', cap: '9. GXO Logistics Trip 7' },
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_008.jpg', cap: '10. GXO Logistics Trip 8' }
+      ],
+      body: `
+        <div class="modal-section">
+          <p>The Graduate Engineering Engagement Programme is run by the Royal Academy of
+          Engineering to support underrepresented engineering talent into graduate-level
+          roles. It combines technical bootcamps, mock interviews, assessment centres and
+          one-to-one industry mentoring.</p>
+        </div>
+
+        <div class="modal-section">
+          <div class="modal-label">What it covered</div>
+          <ul class="bullet-list text-sm text-dim space-y-1.5">
+            <li>Technical and behavioural interview preparation with practising engineers.</li>
+            <li>Full assessment centre simulations, including group exercises and presentations.</li>
+            <li>Industry mentoring - matched with <a href="https://www.linkedin.com/in/matthew-kingham-9059a081/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base%3BhbmdhNLhTima1YsNmyUtcQ%3D%3D" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-2">Matthew Kingham</a> (Johnson Matthey).</li>
+          </ul>
+        </div>
+        {{CAROUSEL}}
+      `
+    }
+  ],
+  volunteering: [
+    {
+      size: 'modal-md',
+      eyebrow: 'Volunteering',
+      title: 'Volunteer, CARIS Haringey <span class="text-dim text-sm font-normal block mt-1">Aug 2024</span>',
+      body: `
+        <div class="modal-section">
+          <p>Volunteered at CARIS Haringey, a charity supporting homeless families. Assisted with organising and distributing essential supplies to those in need, developing strong community engagement and teamwork skills.</p>
+        </div>
+      `
+    }
+  ],
+  partTime: [
+    {
+      size: 'modal-md',
+      eyebrow: 'Part-Time Experience',
+      title: 'Student Team Leader <span class="text-dim text-sm font-normal block mt-1">Westminster SU · Oct 2026 - Present</span>',
+      body: `
+        <div class="modal-section">
+          <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
+            <li><strong class="text-[#d2d2d0] font-medium">Team Leadership:</strong> Supervised and supported a shift team of up to 7 Student Callers, ensuring team members were up to date on call expectations, campaign resources, and university procedures.</li>
+            <li><strong class="text-[#d2d2d0] font-medium">Operations & Administration:</strong> Managed daily call centre operations, including creating weekly staff rotas, generating daily targeted call lists, and accurately auditing student opt-out information using Microsoft Excel.</li>
+            <li><strong class="text-[#d2d2d0] font-medium">Student Support & Communication:</strong> Handled first-level escalation queries from student callers, providing empathetic and assertive guidance to signpost students to appropriate university welfare and support services.</li>
+            <li><strong class="text-[#d2d2d0] font-medium">Data Management & Confidentiality:</strong> Drafted and sent accurate, confidential follow-up communications via a dedicated call centre mailbox while strictly adhering to data protection guidelines.</li>
+            <li><strong class="text-[#d2d2d0] font-medium">Reporting & Collaboration:</strong> Delivered daily operational updates to the Peer Support Programme Coordinator, tracking shift performance metrics and escalating complex student cases in a timely, professional manner.</li>
+          </ul>
+        </div>
+      `
+    },
+    {
+      size: 'modal-md',
+      eyebrow: 'Part-Time Experience',
+      title: 'Sales Team Member <span class="text-dim text-sm font-normal block mt-1">Krispy Kreme · Feb 2024 - Oct 2026</span>',
+      body: `
+        <div class="modal-section">
+          <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
+            <li><strong class="text-[#d2d2d0] font-medium">Customer Standards:</strong> Maintained strict operational and hygiene standards to ensure an exceptional guest experience.</li>
+            <li><strong class="text-[#d2d2d0] font-medium">Sales & Upselling:</strong> Boosted daily revenue by promoting special offers and driving customer loyalty sign-ups through the rewards app.</li>
+            <li><strong class="text-[#d2d2d0] font-medium">Food Safety & Hygiene:</strong> Maintained a compliant environment by following health, safety, and chemical handling protocols.</li>
+          </ul>
+        </div>
+      `
+    },
+    {
+      size: 'modal-md',
+      eyebrow: 'Part-Time Experience',
+      title: 'Till Operator <span class="text-dim text-sm font-normal block mt-1">Pabulum Ltd · Sep 2022 - Apr 2024</span>',
+      body: `
+        <div class="modal-section">
+          <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
+            <li><strong class="text-[#d2d2d0] font-medium">Cash Handling:</strong> Operated POS till systems accurately, processed payments, and reconciled total sales at the end of each shift.</li>
+            <li><strong class="text-[#d2d2d0] font-medium">Dietary Awareness:</strong> Memorised menu ingredients and daily availability to guide customer choices and accommodate dietary restrictions.</li>
+            <li><strong class="text-[#d2d2d0] font-medium">Safe Food Service:</strong> Monitored and executed the secure, hygienic distribution of food items in line with strict safety guidelines.</li>
+          </ul>
+        </div>
+      `
+    }
+  ],
+  following: [
+    {
+      size: 'modal-md',
+      eyebrow: 'Following',
+      title: 'Organizations & Companies',
+      body: `
+        <div class="modal-section">
+          <!-- To add another followed company: copy a <li> line below, keep the
+               same classes for consistent styling, and update the href + label. -->
+          <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
+            <li><a href="https://www.linkedin.com/company/leonardo-electronics/" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4">Leonardo Electronics ↗</a></li>
+            <li><a href="https://www.linkedin.com/company/westminstersu/" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4">Westminster SU ↗</a></li>
+            <li><a href="https://www.linkedin.com/company/arm/posts/?feedView=all" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4">Arm ↗</a></li>
+            <li><a href="https://www.linkedin.com/company/honeywell/posts/?feedView=all" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4">Honeywell ↗</a></li>
+          </ul>
+        </div>
+      `
+    }
+  ]
+};
+
+const SINGLE_MODALS = {
+  modules: {
+    size: 'modal-md',
+    eyebrow: 'Education',
+    title: 'Key Modules',
+    body: `
+      <div class="modal-section">
+        <p class="text-sm text-dim mb-4">Select a module below to view its details.</p>
+        <div class="space-y-2">
+          <details class="group border border-line p-3 rounded bg-panel open:bg-[#161618] transition-colors cursor-pointer [&_summary::-webkit-details-marker]:hidden">
+            <summary class="font-display font-semibold text-sm text-white outline-none list-none flex justify-between items-center">
+              Sensors & Signals
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-dim group-open:rotate-180 transition-transform"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <p class="text-sm text-dim mt-2 pt-2 border-t border-lineSoft">In-depth study of analogue and digital sensors, signal conditioning, filtering, and data acquisition techniques for embedded systems applications.</p>
+          </details>
+
+          <details class="group border border-line p-3 rounded bg-panel open:bg-[#161618] transition-colors cursor-pointer [&_summary::-webkit-details-marker]:hidden">
+            <summary class="font-display font-semibold text-sm text-white outline-none list-none flex justify-between items-center">
+              Embedded System Project (WBL)
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-dim group-open:rotate-180 transition-transform"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <p class="text-sm text-dim mt-2 pt-2 border-t border-lineSoft">A core work-based learning module focusing on a complete embedded product lifecycle. Included end-to-end prototyping, schematic design, and firmware development.</p>
+          </details>
+
+          <details class="group border border-line p-3 rounded bg-panel open:bg-[#161618] transition-colors cursor-pointer [&_summary::-webkit-details-marker]:hidden">
+            <summary class="font-display font-semibold text-sm text-white outline-none list-none flex justify-between items-center">
+              Operating Systems and System Programming
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-dim group-open:rotate-180 transition-transform"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <p class="text-sm text-dim mt-2 pt-2 border-t border-lineSoft">Operating Systems & Systems Programming
+Level 6 Module | University of Westminster
+Developed deep technical expertise in modern operating system architectures and low-level software development by programming directly within the Linux kernel environment using C.
+
+Core Technical Skills
+Process & Thread Management: Mastered process creation via fork()/exec() and multi-threading with pthreads.
+Concurrency Control: Engineered race-condition fixes using POSIX/System V semaphores and synchronization algorithms.
+Inter-Process Communication (IPC): Implemented data pipelines using shared memory, signals, and pipes.
+Network & Memory Programming: Built network applications via TCP/UDP sockets and simulated low-level memory allocation.
+
+💻 Key Portfolio Projects
+System-Level C Application: Architected an independent Linux service integrating multi-processing, signals, and thread synchronization.
+Performance Evaluation: Produced a critical technical report assessing code optimization, resource efficiency, and structural limitations.</p>
+          </details>
+
+          <details class="group border border-line p-3 rounded bg-panel open:bg-[#161618] transition-colors cursor-pointer [&_summary::-webkit-details-marker]:hidden">
+            <summary class="font-display font-semibold text-sm text-white outline-none list-none flex justify-between items-center">
+              Real-Time Embedded Systems
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-dim group-open:rotate-180 transition-transform"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <p class="text-sm text-dim mt-2 pt-2 border-t border-lineSoft">Applying RTOS principles to microcontrollers. Scheduling algorithms, deterministic task execution, and handling hard real-time constraints in critical systems.</p>
+          </details>
+
+          <details class="group border border-line p-3 rounded bg-panel open:bg-[#161618] transition-colors cursor-pointer [&_summary::-webkit-details-marker]:hidden">
+            <summary class="font-display font-semibold text-sm text-white outline-none list-none flex justify-between items-center">
+              FPGA Design Project
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-dim group-open:rotate-180 transition-transform"><path d="m6 9 6 6 6-6"/></svg>
+            </summary>
+            <p class="text-sm text-dim mt-2 pt-2 border-t border-lineSoft">Digital logic design using hardware description languages (Verilog/VHDL), implementing custom IP cores and testing on FPGA development boards.</p>
+          </details>
+        </div>
+      </div>
+    `
+  },
+  toolchain: {
+    size: 'modal-md',
+    eyebrow: 'Skills & Tools',
+    title: 'Complete Toolchain',
+    body: `
+      <div class="modal-section">
+        <div class="flex flex-wrap gap-2">
+            <span class="tag">C / C++</span>
+            <span class="tag">Python</span>
+            <span class="tag">Assembly</span>
+            <span class="tag">MATLAB</span>
+            <span class="tag">KiCAD</span>
+            <span class="tag">Arduino</span>
+            <span class="tag">PIC16F877A</span>
+            <span class="tag">Mbed / Keil</span>
+            <span class="tag">Keysight ADS</span>
+            <span class="tag">SPI / I2C</span>
+            <span class="tag">Fusion 360</span>
+            <span class="tag">Azure</span>
+            <span class="tag">Confluence</span>
+        </div>
+      </div>
+    `
+  },
+  skills: {
+    size: 'modal-md',
+    eyebrow: 'Skills & Tools',
+    title: 'Top Skills',
+    body: `
+      <div class="modal-section">
+        <div class="flex flex-wrap gap-2">
+          <span class="tag">Communication</span>
+          <span class="tag">C++</span>
+          <span class="tag">Microcontrollers</span>
+          <span class="tag">RF Design</span>
+          <span class="tag">Problem Solving</span>
+          <span class="tag">Embedded Systems</span>
+        </div>
+      </div>
+    `
+  }
+};
+
+let currentCategoryKey = null;
+let currentCategoryIndex = 0;
+
+function openModalCategory(categoryKey, index = 0) {
+  const cat = CATEGORY_DATA[categoryKey];
+  if (!cat || !cat.length) return;
+
+  currentCategoryKey = categoryKey;
+  currentCategoryIndex = Math.max(0, Math.min(index, cat.length - 1));
+
+  renderCategoryModalItem();
+
+  const overlay = document.getElementById('modalOverlay');
+  overlay.classList.add('open');
+  document.body.classList.add('modal-open');
+  setTimeout(() => overlay.classList.add('shown'), 10);
+}
+
+function renderCategoryModalItem() {
+  const list = CATEGORY_DATA[currentCategoryKey];
+  const m = list[currentCategoryIndex];
+  if (!m) return;
+
+  document.getElementById('modalEyebrow').textContent = m.eyebrow;
+  document.getElementById('modalTitle').innerHTML = m.title;
+
+  let bodyHTML = m.body;
+  const carouselPrefix = 'modal-' + currentCategoryKey + '-' + currentCategoryIndex;
+  if (bodyHTML.includes('{{CAROUSEL}}')) {
+    bodyHTML = bodyHTML.replace('{{CAROUSEL}}', generateCarouselHTML(m.slides, carouselPrefix));
+  } else if (m.slides && m.slides.length > 0) {
+    bodyHTML += generateCarouselHTML(m.slides, carouselPrefix);
+  }
+
+  document.getElementById('modalBody').innerHTML = bodyHTML;
+  document.getElementById('modalPanel').className = `modal-panel ${m.size}`;
+
+  // PERF: quietly pre-fetch the 2nd slide shortly after opening, so the
+  // first click of "next" is instant rather than waiting on a fresh request.
+  if (m.slides && m.slides.length > 1) {
+    setTimeout(() => loadCarouselSlideImage(carouselPrefix, 1), 250);
+  }
+
+  const navEl = document.getElementById('modalCategoryNav');
+  const prevBtn = document.getElementById('modalPrevCatBtn');
+  const nextBtn = document.getElementById('modalNextCatBtn');
+  const counterEl = document.getElementById('modalCatCounter');
+
+  if (list.length > 1 || currentCategoryKey === 'courses' || currentCategoryKey === 'volunteering') {
+    navEl.classList.remove('hidden');
+    counterEl.textContent = `${currentCategoryIndex + 1}/${list.length}`;
+    prevBtn.disabled = (currentCategoryIndex === 0);
+    nextBtn.disabled = (currentCategoryIndex === Math.max(0, list.length - 1));
+  } else {
+    navEl.classList.add('hidden');
+  }
+
+  lucide.createIcons();
+}
+
+function navigateModalCategory(dir) {
+  if (!currentCategoryKey) return;
+  const list = CATEGORY_DATA[currentCategoryKey];
+  if (!list) return;
+
+  const nextIdx = currentCategoryIndex + dir;
+  if (nextIdx >= 0 && nextIdx < list.length) {
+    currentCategoryIndex = nextIdx;
+    renderCategoryModalItem();
+  }
+}
+
+function openModal(id) {
+  if (CATEGORY_DATA[id]) {
+    openModalCategory(id, 0);
+    return;
+  }
+
+  const m = SINGLE_MODALS[id];
+  if (!m) return;
+
+  currentCategoryKey = null;
+  document.getElementById('modalCategoryNav').classList.add('hidden');
+
+  document.getElementById('modalEyebrow').textContent = m.eyebrow;
+  document.getElementById('modalTitle').innerHTML = m.title;
+  document.getElementById('modalBody').innerHTML = m.body;
+  document.getElementById('modalPanel').className = `modal-panel ${m.size}`;
+
+  lucide.createIcons();
+
+  const overlay = document.getElementById('modalOverlay');
+  overlay.classList.add('open');
+  document.body.classList.add('modal-open');
+  setTimeout(() => overlay.classList.add('shown'), 10);
+}
+
+function closeModal() {
+  const overlay = document.getElementById('modalOverlay');
+  overlay.classList.remove('shown');
+  setTimeout(() => {
+    overlay.classList.remove('open');
+    document.body.classList.remove('modal-open');
+  }, 200);
+}
+
+function moveSlide(prefix, dir) {
+  const carousel = document.getElementById(prefix + '-carousel');
+  const track = document.getElementById(prefix + '-track');
+  const current = parseInt(carousel.getAttribute('data-current'));
+  const total = parseInt(carousel.getAttribute('data-total'));
+  
+  let next = current + dir;
+  if (next < 0) next = 0;
+  if (next >= total) next = total - 1;
+  
+  goToSlide(prefix, next);
+}
+
+function goToSlide(prefix, index) {
+  const carousel = document.getElementById(prefix + '-carousel');
+  const track = document.getElementById(prefix + '-track');
+  const dots = document.getElementById(prefix + '-dots')?.querySelectorAll('.carousel-dot');
+  const count = document.getElementById(prefix + '-count');
+  const prevBtn = carousel.querySelector('.carousel-prev');
+  const nextBtn = carousel.querySelector('.carousel-next');
+  const total = parseInt(carousel.getAttribute('data-total'));
+
+  carousel.setAttribute('data-current', index);
+  track.style.transform = `translateX(-${index * 100}%)`;
+  
+  if (count) count.textContent = index + 1;
+  
+  if (dots) {
+    dots.forEach((d, i) => {
+      d.classList.toggle('active', i === index);
+    });
+  }
+  
+  if (prevBtn) prevBtn.disabled = (index === 0);
+  if (nextBtn) nextBtn.disabled = (index === total - 1);
+
+  // PERF: load the slide being shown now, and pre-fetch the next one so
+  // clicking "next" again feels instant instead of waiting on the network.
+  loadCarouselSlideImage(prefix, index);
+  if (index + 1 < total) loadCarouselSlideImage(prefix, index + 1);
+}
+</script>
+
+</body>
+</html>
