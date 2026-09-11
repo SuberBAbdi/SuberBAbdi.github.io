@@ -711,6 +711,47 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         { id: 'enclosure', name: 'Antenna Enclosure', path: 'Controller_Model.stl', visible: true },
         { id: 'pcb', path: 'PCB.stl', visible: true } // TODO: upload your PCB STL export to the repo root as PCB.stl (or update this path to match whatever filename you use)
       ],
+
+      // ---- Additional media blocks for this project's detail page ----
+      // Everything below is OPTIONAL and per-project - openProject() only
+      // renders a card for whichever of these fields are actually present,
+      // so other projects are unaffected. Add the same fields to any future
+      // project to get the same card automatically, no other code changes needed.
+
+      // 2D pan/zoom viewer (see init2DViewer) - deliberately NOT a 3D scene,
+      // since a schematic/layout export is flat artwork, not a solid model.
+      // TODO: upload the real KiCad schematic export (PNG/SVG) to the repo
+      // root and update `path` to match its filename.
+      kicadSchematic: { path: 'Wireless_Energy_Harvester_Schematic.png' },
+
+      // Same 2D pan/zoom viewer as above, for the PCB layout export.
+      // TODO: upload the real KiCad PCB layout export (PNG/SVG) to the repo
+      // root and update `path` to match its filename.
+      pcbLayoutImage: { path: 'Wireless_Energy_Harvester_PCB_Layout.png' },
+
+      // Standalone, orbitable 3D view of just the PCB body - same STL
+      // viewer + view cube as the combined model above (see init3DViewer),
+      // just scoped to a single body. Reuses the PCB.stl referenced in
+      // stlBodies above, so update both paths together if it's renamed.
+      pcbModel: { path: 'PCB.stl', label: 'PCB' },
+
+      // Presentation is viewable inline in the browser (Office web viewer)
+      // as well as downloadable - see the presentationEmbed branch in
+      // openProject(). Other projects that just set `presentation` without
+      // this flag keep the simple "open in new tab" link behaviour instead.
+      // TODO: upload the real .pptx export to the repo root and update this path.
+      presentation: 'Wireless_Energy_Harvester_Presentation.pptx',
+      presentationEmbed: true,
+
+      // Report is viewable inline via the same PDF viewer already used
+      // elsewhere on the site (see togglePdfViewer).
+      // TODO: upload the real report PDF to the repo root and update this path.
+      report: 'Wireless_Energy_Harvester_Report.pdf',
+
+      // YouTube demo video, embedded directly on the project page.
+      // Placeholder ID below - swap for the real demo video once recorded.
+      demoVideoId: '1rsLRHpR1H8',
+
       tags: ['RF Design', 'Antenna Filters', 'IoT Power'],
       github: null
     },
@@ -1033,6 +1074,25 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     }
   }
 
+  // Inline "viewable in web" presentation toggle - used when a project sets
+  // presentationEmbed: true (see openProject). Browsers can't render .pptx
+  // directly like they can PDFs, so this routes through Microsoft's public
+  // Office web viewer, which needs a publicly reachable, URL-encoded source -
+  // it'll only render once the real .pptx file is actually uploaded to the repo.
+  function togglePresentationViewer(url) {
+    const container = document.getElementById('presentationViewerContainer');
+    const iframe = document.getElementById('presentationIframe');
+    if (!container || !iframe) return;
+
+    if (container.classList.contains('hidden')) {
+      iframe.src = 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(url);
+      container.classList.remove('hidden');
+    } else {
+      container.classList.add('hidden');
+      iframe.src = '';
+    }
+  }
+
   function generateCarouselHTML(slides, idPrefix) {
     if (!slides || slides.length === 0) return '';
     let trackHTML = '';
@@ -1096,9 +1156,18 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
   const detailView = document.getElementById('projectDetailView');
   const detailContent = document.getElementById('projectDetailContent');
 
-  let active3DAnimationId = null;
-  let current3DBodies = {};          // id -> THREE.Mesh, for the layer dropdown
-  let current3DBodiesConfig = [];    // the stlBodies config for the open project
+  // Registry of every 3D viewer currently rendered on the page, keyed by
+  // its container id. A project page can now show more than one 3D
+  // viewport at once (e.g. the combined enclosure+PCB model AND a
+  // standalone PCB-only model), so each viewer keeps its OWN animation
+  // frame id and body list here instead of sharing one global - otherwise
+  // opening a second viewer would silently stop/orphan the first one.
+  // Shape per entry: { animationId, bodies: {id -> THREE.Mesh}, bodiesConfig }
+  let viewer3DInstances = {};
+
+  // Reset callbacks for the 2D pan/zoom viewers (schematics, PCB layout
+  // images), keyed by container id - see init2DViewer / reset2DViewer.
+  let view2DResets = {};
 
   function generatePlasticNormalMap(size) {
     size = size || 256;
@@ -1355,17 +1424,26 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     };
   }
 
-  function toggleLayerDropdown(e) {
+  // NOTE: layer toggle/dropdown ids are namespaced per viewer as
+  // `layerToggleBtn-${containerId}` / `layerDropdown-${containerId}` so that
+  // two 3D viewers can both be open on the same project page without their
+  // dropdowns colliding.
+  function toggleLayerDropdown(e, containerId) {
     if (e) e.stopPropagation();
-    const dd = document.getElementById('layerDropdown');
+    const dd = document.getElementById('layerDropdown-' + containerId);
     if (dd) dd.classList.toggle('hidden');
   }
   document.addEventListener('click', (e) => {
-    const dd = document.getElementById('layerDropdown');
-    const btn = document.getElementById('layerToggleBtn');
-    if (dd && !dd.classList.contains('hidden') && !dd.contains(e.target) && e.target !== btn && !btn?.contains(e.target)) {
-      dd.classList.add('hidden');
-    }
+    // Close any open layer dropdown when clicking outside both it and its
+    // own toggle button - loop over all of them since a page can have more
+    // than one 3D viewer/dropdown pair now.
+    document.querySelectorAll('[id^="layerDropdown-"]').forEach((dd) => {
+      const containerId = dd.id.replace('layerDropdown-', '');
+      const btn = document.getElementById('layerToggleBtn-' + containerId);
+      if (!dd.classList.contains('hidden') && !dd.contains(e.target) && e.target !== btn && !btn?.contains(e.target)) {
+        dd.classList.add('hidden');
+      }
+    });
   });
 
   // Derives a human-readable label from an STL filename when a stlBodies
@@ -1375,21 +1453,24 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     return filename.replace(/[_-]+/g, ' ').trim() || 'Body';
   }
 
-  function renderLayerDropdown() {
-    const dd = document.getElementById('layerDropdown');
-    if (!dd) return;
-    dd.innerHTML = current3DBodiesConfig.map(b => `
+  function renderLayerDropdown(containerId) {
+    const dd = document.getElementById('layerDropdown-' + containerId);
+    const inst = viewer3DInstances[containerId];
+    if (!dd || !inst) return;
+    dd.innerHTML = inst.bodiesConfig.map(b => `
       <label class="flex items-center gap-2 px-2 py-1.5 text-xs text-dim hover:text-white cursor-pointer transition-colors">
-        <input type="checkbox" ${b.visible ? 'checked' : ''} onchange="toggle3DBody('${b.id}', this.checked)" class="accent-white">
+        <input type="checkbox" ${b.visible ? 'checked' : ''} onchange="toggle3DBody('${containerId}', '${b.id}', this.checked)" class="accent-white">
         <span class="font-mono">${b.name || deriveNameFromPath(b.path)}</span>
       </label>
     `).join('');
   }
 
-  function toggle3DBody(bodyId, visible) {
-    const cfg = current3DBodiesConfig.find(b => b.id === bodyId);
+  function toggle3DBody(containerId, bodyId, visible) {
+    const inst = viewer3DInstances[containerId];
+    if (!inst) return;
+    const cfg = inst.bodiesConfig.find(b => b.id === bodyId);
     if (cfg) cfg.visible = visible;
-    const mesh = current3DBodies[bodyId];
+    const mesh = inst.bodies[bodyId];
     if (mesh) mesh.visible = visible;
   }
 
@@ -1398,8 +1479,10 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     if (!container) return;
 
     container.innerHTML = '';
-    current3DBodies = {};
-    current3DBodiesConfig = stlBodies.map(b => ({ ...b, visible: b.visible !== false }));
+    // Each viewer instance owns its own animation id + body state (see the
+    // viewer3DInstances registry above) so multiple viewers can run at once.
+    const inst = { animationId: null, bodies: {}, bodiesConfig: stlBodies.map(b => ({ ...b, visible: b.visible !== false })) };
+    viewer3DInstances[containerId] = inst;
 
     const width = container.clientWidth || 600;
     const height = container.clientHeight || 320;
@@ -1410,7 +1493,16 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     scene.background = new THREE.Color(0xf3f3f2);
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 1000);
-    camera.position.set(100, 100, 100);
+    // FRONT-FACING START: the model should open aligned with the view
+    // cube's FRONT face (+Z axis, matching faceDirs/faceLabels in
+    // initViewCube below) rather than an arbitrary isometric corner, so the
+    // camera and the view cube are "locked" together and in sync from the
+    // very first frame. This fallback position is only used briefly before
+    // the STL(s) finish loading and the real front-on framing (based on the
+    // model's actual size) is calculated further down.
+    camera.position.set(0, 0, 150);
+    camera.up.set(0, 1, 0);
+    camera.lookAt(0, 0, 0);
     // Fallback "home" position in case the Home button is clicked before the
     // model finishes loading and recalculates the real framing below.
     camera.userData.homePosition = camera.position.clone();
@@ -1455,19 +1547,19 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     container.appendChild(placeholderText);
 
     let loadedCount = 0;
-    const totalBodies = current3DBodiesConfig.length;
+    const totalBodies = inst.bodiesConfig.length;
     const groupBounds = new THREE.Box3();
     let anyLoaded = false;
 
     const loader = new THREE.STLLoader();
-    current3DBodiesConfig.forEach((bodyCfg) => {
+    inst.bodiesConfig.forEach((bodyCfg) => {
       loader.load(
         bodyCfg.path,
         function (geometry) {
           geometry.center();
           const mesh = new THREE.Mesh(geometry, sharedMaterial.clone());
           mesh.visible = bodyCfg.visible;
-          current3DBodies[bodyCfg.id] = mesh;
+          inst.bodies[bodyCfg.id] = mesh;
           modelGroup.add(mesh);
 
           geometry.computeBoundingBox();
@@ -1479,13 +1571,18 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
             const sizeVec = new THREE.Vector3();
             groupBounds.getSize(sizeVec);
             const radius = Math.max(sizeVec.length() * 0.6, 40);
-            camera.position.set(radius, radius, radius);
+            // FRONT-FACING START (see note above init3DViewer): frame the
+            // model from straight down the +Z axis - the view cube's FRONT
+            // face - instead of an isometric corner, so the model opens
+            // "locked" to a known, cube-matching orientation every time.
+            camera.position.set(0, 0, radius);
+            camera.up.set(0, 1, 0);
             camera.lookAt(0, 0, 0);
             // Record this as "home" so the view cube's Home button can return here.
             camera.userData.homePosition = camera.position.clone();
             const overlay = container.querySelector('.stl-loading');
             if (overlay) overlay.remove();
-            renderLayerDropdown();
+            renderLayerDropdown(containerId);
           }
         },
         undefined,
@@ -1497,7 +1594,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
               overlay.textContent = anyLoaded ? '' : '3D CAD Model Placeholder (STL file preview)';
               if (!anyLoaded) { /* keep overlay visible */ } else { overlay.remove(); }
             }
-            renderLayerDropdown();
+            renderLayerDropdown(containerId);
           }
         }
       );
@@ -1506,9 +1603,11 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     const renderViewCube = initViewCube(camera, controls, container);
 
     function animate() {
-      active3DAnimationId = requestAnimationFrame(animate);
+      inst.animationId = requestAnimationFrame(animate);
       if (controls) controls.update();
-      modelGroup.rotation.y += 0.005;
+      // Auto-rotation was intentionally removed - the model must only move
+      // when the user drags/orbits it or clicks the view cube. Do NOT
+      // re-add a `modelGroup.rotation.y += ...` line here.
       renderer.render(scene, camera);
       renderViewCube();
     }
@@ -1525,14 +1624,94 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     window.addEventListener('resize', handleResize);
   }
 
+  // ===== Generic 2D pan/zoom viewer (schematics, PCB layout images, etc.) =====
+  // Deliberately NOT a 3D scene/view cube like init3DViewer above - these
+  // are flat exports (a KiCad schematic or PCB layout screenshot), so all
+  // this does is let the user drag to pan and scroll to zoom a plain <img>
+  // inside a clipped container. Add a new project field pointing at an
+  // image path and give it its own container id to reuse this elsewhere.
+  function init2DViewer(containerId, imagePath) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    container.innerHTML = '';
+
+    let scale = 1, originX = 0, originY = 0;
+    let dragging = false, lastX = 0, lastY = 0;
+
+    const img = document.createElement('img');
+    img.src = imagePath;
+    img.draggable = false;
+    img.alt = '';
+    img.style.cssText = 'position:absolute; top:0; left:0; max-width:none; transform-origin:0 0; user-select:none;';
+    container.appendChild(img);
+
+    const overlay = document.createElement('div');
+    overlay.className = 'img2d-loading absolute inset-0 flex items-center justify-center font-mono text-[11px] text-center px-6 pointer-events-none uppercase tracking-wider';
+    overlay.style.color = '#68686d';
+    overlay.textContent = 'Loading image...';
+    container.appendChild(overlay);
+
+    function applyTransform() {
+      img.style.transform = `translate(${originX}px, ${originY}px) scale(${scale})`;
+    }
+
+    // Fits and centres the image in the container - called on first load
+    // and by the "Reset View" button (see reset2DViewer) below.
+    function fitToView() {
+      const cw = container.clientWidth, ch = container.clientHeight;
+      if (!img.naturalWidth || !img.naturalHeight) return;
+      scale = Math.min(cw / img.naturalWidth, ch / img.naturalHeight, 1) * 0.92;
+      originX = (cw - img.naturalWidth * scale) / 2;
+      originY = (ch - img.naturalHeight * scale) / 2;
+      applyTransform();
+    }
+
+    img.onload = () => { fitToView(); overlay.remove(); };
+    img.onerror = () => { overlay.textContent = 'Image not yet uploaded to the repo - see TODO in the project data.'; };
+
+    container.addEventListener('mousedown', (e) => { dragging = true; lastX = e.clientX; lastY = e.clientY; });
+    window.addEventListener('mousemove', (e) => {
+      if (!dragging) return;
+      originX += e.clientX - lastX;
+      originY += e.clientY - lastY;
+      lastX = e.clientX; lastY = e.clientY;
+      applyTransform();
+    });
+    window.addEventListener('mouseup', () => { dragging = false; });
+
+    container.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const rect = container.getBoundingClientRect();
+      const mx = e.clientX - rect.left, my = e.clientY - rect.top;
+      const prevScale = scale;
+      scale = Math.min(6, Math.max(0.15, scale * (e.deltaY < 0 ? 1.12 : 0.89)));
+      // Zoom around the cursor position rather than the top-left corner.
+      originX = mx - (mx - originX) * (scale / prevScale);
+      originY = my - (my - originY) * (scale / prevScale);
+      applyTransform();
+    }, { passive: false });
+
+    view2DResets[containerId] = fitToView;
+  }
+
+  // Called by each 2D viewer's "Reset View" button (see openProject markup).
+  function reset2DViewer(containerId) {
+    if (view2DResets[containerId]) view2DResets[containerId]();
+  }
+
   function openProject(id) {
     const p = projects.find(x => x.id === id);
     if (!p) return;
 
-    if (active3DAnimationId) {
-      cancelAnimationFrame(active3DAnimationId);
-      active3DAnimationId = null;
-    }
+    // Cancel and clear every 3D viewer left running from a previously open
+    // project page (there can be more than one now - see viewer3DInstances)
+    // before building the new one.
+    Object.keys(viewer3DInstances).forEach((key) => {
+      const inst = viewer3DInstances[key];
+      if (inst.animationId) cancelAnimationFrame(inst.animationId);
+    });
+    viewer3DInstances = {};
+    view2DResets = {};
 
     let extraAssets = '';
 
@@ -1544,10 +1723,10 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
             <div class="flex items-center gap-2">
               <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">3D STL View</span>
               <div class="relative">
-                <button id="layerToggleBtn" onclick="toggleLayerDropdown(event)" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Toggle model layers" aria-label="Toggle model layers">
+                <button id="layerToggleBtn-stlViewerContainer" onclick="toggleLayerDropdown(event,'stlViewerContainer')" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Toggle model layers" aria-label="Toggle model layers">
                   <i data-lucide="layers" class="w-3.5 h-3.5"></i>
                 </button>
-                <div id="layerDropdown" class="hidden absolute right-0 top-full mt-1.5 w-52 bg-[#0f0f11] border border-line z-20 p-2"></div>
+                <div id="layerDropdown-stlViewerContainer" class="hidden absolute right-0 top-full mt-1.5 w-52 bg-[#0f0f11] border border-line z-20 p-2"></div>
               </div>
             </div>
           </div>
@@ -1557,6 +1736,81 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
                site's dark styling is untouched. -->
           <div id="stlViewerContainer" class="relative w-full h-[36rem] border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing" style="background:#f3f3f2;"></div>
           <p class="font-mono text-[10px] text-faint mt-2">Click and drag to rotate model · Scroll to zoom · Click the view cube to snap views</p>
+        </div>
+      `;
+    }
+
+    // ---- KiCad schematic (2D pan/zoom, see init2DViewer) ----
+    if (p.kicadSchematic) {
+      extraAssets += `
+        <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
+          <div class="flex items-center justify-between mb-3">
+            <p class="font-mono text-xs text-dim uppercase tracking-wider">${p.title} - KiCad Schematic</p>
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">2D Schematic</span>
+              <button onclick="reset2DViewer('kicadViewerContainer')" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Reset view" aria-label="Reset view">
+                <i data-lucide="refresh-ccw" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+          <!-- Flat 2D export, not a 3D scene - no view cube here on purpose. -->
+          <div id="kicadViewerContainer" class="relative w-full h-[28rem] border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing" style="background:#f3f3f2;"></div>
+          <p class="font-mono text-[10px] text-faint mt-2">Click and drag to pan · Scroll to zoom</p>
+        </div>
+      `;
+    }
+
+    // ---- PCB layout (same 2D pan/zoom viewer as the schematic above) ----
+    if (p.pcbLayoutImage) {
+      extraAssets += `
+        <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
+          <div class="flex items-center justify-between mb-3">
+            <p class="font-mono text-xs text-dim uppercase tracking-wider">${p.title} - PCB Layout</p>
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">2D Layout</span>
+              <button onclick="reset2DViewer('pcbLayoutViewerContainer')" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Reset view" aria-label="Reset view">
+                <i data-lucide="refresh-ccw" class="w-3.5 h-3.5"></i>
+              </button>
+            </div>
+          </div>
+          <div id="pcbLayoutViewerContainer" class="relative w-full h-[28rem] border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing" style="background:#f3f3f2;"></div>
+          <p class="font-mono text-[10px] text-faint mt-2">Click and drag to pan · Scroll to zoom</p>
+        </div>
+      `;
+    }
+
+    // ---- Standalone PCB 3D model (same STL viewer + view cube as the main
+    // combined model above, scoped to a single body) ----
+    if (p.pcbModel) {
+      extraAssets += `
+        <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
+          <div class="flex items-center justify-between mb-3">
+            <p class="font-mono text-xs text-dim uppercase tracking-wider">${p.title} - PCB 3D Model</p>
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">3D STL View</span>
+              <div class="relative">
+                <button id="layerToggleBtn-pcbViewerContainer" onclick="toggleLayerDropdown(event,'pcbViewerContainer')" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Toggle model layers" aria-label="Toggle model layers">
+                  <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                </button>
+                <div id="layerDropdown-pcbViewerContainer" class="hidden absolute right-0 top-full mt-1.5 w-52 bg-[#0f0f11] border border-line z-20 p-2"></div>
+              </div>
+            </div>
+          </div>
+          <div id="pcbViewerContainer" class="relative w-full h-[28rem] border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing" style="background:#f3f3f2;"></div>
+          <p class="font-mono text-[10px] text-faint mt-2">Click and drag to rotate model · Scroll to zoom · Click the view cube to snap views</p>
+        </div>
+      `;
+    }
+
+    // ---- YouTube demo video embed ----
+    if (p.demoVideoId) {
+      extraAssets += `
+        <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
+          <p class="font-mono text-xs text-dim uppercase tracking-wider mb-3">${p.title} - Demo Video</p>
+          <div class="relative w-full rounded-sm overflow-hidden border border-line" style="aspect-ratio:16/9;">
+            <iframe class="absolute inset-0 w-full h-full" src="https://www.youtube.com/embed/${p.demoVideoId}" title="${p.title} demo video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          </div>
+          <p class="font-mono text-[10px] text-faint mt-2">Placeholder video - swap the id in this project's demoVideoId once the real demo is recorded.</p>
         </div>
       `;
     }
@@ -1595,16 +1849,36 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       }
 
       if (p.presentation) {
-        extraAssets += `
-        <div class="flex items-center justify-between p-3.5 bg-panel border border-line hover:border-faint transition-colors rounded-sm">
-          <a href="${p.presentation}" target="_blank" rel="noopener" class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors flex-1">
-            <i data-lucide="monitor-play" class="w-4 h-4 text-dim"></i>
-            <span>View Presentation ↗</span>
-          </a>
-          <a href="${p.presentation}" download title="Download Presentation" class="focus-ring p-2 text-faint hover:text-white hover:bg-line rounded-sm transition-colors flex items-center justify-center">
-            <i data-lucide="download" class="w-4 h-4"></i>
-          </a>
-        </div>`;
+        if (p.presentationEmbed) {
+          // "Viewable in web" presentation - mirrors the report's inline
+          // PDF pattern above, but through Microsoft's Office web viewer,
+          // since browsers can't render .pptx natively the way they can PDFs.
+          extraAssets += `
+          <div class="flex items-center justify-between p-3.5 bg-panel border border-line hover:border-faint transition-colors rounded-sm">
+            <button onclick="togglePresentationViewer('${p.presentation}')" class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors text-left flex-1 cursor-pointer">
+              <i data-lucide="monitor-play" class="w-4 h-4 text-dim"></i>
+              <span>View Presentation ↗</span>
+              <span class="font-mono text-[10px] text-faint bg-line px-1.5 py-0.5 rounded uppercase tracking-wider ml-1">Inline Viewer</span>
+            </button>
+            <a href="${p.presentation}" download title="Download Presentation" class="focus-ring p-2 text-faint hover:text-white hover:bg-line rounded-sm transition-colors flex items-center justify-center">
+              <i data-lucide="download" class="w-4 h-4"></i>
+            </a>
+          </div>
+          <div id="presentationViewerContainer" class="hidden w-full border border-line rounded-sm bg-[#18181b] overflow-hidden">
+            <iframe id="presentationIframe" src="" class="w-full h-[650px] border-0"></iframe>
+          </div>`;
+        } else {
+          extraAssets += `
+          <div class="flex items-center justify-between p-3.5 bg-panel border border-line hover:border-faint transition-colors rounded-sm">
+            <a href="${p.presentation}" target="_blank" rel="noopener" class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors flex-1">
+              <i data-lucide="monitor-play" class="w-4 h-4 text-dim"></i>
+              <span>View Presentation ↗</span>
+            </a>
+            <a href="${p.presentation}" download title="Download Presentation" class="focus-ring p-2 text-faint hover:text-white hover:bg-line rounded-sm transition-colors flex items-center justify-center">
+              <i data-lucide="download" class="w-4 h-4"></i>
+            </a>
+          </div>`;
+        }
       }
       
       extraAssets += `</div>`;
@@ -1687,16 +1961,36 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         init3DViewer('stlViewerContainer', p.stlBodies || []);
       }, 50);
     }
+    if (p.kicadSchematic) {
+      setTimeout(() => {
+        init2DViewer('kicadViewerContainer', p.kicadSchematic.path);
+      }, 50);
+    }
+    if (p.pcbLayoutImage) {
+      setTimeout(() => {
+        init2DViewer('pcbLayoutViewerContainer', p.pcbLayoutImage.path);
+      }, 50);
+    }
+    if (p.pcbModel) {
+      setTimeout(() => {
+        init3DViewer('pcbViewerContainer', [
+          { id: 'pcb-solo', name: p.pcbModel.label || 'PCB', path: p.pcbModel.path, visible: true }
+        ]);
+      }, 50);
+    }
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
     history.replaceState(null, '', `#project-${id}`);
   }
 
   function closeProject() {
-    if (active3DAnimationId) {
-      cancelAnimationFrame(active3DAnimationId);
-      active3DAnimationId = null;
-    }
+    // Cancel and clear every 3D viewer running on the page being closed.
+    Object.keys(viewer3DInstances).forEach((key) => {
+      const inst = viewer3DInstances[key];
+      if (inst.animationId) cancelAnimationFrame(inst.animationId);
+    });
+    viewer3DInstances = {};
+    view2DResets = {};
 
     // Play a quick fade+slide-out (see .closing / @keyframes fadeOut) before
     // actually swapping back to the feed view, instead of vanishing instantly.
