@@ -752,6 +752,11 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       // Placeholder ID below - swap for the real demo video once recorded.
       demoVideoId: '1rsLRHpR1H8',
 
+      // YouTube presentation video (recorded walkthrough of the slides),
+      // rendered at the very bottom of the page - see the presentationVideoId
+      // block in openProject(). Placeholder ID below - swap once recorded.
+      presentationVideoId: '1rsLRHpR1H8',
+
       tags: ['RF Design', 'Antenna Filters', 'IoT Power'],
       github: null
     },
@@ -1824,7 +1829,6 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
           <button onclick="togglePdfViewer('${p.report}')" class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors text-left flex-1 cursor-pointer">
             <i data-lucide="file-text" class="w-4 h-4 text-dim"></i>
             <span>View Report ↗</span>
-            <span class="font-mono text-[10px] text-faint bg-line px-1.5 py-0.5 rounded uppercase tracking-wider ml-1">Inline PDF</span>
           </button>
           <a href="${p.report}" download title="Download Report" class="focus-ring p-2 text-faint hover:text-white hover:bg-line rounded-sm transition-colors flex items-center justify-center">
             <i data-lucide="download" class="w-4 h-4"></i>
@@ -1858,7 +1862,6 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
             <button onclick="togglePresentationViewer('${p.presentation}')" class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors text-left flex-1 cursor-pointer">
               <i data-lucide="monitor-play" class="w-4 h-4 text-dim"></i>
               <span>View Presentation ↗</span>
-              <span class="font-mono text-[10px] text-faint bg-line px-1.5 py-0.5 rounded uppercase tracking-wider ml-1">Inline Viewer</span>
             </button>
             <a href="${p.presentation}" download title="Download Presentation" class="focus-ring p-2 text-faint hover:text-white hover:bg-line rounded-sm transition-colors flex items-center justify-center">
               <i data-lucide="download" class="w-4 h-4"></i>
@@ -1887,6 +1890,20 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         let slides = p.images.map((img, i) => ({ src: img, cap: 'Capture ' + (i+1) }));
         extraAssets += `<div class="mt-4 w-full">` + generateCarouselHTML(slides, 'proj-' + p.id) + `</div>`;
       }
+    }
+
+    // ---- YouTube presentation video embed - rendered last, at the very
+    // bottom of the page's media, below the report/presentation/code links. ----
+    if (p.presentationVideoId) {
+      extraAssets += `
+        <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
+          <p class="font-mono text-xs text-dim uppercase tracking-wider mb-3">${p.title} - Presentation Video</p>
+          <div class="relative w-full rounded-sm overflow-hidden border border-line" style="aspect-ratio:16/9;">
+            <iframe class="absolute inset-0 w-full h-full" src="https://www.youtube.com/embed/${p.presentationVideoId}" title="${p.title} presentation video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          </div>
+          <p class="font-mono text-[10px] text-faint mt-2">Placeholder video - swap the id in this project's presentationVideoId once the real recording is ready.</p>
+        </div>
+      `;
     }
 
     detailContent.innerHTML = `
