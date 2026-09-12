@@ -319,6 +319,14 @@
     display:inline-flex; align-items:center; gap:5px; transition:color .15s ease;
   }
 
+  /* Company/institution logo thumbnail - used in the Experience list, modal
+     header, and table-of-contents rows (see handleLogoError for the
+     fallback shown before a real logo file is uploaded). */
+  .company-logo{
+    width:40px; height:40px; border:1px solid #27272a; border-radius:6px;
+    object-fit:cover; background:#141416; flex-shrink:0;
+  }
+
   /* ===== Boot / loading screen ===== */
   html.is-loading, html.is-loading body{ overflow:hidden; height:100%; }
   #loadScreen{
@@ -555,18 +563,17 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         </div>
 
         <div class="mt-8 pt-6 border-t border-line">
-          <div class="flex items-center justify-between mb-2">
-            <p class="font-mono text-xs uppercase tracking-widest text-faint">Mentor Note</p>
-            <!-- Future-proofed the same way as "About Me" - collapsed to a
-                 few lines by default to save space, expandable on click.
-                 Only really matters once this note (or a future one) gets
-                 longer, but the toggle costs nothing to have in place now. -->
-            <button id="mentorNoteToggleBtn" onclick="const t = document.getElementById('mentorNoteText'); t.classList.toggle('line-clamp-3'); this.innerText = t.classList.contains('line-clamp-3') ? 'See More' : 'See Less';" class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring">See More</button>
+          <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Recommendations</p>
+          <!-- LinkedIn-style: name/role shown up front, but the actual
+               statement stays hidden until the quote icon is clicked - see
+               renderRecommendations(). The popover it opens is a small
+               anchored card (like the tag filter/layer dropdowns elsewhere
+               on the site), NOT the full-screen blurred modal system, per
+               request - it appears right by this section instead of taking
+               over the middle of the screen. -->
+          <div id="recommendationsList" class="flex flex-col gap-4">
+            <!-- Populated via JS: renderRecommendations() -->
           </div>
-          <p id="mentorNoteText" class="text-sm text-dim leading-relaxed italic line-clamp-3 transition-all duration-300">
-            "I have had the privilege of mentoring Suber as part of the GEEP programme. Suber has shown to be very diligent in his work ethic and very effective in his communication as shown in securing a internship with Leonardo. I wish you all the best for the future in the placement and your third year."
-          </p>
-          <p class="font-mono text-xs text-faint mt-2">- <a href="https://www.linkedin.com/in/matthew-kingham-9059a081/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base%3BhbmdhNLhTima1YsNmyUtcQ%3D%3D" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-2">Matthew Kingham</a>, GEEP Mentor · Johnson Matthey</p>
         </div>
       </div>
     </aside>
@@ -678,19 +685,18 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         </p>
         <p class="font-mono text-xs text-faint mt-1 uppercase">Sep 2024 - Jun 2027</p>
 
-        <!-- "View Key Modules" sits directly under the university info, above
-             the dissertation entry below, per site content ordering. -->
-        <button class="module-btn focus-ring mt-4" onclick="openModal('modules')">
+        <!-- "View Key Modules" and the Dissertation entry now sit in the same
+             flowing block as the university info above (no divider/heading
+             break between them) so the whole card reads as one cohesive
+             Education entry rather than separate stacked pieces. -->
+        <button class="module-btn focus-ring mt-3" onclick="openModal('modules')">
           <h4 class="module-title font-display font-semibold text-dim text-sm">View Key Modules ↗</h4>
         </button>
 
-        <!-- Dissertation gets its own small label (mirroring "View Key
-             Modules"/"Mentor Note" etc. above/below) so it reads as its own
-             entry under Education rather than a stray heading. -->
-        <div class="mt-5 pt-4 border-t border-lineSoft">
-          <p class="font-mono text-[10px] uppercase tracking-widest text-faint mb-1.5">Dissertation</p>
-          <h4 class="font-display font-semibold text-white text-sm leading-snug cursor-pointer hover:underline" onclick="openProject('harvester'); return false;">Analysis and Design of Wireless Energy Harvesters for IoT Applications <i data-lucide="link" class="w-3.5 h-3.5 text-faint inline-block align-text-bottom ml-1 shrink-0"></i></h4>
-        </div>
+        <p class="text-sm text-dim mt-3 leading-snug">
+          <span class="text-faint block font-mono text-[10px] uppercase tracking-widest mb-1">Dissertation</span>
+          <span class="text-white font-medium cursor-pointer hover:underline transition-colors" onclick="openProject('harvester'); return false;">Analysis and Design of Wireless Energy Harvesters for IoT Applications</span>
+        </p>
       </div>
 
       <div class="pt-6 border-t border-line">
@@ -710,35 +716,35 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       <div class="pt-6 border-t border-line">
         <div class="flex items-center justify-between">
           <p class="font-mono text-xs uppercase tracking-widest text-faint">Licenses & Certifications</p>
-          <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openModalCategory('certifications', 0)">View All ↗</button>
+          <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openModalCategory('certifications')">View All ↗</button>
         </div>
       </div>
 
       <div class="pt-6 border-t border-line">
         <div class="flex items-center justify-between">
           <p class="font-mono text-xs uppercase tracking-widest text-faint">Courses</p>
-          <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openModalCategory('courses', 0)">View All ↗</button>
+          <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openModalCategory('courses')">View All ↗</button>
         </div>
       </div>
 
       <div class="pt-6 border-t border-line">
         <div class="flex items-center justify-between">
           <p class="font-mono text-xs uppercase tracking-widest text-faint">Part-Time Experience</p>
-          <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openModalCategory('partTime', 0)">View All ↗</button>
+          <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openModalCategory('partTime')">View All ↗</button>
         </div>
       </div>
 
       <div class="pt-6 border-t border-line">
         <div class="flex items-center justify-between">
           <p class="font-mono text-xs uppercase tracking-widest text-faint">Volunteering</p>
-          <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openModalCategory('volunteering', 0)">View All ↗</button>
+          <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openModalCategory('volunteering')">View All ↗</button>
         </div>
       </div>
 
       <div class="pt-6 border-t border-line">
         <div class="flex items-center justify-between">
           <p class="font-mono text-xs uppercase tracking-widest text-faint">Following</p>
-          <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openModalCategory('following', 0)">View All ↗</button>
+          <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openModalCategory('following')">View All ↗</button>
         </div>
       </div>
 
@@ -962,6 +968,9 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       id: 'leonardo',
       role: 'Microwave Engineer (Internship)',
       company: 'Leonardo',
+      // TODO: upload the real logo to logos/Leonardo.png (same dimensions as
+      // the other company logos below, so they line up consistently).
+      logo: 'logos/Leonardo.png',
       location: 'Luton, England, UK · Hybrid',
       dates: 'Jun 2026 - Sep 2026',
       current: true, // set false (or remove) on past roles to make them collapsible
@@ -973,8 +982,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         { label: 'RF & Power Integrity', text: 'Considered controlled impedance, RF grounding, via fencing, power integrity and design for fabrication.' },
         { label: 'Documentation & Verification', text: 'Produced engineering documentation, technical-risk assessments and verification plans.' },
         { label: 'Stakeholder Presentations', text: 'Presented the project and key design decisions to engineering stakeholders.' }
-      ],
-      note: 'Public description intentionally excludes proprietary technical information.'
+      ]
     }
     // To add a past role: copy the object above, give it a unique id, and
     // either set current:false or omit `current` entirely - it will
@@ -988,46 +996,53 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 
     container.innerHTML = experiences.map((e) => {
       const bulletsHtml = e.bullets.map(b => `<li><strong>${b.label}:</strong> ${b.text}</li>`).join('');
-      const noteHtml = e.note ? `<p class="font-mono text-[10px] text-faint mt-3 italic">${e.note}</p>` : '';
       const detailHtml = `
         <p class="text-sm text-dim mt-3 leading-relaxed">${e.summary}</p>
         <ul class="bullet-list mt-3 text-sm text-dim space-y-1.5">${bulletsHtml}</ul>
-        ${noteHtml}
       `;
-      // Discreet company icon (see also Part-Time/Volunteering modal titles) -
-      // small, faint-coloured, inline with the company name rather than a
-      // full logo, to stay understated.
-      const companyIcon = `<i data-lucide="building-2" class="w-3 h-3 text-faint inline-block align-text-bottom mr-1"></i>`;
+      // LinkedIn-style company logo to the left of the role (replaces the
+      // earlier discreet icon) - see handleLogoError for the fallback shown
+      // until the real logo file is uploaded to the path in `e.logo`.
+      const logoHtml = `<img src="${e.logo}" alt="${e.company} logo" onerror="handleLogoError(this)" class="company-logo">`;
 
       if (e.current) {
         return `
-          <div>
-            <div class="flex items-start justify-between flex-wrap gap-2">
-              <h4 class="font-display font-semibold text-white text-base sm:text-lg">${e.role}</h4>
-              <span class="font-mono text-xs text-faint uppercase">${e.dates}</span>
+          <div class="flex gap-3 items-start">
+            ${logoHtml}
+            <div class="flex-1 min-w-0">
+              <div class="flex items-start justify-between flex-wrap gap-2">
+                <h4 class="font-display font-semibold text-white text-base sm:text-lg">${e.role}</h4>
+                <span class="font-mono text-xs text-faint uppercase">${e.dates}</span>
+              </div>
+              <p class="font-mono text-xs text-dim mt-0.5 uppercase tracking-wide">${e.company} · ${e.location}</p>
+              ${detailHtml}
             </div>
-            <p class="font-mono text-xs text-dim mt-0.5 uppercase tracking-wide">${companyIcon}${e.company} · ${e.location}</p>
-            ${detailHtml}
           </div>
         `;
       }
 
       // Past (non-current) roles render collapsed by default to save space -
       // clicking the row reveals the same summary/bullets markup as above.
+      // The logo sits outside the toggle button (decorative, not part of the
+      // click target) and the collapsible detail is indented to align under
+      // the text rather than the logo.
       const detailId = `exp-detail-${e.id}`;
       return `
         <div>
-          <button type="button" class="w-full text-left focus-ring group" onclick="toggleExperienceDetail('${e.id}')" aria-expanded="false" aria-controls="${detailId}">
-            <div class="flex items-start justify-between flex-wrap gap-2">
-              <h4 class="font-display font-semibold text-white text-base sm:text-lg transition-colors">${e.role}</h4>
-              <span class="font-mono text-xs text-faint uppercase">${e.dates}</span>
-            </div>
-            <p class="font-mono text-xs text-dim mt-0.5 uppercase tracking-wide flex items-center gap-1.5">
-              ${companyIcon}${e.company} · ${e.location}
-              <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-faint ml-auto transition-transform" id="exp-chevron-${e.id}"></i>
-            </p>
-          </button>
-          <div id="${detailId}" class="hidden">${detailHtml}</div>
+          <div class="flex gap-3 items-start">
+            ${logoHtml}
+            <button type="button" id="exp-toggle-${e.id}" class="flex-1 min-w-0 text-left focus-ring group" onclick="toggleExperienceDetail('${e.id}')" aria-expanded="false" aria-controls="${detailId}">
+              <div class="flex items-start justify-between flex-wrap gap-2">
+                <h4 class="font-display font-semibold text-white text-base sm:text-lg transition-colors">${e.role}</h4>
+                <span class="font-mono text-xs text-faint uppercase">${e.dates}</span>
+              </div>
+              <p class="font-mono text-xs text-dim mt-0.5 uppercase tracking-wide flex items-center gap-1.5">
+                ${e.company} · ${e.location}
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-faint ml-auto transition-transform" id="exp-chevron-${e.id}"></i>
+              </p>
+            </button>
+          </div>
+          <div id="${detailId}" class="hidden pl-[52px]">${detailHtml}</div>
         </div>
       `;
     }).join('');
@@ -1038,7 +1053,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
   function toggleExperienceDetail(id) {
     const detail = document.getElementById('exp-detail-' + id);
     const chevron = document.getElementById('exp-chevron-' + id);
-    const btn = detail?.previousElementSibling;
+    const btn = document.getElementById('exp-toggle-' + id);
     if (!detail) return;
     const nowHidden = detail.classList.toggle('hidden');
     if (chevron) chevron.style.transform = nowHidden ? '' : 'rotate(180deg)';
@@ -1046,6 +1061,84 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
   }
 
   renderExperience();
+
+  // ==== Recommendations (sidebar) ====
+  // LinkedIn-style: the name/role is always visible, but the actual
+  // statement stays hidden until the quote icon is clicked. That reveals a
+  // small anchored popover right next to this section (not the site's
+  // full-screen modal, and without blurring the rest of the page) - see
+  // toggleRecommendation. Add another object here for a future
+  // recommendation; it renders the same way automatically.
+  const recommendations = [
+    {
+      id: 'kingham',
+      name: 'Matthew Kingham',
+      role: 'GEEP Mentor · Johnson Matthey',
+      linkedin: 'https://www.linkedin.com/in/matthew-kingham-9059a081/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base%3BhbmdhNLhTima1YsNmyUtcQ%3D%3D',
+      statement: '"I have had the privilege of mentoring Suber as part of the GEEP programme. Suber has shown to be very diligent in his work ethic and very effective in his communication as shown in securing a internship with Leonardo. I wish you all the best for the future in the placement and your third year."'
+    }
+  ];
+
+  function renderRecommendations() {
+    const container = document.getElementById('recommendationsList');
+    if (!container) return;
+
+    container.innerHTML = recommendations.map(r => `
+      <div class="relative">
+        <div class="flex items-center justify-between gap-3">
+          <div class="min-w-0">
+            <a href="${r.linkedin}" target="_blank" rel="noopener" class="text-sm text-white font-medium hover:underline decoration-faint underline-offset-2 truncate block">${r.name}</a>
+            <p class="font-mono text-xs text-faint mt-0.5">${r.role}</p>
+          </div>
+          <button id="recToggleBtn-${r.id}" onclick="toggleRecommendation('${r.id}', event)" aria-expanded="false" aria-controls="recPopover-${r.id}"
+                  class="focus-ring w-8 h-8 flex items-center justify-center border border-line rounded-sm text-dim hover:text-white hover:border-faint transition-colors shrink-0"
+                  title="View recommendation" aria-label="View recommendation from ${r.name}">
+            <i data-lucide="quote" class="w-4 h-4"></i>
+          </button>
+        </div>
+        <!-- Hidden until toggled - a small anchored card, not the site's
+             full-screen modal, so the rest of the page stays visible and
+             sharp behind it. -->
+        <div id="recPopover-${r.id}" class="hidden absolute right-0 top-full mt-2 w-full max-w-[300px] bg-[#0f0f11] border border-line rounded-sm p-4 z-20 shadow-lg">
+          <p class="text-sm text-dim leading-relaxed italic">${r.statement}</p>
+          <p class="font-mono text-xs text-faint mt-3">- ${r.name}, ${r.role}</p>
+        </div>
+      </div>
+    `).join('');
+
+    lucide.createIcons();
+  }
+
+  function toggleRecommendation(id, e) {
+    if (e) e.stopPropagation();
+    const pop = document.getElementById('recPopover-' + id);
+    const btn = document.getElementById('recToggleBtn-' + id);
+    if (!pop) return;
+    const willOpen = pop.classList.contains('hidden');
+    // Close any other open recommendation popover first, so only one shows
+    // at a time.
+    document.querySelectorAll('[id^="recPopover-"]').forEach(p => {
+      if (p !== pop) {
+        p.classList.add('hidden');
+        const otherId = p.id.replace('recPopover-', '');
+        document.getElementById('recToggleBtn-' + otherId)?.setAttribute('aria-expanded', 'false');
+      }
+    });
+    pop.classList.toggle('hidden');
+    btn?.setAttribute('aria-expanded', String(willOpen));
+  }
+  document.addEventListener('click', (e) => {
+    document.querySelectorAll('[id^="recPopover-"]').forEach(pop => {
+      const id = pop.id.replace('recPopover-', '');
+      const btn = document.getElementById('recToggleBtn-' + id);
+      if (!pop.classList.contains('hidden') && !pop.contains(e.target) && e.target !== btn && !btn?.contains(e.target)) {
+        pop.classList.add('hidden');
+        btn?.setAttribute('aria-expanded', 'false');
+      }
+    });
+  });
+
+  renderRecommendations();
 
   let leftSidebarOpen = true;
   function toggleLeftSidebar() {
@@ -2549,12 +2642,20 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 <div id="modalOverlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
   <div class="modal-panel modal-lg" id="modalPanel">
     <div class="modal-head">
-      <div>
-        <div class="modal-eyebrow" id="modalEyebrow"></div>
-        <div class="modal-title" id="modalTitle"></div>
+      <!-- modalLogoImg: optional company/institution logo shown to the left
+           of the title (see the `logo` field on CATEGORY_DATA entries and
+           handleLogoError for the placeholder fallback). Hidden by default;
+           renderCategoryModalItem()/openModal() toggle it per item. -->
+      <div class="flex items-start gap-3 min-w-0">
+        <img id="modalLogoImg" class="company-logo hidden" alt="" onerror="handleLogoError(this)">
+        <div class="min-w-0">
+          <div class="modal-eyebrow" id="modalEyebrow"></div>
+          <div class="modal-title" id="modalTitle"></div>
+        </div>
       </div>
       <div class="flex items-center gap-2">
         <div id="modalCategoryNav" class="hidden flex items-center gap-1.5 mr-2">
+          <button id="modalBackToListBtn" class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors mr-1" onclick="renderCategoryTOCView(currentCategoryKey)" title="Back to list">← List</button>
           <button id="modalPrevCatBtn" class="modal-nav-btn focus-ring" onclick="navigateModalCategory(-1)" title="Previous Item">←</button>
           <span id="modalCatCounter" class="font-mono text-[11px] text-dim px-1.5">1/1</span>
           <button id="modalNextCatBtn" class="modal-nav-btn focus-ring" onclick="navigateModalCategory(1)" title="Next Item">→</button>
@@ -2569,21 +2670,26 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 <script>
 const CATEGORY_DATA = {
   // ---- Licenses & Certifications ----
-  // Each entry can optionally set `badgeImage` to a repo-relative path for a
-  // certificate/badge image - if the file isn't there yet, the onerror
-  // handler just hides the broken <img> instead of showing a placeholder box.
-  // TODO: upload the actual certificate images to a `certs/` folder in the
-  // repo root and fill in each `badgeImage` path below to match.
+  // `group` clusters entries under a shared heading in the table-of-contents
+  // view (see renderCategoryTOC) - e.g. every University of Westminster
+  // credential lists together. `logo` is the issuing institution's logo,
+  // shown next to the title in both the TOC row and the detail popup (see
+  // handleLogoError for the placeholder fallback if the file isn't there
+  // yet). The big in-body image is the certificate/badge itself - if it
+  // 404s, handleCertImageError swaps it for a labelled placeholder box that
+  // tells you exactly which file to add and where.
+  // TODO: upload logo files to `logos/` and certificate images to `certs/`
+  // in the repo root, matching the paths below.
   certifications: [
     {
       size: 'modal-md',
+      group: 'University of Westminster',
+      logo: 'logos/University_of_Westminster.png',
       eyebrow: 'License & Certification',
       title: 'Future Ready Mentoring - Group Mentoring <span class="text-dim text-sm font-normal block mt-1">5ELEN020W Embedded Systems Project (WBL) 2025/26</span>',
-      // TODO: upload badge image to certs/Future_Ready_Mentoring.png
-      badgeImage: 'certs/Future_Ready_Mentoring.png',
       body: `
         <div class="modal-section">
-          <img src="certs/Future_Ready_Mentoring.png" alt="Future Ready Mentoring - Group Mentoring badge" class="w-full max-w-xs rounded-sm border border-line mb-4" onerror="this.remove()">
+          <img src="certs/Future_Ready_Mentoring.png" alt="Future Ready Mentoring - Group Mentoring badge" class="w-full max-w-xs rounded-sm border border-line mb-4" onerror="handleCertImageError(this, 'Add image: certs/Future_Ready_Mentoring.png')">
           <p class="text-sm text-dim">University of Westminster</p>
           <p class="font-mono text-xs text-faint mt-1 uppercase">Issued Aug 2026</p>
           <p class="font-mono text-xs text-faint mt-1">Credential ID: 9b1f3d4f91d3da0e981ccbeb1d12817c84127cbd</p>
@@ -2593,13 +2699,13 @@ const CATEGORY_DATA = {
     },
     {
       size: 'modal-md',
+      group: 'University of Westminster',
+      logo: 'logos/University_of_Westminster.png',
       eyebrow: 'License & Certification',
       title: 'WBL Live Project (CSE)',
-      // TODO: upload badge image to certs/WBL_Live_Project.png
-      badgeImage: 'certs/WBL_Live_Project.png',
       body: `
         <div class="modal-section">
-          <img src="certs/WBL_Live_Project.png" alt="WBL Live Project (CSE) certificate" class="w-full max-w-xs rounded-sm border border-line mb-4" onerror="this.remove()">
+          <img src="certs/WBL_Live_Project.png" alt="WBL Live Project (CSE) certificate" class="w-full max-w-xs rounded-sm border border-line mb-4" onerror="handleCertImageError(this, 'Add image: certs/WBL_Live_Project.png')">
           <p class="text-sm text-dim">University of Westminster</p>
           <p class="font-mono text-xs text-faint mt-1 uppercase">Issued Aug 2026</p>
           <p class="font-mono text-xs text-faint mt-1">Credential ID: 21660620</p>
@@ -2609,32 +2715,32 @@ const CATEGORY_DATA = {
     },
     {
       size: 'modal-md',
+      group: 'University of Westminster',
+      logo: 'logos/University_of_Westminster.png',
       eyebrow: 'License & Certification',
-      title: 'Graduate Engineering Engagement Programme',
-      // TODO: upload badge image to certs/GEEP_Certification.png
-      badgeImage: 'certs/GEEP_Certification.png',
+      title: 'Westminster Award: Bronze',
       body: `
         <div class="modal-section">
-          <img src="certs/GEEP_Certification.png" alt="Graduate Engineering Engagement Programme certificate" class="w-full max-w-xs rounded-sm border border-line mb-4" onerror="this.remove()">
-          <p class="text-sm text-dim">Royal Academy of Engineering</p>
-          <p class="font-mono text-xs text-faint mt-1 uppercase">Issued Jul 2026</p>
-          <a href="https://www.linkedin.com/in/suber-abdi-889182331/overlay/Certifications/1339082712/treasury/?profileId=ACoAAFN_NmkBLcJ6h777qoxmJORtLk3L_rSI7ic" target="_blank" rel="noopener" class="inline-block mt-3 text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credential ↗</a>
+          <img src="certs/Westminster_Award_Bronze.png" alt="Westminster Award: Bronze certificate" class="w-full max-w-xs rounded-sm border border-line mb-4" onerror="handleCertImageError(this, 'Add image: certs/Westminster_Award_Bronze.png')">
+          <p class="text-sm text-dim">University of Westminster</p>
+          <p class="font-mono text-xs text-faint mt-1 uppercase">Issued Jun 2025</p>
+          <p class="font-mono text-xs text-faint mt-1">Credential ID: 16162373</p>
+          <a href="https://www.linkedin.com/safety/go/?url=https%3A%2F%2Fcertificate%2Ewestminster%2Eac%2Euk%2F01a5da4e-b1d9-4722-adba-2de64498db94&urlhash=GisA&mt=IwWplZyjUEOByglgEHJAVa2hgiQBaeHUmbvfuEDqCRQX7ZqWKendMmPLBuIU0YEgkDz9p6MWewGDTWL159vdCa7R-vMO&isSdui=true" target="_blank" rel="noopener" class="inline-block mt-3 text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credential ↗</a>
         </div>
       `
     },
     {
       size: 'modal-md',
+      group: 'Royal Academy of Engineering',
+      logo: 'logos/Royal_Academy_of_Engineering.png',
       eyebrow: 'License & Certification',
-      title: 'Westminster Award: Bronze',
-      // TODO: upload badge image to certs/Westminster_Award_Bronze.png
-      badgeImage: 'certs/Westminster_Award_Bronze.png',
+      title: 'Graduate Engineering Engagement Programme',
       body: `
         <div class="modal-section">
-          <img src="certs/Westminster_Award_Bronze.png" alt="Westminster Award: Bronze certificate" class="w-full max-w-xs rounded-sm border border-line mb-4" onerror="this.remove()">
-          <p class="text-sm text-dim">University of Westminster</p>
-          <p class="font-mono text-xs text-faint mt-1 uppercase">Issued Jun 2025</p>
-          <p class="font-mono text-xs text-faint mt-1">Credential ID: 16162373</p>
-          <a href="https://www.linkedin.com/safety/go/?url=https%3A%2F%2Fcertificate%2Ewestminster%2Eac%2Euk%2F01a5da4e-b1d9-4722-adba-2de64498db94&urlhash=GisA&mt=IwWplZyjUEOByglgEHJAVa2hgiQBaeHUmbvfuEDqCRQX7ZqWKendMmPLBuIU0YEgkDz9p6MWewGDTWL159vdCa7R-vMO&isSdui=true" target="_blank" rel="noopener" class="inline-block mt-3 text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credential ↗</a>
+          <img src="certs/GEEP_Certification.png" alt="Graduate Engineering Engagement Programme certificate" class="w-full max-w-xs rounded-sm border border-line mb-4" onerror="handleCertImageError(this, 'Add image: certs/GEEP_Certification.png')">
+          <p class="text-sm text-dim">Royal Academy of Engineering</p>
+          <p class="font-mono text-xs text-faint mt-1 uppercase">Issued Jul 2026</p>
+          <a href="https://www.linkedin.com/in/suber-abdi-889182331/overlay/Certifications/1339082712/treasury/?profileId=ACoAAFN_NmkBLcJ6h777qoxmJORtLk3L_rSI7ic" target="_blank" rel="noopener" class="inline-block mt-3 text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credential ↗</a>
         </div>
       `
     }
@@ -2643,6 +2749,7 @@ const CATEGORY_DATA = {
     {
       size: 'modal-lg',
       eyebrow: 'Course · Royal Academy of Engineering',
+      logo: 'logos/Royal_Academy_of_Engineering.png',
       title: '<a href="https://raeng.org.uk/" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4">GEEP Graduate Programme ↗</a>',
       slides: [
         { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GEEP_Certificate.jpg', cap: '1. GEEP Completion Certificate' },
@@ -2679,9 +2786,16 @@ const CATEGORY_DATA = {
   volunteering: [
     {
       size: 'modal-md',
+      logo: 'logos/CARIS_Haringey.png',
       eyebrow: 'Volunteering',
-      title: 'Volunteer <i data-lucide="building-2" class="w-3.5 h-3.5 text-faint inline-block align-text-bottom ml-1 shrink-0"></i>, CARIS Haringey <span class="text-dim text-sm font-normal block mt-1">Aug 2024</span>',
+      title: 'Volunteer, CARIS Haringey <span class="text-dim text-sm font-normal block mt-1">Aug 2024</span>',
       body: `
+        <!-- Cause is its own small section, mirroring how LinkedIn separates
+             the "Cause" tag from the role description. -->
+        <div class="modal-section">
+          <p class="font-mono text-xs uppercase tracking-widest text-faint mb-1.5">Cause</p>
+          <p class="text-sm text-dim">Children</p>
+        </div>
         <div class="modal-section">
           <p>Supported and supervised children in a dynamic summer community programme, ensuring a safe, engaging, and well-organised environment.</p>
           <ul class="bullet-list mt-3 text-sm text-dim space-y-2">
@@ -2696,8 +2810,9 @@ const CATEGORY_DATA = {
   partTime: [
     {
       size: 'modal-md',
+      logo: 'logos/Westminster_SU.png',
       eyebrow: 'Part-Time Experience',
-      title: 'Student Team Leader <span class="text-dim text-sm font-normal block mt-1"><i data-lucide="building-2" class="w-3 h-3 text-faint inline-block align-text-bottom mr-1"></i>Westminster SU · Oct 2026 - Present</span>',
+      title: 'Student Team Leader <span class="text-dim text-sm font-normal block mt-1">Westminster SU · Oct 2026 - Present</span>',
       body: `
         <div class="modal-section">
           <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
@@ -2712,8 +2827,9 @@ const CATEGORY_DATA = {
     },
     {
       size: 'modal-md',
+      logo: 'logos/Krispy_Kreme.png',
       eyebrow: 'Part-Time Experience',
-      title: 'Sales Team Member <span class="text-dim text-sm font-normal block mt-1"><i data-lucide="building-2" class="w-3 h-3 text-faint inline-block align-text-bottom mr-1"></i>Krispy Kreme · Feb 2024 - Oct 2026</span>',
+      title: 'Sales Team Member <span class="text-dim text-sm font-normal block mt-1">Krispy Kreme · Feb 2024 - Oct 2026</span>',
       body: `
         <div class="modal-section">
           <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
@@ -2726,8 +2842,9 @@ const CATEGORY_DATA = {
     },
     {
       size: 'modal-md',
+      logo: 'logos/Pabulum.png',
       eyebrow: 'Part-Time Experience',
-      title: 'Till Operator <span class="text-dim text-sm font-normal block mt-1"><i data-lucide="building-2" class="w-3 h-3 text-faint inline-block align-text-bottom mr-1"></i>Pabulum Ltd · Sep 2022 - Apr 2024</span>',
+      title: 'Till Operator <span class="text-dim text-sm font-normal block mt-1">Pabulum Ltd · Sep 2022 - Apr 2024</span>',
       body: `
         <div class="modal-section">
           <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
@@ -2884,19 +3001,142 @@ Performance Evaluation: Produced a critical technical report assessing code opti
 let currentCategoryKey = null;
 let currentCategoryIndex = 0;
 
-function openModalCategory(categoryKey, index = 0) {
+// Generic placeholder for any company/institution logo <img> (Experience
+// list, modal header, TOC rows) - a neutral inline SVG swapped in via
+// onerror, so a missing logo file never breaks layout while still leaving
+// space for the real one once it's added to the repo (see `logo` fields
+// across `experiences` and CATEGORY_DATA).
+const LOGO_PLACEHOLDER_SRC = 'data:image/svg+xml;utf8,' + encodeURIComponent('<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" fill="#141416"/><rect x="10" y="9" width="20" height="24" fill="none" stroke="#3a3a3e" stroke-width="1.4"/><rect x="14" y="14" width="4" height="4" fill="#3a3a3e"/><rect x="22" y="14" width="4" height="4" fill="#3a3a3e"/><rect x="14" y="21" width="4" height="4" fill="#3a3a3e"/><rect x="22" y="21" width="4" height="4" fill="#3a3a3e"/></svg>');
+function handleLogoError(img) {
+  img.onerror = null;
+  img.src = LOGO_PLACEHOLDER_SRC;
+}
+
+// Placeholder for the bigger certificate/badge image inside a certification
+// detail popup - unlike handleLogoError this swaps the whole element for a
+// dashed-border box carrying the exact expected file path as a label, so
+// it doubles as a reminder of where to drop the real image in the repo.
+function handleCertImageError(img, label) {
+  const div = document.createElement('div');
+  div.className = 'w-full max-w-xs rounded-sm border border-dashed border-line mb-4 flex flex-col items-center justify-center gap-2 py-8 px-4';
+  div.style.background = '#141316';
+  div.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" width="28" height="28" fill="none" stroke="#68686d" stroke-width="1.5"><rect x="3" y="4" width="18" height="14" rx="1"></rect><path d="M3 9h18"></path><circle cx="8" cy="14" r="1.4"></circle><path d="M12 13.5h6M12 15.5h4"></path></svg>' +
+    '<span class="font-mono text-[10px] uppercase tracking-wider text-center text-faint">' + label + '</span>';
+  img.replaceWith(div);
+}
+
+// Shows/hides the optional logo next to the modal title (see the `logo`
+// field on CATEGORY_DATA entries). The <img> element itself is reused
+// across renders (see handleLogoError, which only swaps its src rather than
+// replacing the node), so it's always safe to call this again.
+function setModalLogo(logoPath) {
+  const img = document.getElementById('modalLogoImg');
+  if (!img) return;
+  if (logoPath) {
+    img.src = logoPath;
+    img.classList.remove('hidden');
+  } else {
+    img.classList.add('hidden');
+    img.removeAttribute('src');
+  }
+}
+
+const CATEGORY_LABELS = {
+  courses: 'Courses',
+  volunteering: 'Volunteering',
+  partTime: 'Part-Time Experience',
+  certifications: 'Licenses & Certifications',
+  following: 'Following'
+};
+
+// Renders the table-of-contents body for a category: a flat list of
+// clickable rows, or - if any entry sets a `group` (see certifications
+// above) - the same rows clustered under group headings, in first-seen
+// group order. Each row shows the entry's logo (if any) + a plain-text
+// version of its title (HTML stripped, since the full title markup can
+// include spans/links meant for the detail view, not this compact list).
+function renderCategoryTOC(categoryKey) {
+  const list = CATEGORY_DATA[categoryKey] || [];
+
+  function tocRow(item, idx) {
+    const plainTitle = item.title.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    const logoHtml = item.logo
+      ? `<img src="${item.logo}" alt="" onerror="handleLogoError(this)" class="w-7 h-7 rounded-sm border border-line object-cover shrink-0 bg-[#141416]">`
+      : '';
+    return `
+      <button onclick="showCategoryDetail('${categoryKey}', ${idx})" class="w-full text-left py-3 flex items-center gap-3 group focus-ring">
+        ${logoHtml}
+        <span class="text-sm text-dim group-hover:text-white transition-colors flex-1 min-w-0 truncate">${plainTitle}</span>
+        <i data-lucide="chevron-right" class="w-4 h-4 text-faint group-hover:text-white transition-colors shrink-0"></i>
+      </button>
+    `;
+  }
+
+  if (!list.some(item => item.group)) {
+    return `<div class="flex flex-col divide-y divide-lineSoft border-t border-b border-lineSoft">${list.map((item, idx) => tocRow(item, idx)).join('')}</div>`;
+  }
+
+  const groups = [];
+  list.forEach((item, idx) => {
+    const name = item.group || 'Other';
+    let bucket = groups.find(g => g.name === name);
+    if (!bucket) { bucket = { name, rows: [] }; groups.push(bucket); }
+    bucket.rows.push(tocRow(item, idx));
+  });
+
+  return groups.map(g => `
+    <div class="mb-4 last:mb-0">
+      <p class="font-mono text-[10px] uppercase tracking-widest text-faint mb-1">${g.name}</p>
+      <div class="flex flex-col divide-y divide-lineSoft border-t border-b border-lineSoft">${g.rows.join('')}</div>
+    </div>
+  `).join('');
+}
+
+// The table-of-contents "landing page" for a category with more than one
+// entry - lets people jump straight to the item they want instead of
+// clicking through everything one at a time via prev/next.
+function renderCategoryTOCView(categoryKey) {
+  currentCategoryKey = categoryKey;
+  document.getElementById('modalEyebrow').textContent = CATEGORY_LABELS[categoryKey] || '';
+  document.getElementById('modalTitle').textContent = 'Select an item to view';
+  document.getElementById('modalCategoryNav').classList.add('hidden');
+  setModalLogo(null);
+  document.getElementById('modalBody').innerHTML = renderCategoryTOC(categoryKey);
+  document.getElementById('modalPanel').className = 'modal-panel modal-md';
+  lucide.createIcons();
+}
+
+// Called by a TOC row - jumps straight to that item's detail view.
+function showCategoryDetail(categoryKey, index) {
+  currentCategoryKey = categoryKey;
+  currentCategoryIndex = index;
+  renderCategoryModalItem();
+}
+
+// index omitted -> show the table-of-contents first for multi-item
+// categories (or go straight to the only item if there's just one).
+// index provided -> jump directly to that item (used by showCategoryDetail
+// and anywhere else that already knows which item it wants).
+function openModalCategory(categoryKey, index) {
   const cat = CATEGORY_DATA[categoryKey];
   if (!cat || !cat.length) return;
 
   currentCategoryKey = categoryKey;
-  currentCategoryIndex = Math.max(0, Math.min(index, cat.length - 1));
-
-  renderCategoryModalItem();
 
   const overlay = document.getElementById('modalOverlay');
   overlay.classList.add('open');
   document.body.classList.add('modal-open');
   setTimeout(() => overlay.classList.add('shown'), 10);
+
+  if (typeof index === 'number') {
+    currentCategoryIndex = Math.max(0, Math.min(index, cat.length - 1));
+    renderCategoryModalItem();
+  } else if (cat.length > 1) {
+    renderCategoryTOCView(categoryKey);
+  } else {
+    currentCategoryIndex = 0;
+    renderCategoryModalItem();
+  }
 }
 
 function renderCategoryModalItem() {
@@ -2906,6 +3146,7 @@ function renderCategoryModalItem() {
 
   document.getElementById('modalEyebrow').textContent = m.eyebrow;
   document.getElementById('modalTitle').innerHTML = m.title;
+  setModalLogo(m.logo);
 
   let bodyHTML = m.body;
   const carouselPrefix = 'modal-' + currentCategoryKey + '-' + currentCategoryIndex;
@@ -2925,12 +3166,16 @@ function renderCategoryModalItem() {
   }
 
   const navEl = document.getElementById('modalCategoryNav');
+  const backBtn = document.getElementById('modalBackToListBtn');
   const prevBtn = document.getElementById('modalPrevCatBtn');
   const nextBtn = document.getElementById('modalNextCatBtn');
   const counterEl = document.getElementById('modalCatCounter');
 
-  if (list.length > 1 || currentCategoryKey === 'courses' || currentCategoryKey === 'volunteering') {
+  // Only multi-item categories get the nav row (prev/next + "back to list") -
+  // a single-item category has nothing to navigate between or back to.
+  if (list.length > 1) {
     navEl.classList.remove('hidden');
+    backBtn.classList.remove('hidden');
     counterEl.textContent = `${currentCategoryIndex + 1}/${list.length}`;
     prevBtn.disabled = (currentCategoryIndex === 0);
     nextBtn.disabled = (currentCategoryIndex === Math.max(0, list.length - 1));
@@ -2955,7 +3200,7 @@ function navigateModalCategory(dir) {
 
 function openModal(id) {
   if (CATEGORY_DATA[id]) {
-    openModalCategory(id, 0);
+    openModalCategory(id);
     return;
   }
 
@@ -2964,6 +3209,7 @@ function openModal(id) {
 
   currentCategoryKey = null;
   document.getElementById('modalCategoryNav').classList.add('hidden');
+  setModalLogo(null);
 
   document.getElementById('modalEyebrow').textContent = m.eyebrow;
   document.getElementById('modalTitle').innerHTML = m.title;
@@ -3031,4 +3277,4 @@ function goToSlide(prefix, index) {
 </script>
 
 </body>
-</html>
+  </html>
