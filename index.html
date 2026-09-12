@@ -502,9 +502,9 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         <!-- Current workplace logo, shown right under the name - see the
              `logo` field pattern used elsewhere (Experience, certifications,
              etc.); update this path if the current employer ever changes. -->
-        <div class="flex items-center gap-2 mt-2.5">
-          <img src="Logos/leonardo_logo.jpg" alt="Leonardo logo" onerror="handleLogoError(this)" class="w-5 h-5 rounded-sm border border-line object-cover bg-[#141416] shrink-0">
-          <span class="font-mono text-[10px] uppercase tracking-widest text-faint">Currently at Leonardo</span>
+        <div class="flex items-center gap-2 mt-3 py-1.5 px-2.5 bg-line/40 border border-line rounded-sm w-fit">
+          <img src="Logos/leonardo_logo.jpg" alt="Leonardo logo" onerror="handleLogoError(this)" class="w-6 h-6 rounded-sm border border-line object-cover bg-[#141416] shrink-0">
+          <span class="font-mono text-[11px] uppercase tracking-widest text-white font-semibold">Currently at Leonardo</span>
         </div>
         <p class="font-mono text-xs uppercase tracking-widest text-dim mt-3 pr-4">
           Software Engineering with<br>Electronics · Graduate 2027
@@ -727,7 +727,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 
       <div class="pt-6 border-t border-line">
         <div class="flex items-center justify-between">
-          <p class="font-mono text-xs uppercase tracking-widest text-faint">Licenses & Certifications</p>
+          <p class="font-mono text-xs uppercase tracking-widest text-faint">Licences & Certifications</p>
           <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openModalCategory('certifications')">View All ↗</button>
         </div>
       </div>
@@ -865,8 +865,17 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       // block in openProject(). Placeholder ID below - swap once recorded.
       presentationVideoId: '1rsLRHpR1H8',
 
-      tags: ['RF Design', 'Antenna Filters', 'IoT Power'],
-      github: null
+      // Shown as a small icon-link to the far right of the project title
+      // (see the title row in openProject) as well as the standard "GitHub
+      // Code" button further down the page.
+      github: 'https://github.com/SuberBAbdi/Wireless-Energy-Harvester-for-IoT',
+
+      // Rendered as its own card near the bottom of the page (see the
+      // `contribution` block in openProject) - update this if the project
+      // ever becomes a group effort instead of a solo dissertation.
+      contribution: 'This project is an individual final-year dissertation. All research, analysis, RF/antenna design, simulation, PCB layout, and testing were carried out independently, under academic supervision from the University of Westminster.',
+
+      tags: ['RF Design', 'Antenna Filters', 'IoT Power']
     },
     {
       id: 'arm',
@@ -895,7 +904,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       status: 'Complete · Dec 2025–Jan 2026',
       title: 'Number Plate Recognition System',
       overview: 'A MATLAB-based computer vision tool with a custom GUI that processes vehicle images from a dataset to isolate and identify licence plates, improving image quality before extraction.',
-      stack: 'Greyscale conversion → thresholding → noise removal → morphological operations → binarization, wrapped in a custom MATLAB GUI.',
+      stack: 'Greyscale conversion → thresholding → noise removal → morphological operations → binarisation, wrapped in a custom MATLAB GUI.',
       challenges: 'Handling inconsistent lighting and image noise across the input set while keeping the pipeline fast enough for a responsive GUI.',
       outcome: 'Working end-to-end plate isolation and identification with a usable GUI front-end.',
       tags: ['MATLAB', 'Image Processing'],
@@ -2369,9 +2378,29 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       `;
     }
 
+    // ---- Contribution note - rendered at the very bottom of the page,
+    // after everything else (see the `contribution` field on a project). ----
+    if (p.contribution) {
+      extraAssets += `
+        <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
+          <p class="font-mono text-xs text-dim uppercase tracking-wider mb-1.5">Contribution</p>
+          <p class="text-sm text-dim leading-relaxed">${p.contribution}</p>
+        </div>
+      `;
+    }
+
     detailContent.innerHTML = `
       <p class="font-mono text-xs text-faint uppercase tracking-wider">${p.status}</p>
-      <h3 class="font-display font-extrabold text-3xl sm:text-4xl text-white mt-2 leading-[1.05]">${p.title}</h3>
+      <div class="flex items-start justify-between gap-4 mt-2">
+        <h3 class="font-display font-extrabold text-3xl sm:text-4xl text-white leading-[1.05]">${p.title}</h3>
+        <!-- GitHub repo link, top-right next to the title, in addition to
+             the fuller "GitHub Code" button further down the page. -->
+        ${p.github ? `
+        <a href="${p.github}" target="_blank" rel="noopener" title="View repository on GitHub" aria-label="View ${p.title} repository on GitHub"
+           class="focus-ring shrink-0 mt-1 w-9 h-9 flex items-center justify-center border border-line rounded-sm text-dim hover:text-white hover:border-faint transition-colors">
+          <i data-lucide="github" class="w-4 h-4"></i>
+        </a>` : ''}
+      </div>
 
       <!-- Tags now render right under the title so they're immediately visible
            on open, rather than after the tech stack / assets further down. -->
@@ -2541,7 +2570,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     if (window.matchMedia('(max-width: 1023px)').matches) return;
     const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
-    // 1. Logic analyzer
+    // 1. Logic analyser
     const laCanvas = document.getElementById('hwLogicCanvas');
     if (laCanvas) {
       const ctx = laCanvas.getContext('2d');
@@ -2680,7 +2709,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 
 <script>
 const CATEGORY_DATA = {
-  // ---- Licenses & Certifications ----
+  // ---- Licences & Certifications ----
   // `group` clusters entries under a shared heading in the table-of-contents
   // view (see renderCategoryTOC) - e.g. every University of Westminster
   // credential lists together. `logo` is the issuing institution's logo,
@@ -2691,18 +2720,22 @@ const CATEGORY_DATA = {
   // tells you exactly which file to add and where.
   // Institution logos live in the repo's Logos/ folder
   // (https://github.com/SuberBAbdi/SuberBAbdi.github.io/tree/main/Logos).
-  // The big in-body image is still just a TODO - upload certificate/badge
-  // images to a `certs/` folder to match those paths.
+  // Certificate/badge images live in "Licenses & Certifications Images/"
+  // (https://github.com/SuberBAbdi/SuberBAbdi.github.io/tree/main/Licenses%20&%20Certifications%20Images) -
+  // the Future Ready Mentoring badge is already there; WBL Live Project and
+  // Westminster Award Bronze still need theirs added to match the paths
+  // below. The GEEP entry deliberately reuses the GEEP course's certificate
+  // image rather than a separate upload, since it's the same credential.
   certifications: [
     {
       size: 'modal-md',
       group: 'University of Westminster',
       logo: 'Logos/university_of_westminster_logo.jpg',
-      eyebrow: 'License & Certification',
+      eyebrow: 'Licence & Certification',
       title: 'Future Ready Mentoring - Group Mentoring <span class="text-dim text-sm font-normal block mt-1">5ELEN020W Embedded Systems Project (WBL) 2025/26</span>',
       body: `
         <div class="modal-section">
-          <img src="certs/Future_Ready_Mentoring.png" alt="Future Ready Mentoring - Group Mentoring badge" class="w-full max-w-xs rounded-sm border border-line mb-4" onerror="handleCertImageError(this, 'Add image: certs/Future_Ready_Mentoring.png')">
+          <img src="Licenses%20%26%20Certifications%20Images/Future%20Ready%20Mentoring%20Badge.png" alt="Future Ready Mentoring - Group Mentoring badge" class="w-full max-w-xs rounded-sm border border-line mb-4" onerror="handleCertImageError(this, 'Add image: Licenses &amp; Certifications Images/Future Ready Mentoring Badge.png')">
           <p class="text-sm text-dim">University of Westminster</p>
           <p class="font-mono text-xs text-faint mt-1 uppercase">Issued Aug 2026</p>
           <p class="font-mono text-xs text-faint mt-1">Credential ID: 9b1f3d4f91d3da0e981ccbeb1d12817c84127cbd</p>
@@ -2714,11 +2747,11 @@ const CATEGORY_DATA = {
       size: 'modal-md',
       group: 'University of Westminster',
       logo: 'Logos/university_of_westminster_logo.jpg',
-      eyebrow: 'License & Certification',
+      eyebrow: 'Licence & Certification',
       title: 'WBL Live Project (CSE)',
       body: `
         <div class="modal-section">
-          <img src="certs/WBL_Live_Project.png" alt="WBL Live Project (CSE) certificate" class="w-full max-w-xs rounded-sm border border-line mb-4" onerror="handleCertImageError(this, 'Add image: certs/WBL_Live_Project.png')">
+          <img src="Licenses%20%26%20Certifications%20Images/WBL_Live_Project.png" alt="WBL Live Project (CSE) certificate" class="w-full max-w-xs rounded-sm border border-line mb-4" onerror="handleCertImageError(this, 'Add image: Licenses &amp; Certifications Images/WBL_Live_Project.png')">
           <p class="text-sm text-dim">University of Westminster</p>
           <p class="font-mono text-xs text-faint mt-1 uppercase">Issued Aug 2026</p>
           <p class="font-mono text-xs text-faint mt-1">Credential ID: 21660620</p>
@@ -2730,11 +2763,11 @@ const CATEGORY_DATA = {
       size: 'modal-md',
       group: 'University of Westminster',
       logo: 'Logos/university_of_westminster_logo.jpg',
-      eyebrow: 'License & Certification',
+      eyebrow: 'Licence & Certification',
       title: 'Westminster Award: Bronze',
       body: `
         <div class="modal-section">
-          <img src="certs/Westminster_Award_Bronze.png" alt="Westminster Award: Bronze certificate" class="w-full max-w-xs rounded-sm border border-line mb-4" onerror="handleCertImageError(this, 'Add image: certs/Westminster_Award_Bronze.png')">
+          <img src="Licenses%20%26%20Certifications%20Images/Westminster_Award_Bronze.png" alt="Westminster Award: Bronze certificate" class="w-full max-w-xs rounded-sm border border-line mb-4" onerror="handleCertImageError(this, 'Add image: Licenses &amp; Certifications Images/Westminster_Award_Bronze.png')">
           <p class="text-sm text-dim">University of Westminster</p>
           <p class="font-mono text-xs text-faint mt-1 uppercase">Issued Jun 2025</p>
           <p class="font-mono text-xs text-faint mt-1">Credential ID: 16162373</p>
@@ -2746,14 +2779,21 @@ const CATEGORY_DATA = {
       size: 'modal-md',
       group: 'Royal Academy of Engineering',
       logo: 'Logos/the_royal_academy_of_engineering_logo.jpeg',
-      eyebrow: 'License & Certification',
+      eyebrow: 'Licence & Certification',
       title: 'Graduate Engineering Engagement Programme',
+      // Reuses the exact same certificate image as the GEEP course entry
+      // below (see courses.GEEP) rather than a separate upload, since
+      // they're the same credential - and links through to that fuller
+      // write-up for anyone who wants the details behind the certificate.
       body: `
         <div class="modal-section">
-          <img src="certs/GEEP_Certification.png" alt="Graduate Engineering Engagement Programme certificate" class="w-full max-w-xs rounded-sm border border-line mb-4" onerror="handleCertImageError(this, 'Add image: certs/GEEP_Certification.png')">
+          <img src="https://SuberBAbdi.github.io/GEEP%20Documents/GEEP_Certificate.jpg" alt="Graduate Engineering Engagement Programme certificate" class="w-full max-w-xs rounded-sm border border-line mb-4" onerror="handleCertImageError(this, 'Add image: GEEP Documents/GEEP_Certificate.jpg')">
           <p class="text-sm text-dim">Royal Academy of Engineering</p>
           <p class="font-mono text-xs text-faint mt-1 uppercase">Issued Jul 2026</p>
-          <a href="https://www.linkedin.com/in/suber-abdi-889182331/overlay/Certifications/1339082712/treasury/?profileId=ACoAAFN_NmkBLcJ6h777qoxmJORtLk3L_rSI7ic" target="_blank" rel="noopener" class="inline-block mt-3 text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credential ↗</a>
+          <div class="flex flex-wrap gap-x-4 gap-y-1 mt-3">
+            <a href="https://www.linkedin.com/in/suber-abdi-889182331/overlay/Certifications/1339082712/treasury/?profileId=ACoAAFN_NmkBLcJ6h777qoxmJORtLk3L_rSI7ic" target="_blank" rel="noopener" class="text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credential ↗</a>
+            <button onclick="openModalCategory('courses')" class="text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">View full GEEP course details ↗</button>
+          </div>
         </div>
       `
     }
@@ -2792,6 +2832,12 @@ const CATEGORY_DATA = {
             <li>Industry mentoring - matched with <a href="https://www.linkedin.com/in/matthew-kingham-9059a081/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base%3BhbmdhNLhTima1YsNmyUtcQ%3D%3D" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-2">Matthew Kingham</a> (Johnson Matthey).</li>
           </ul>
         </div>
+
+        <div class="modal-section">
+          <!-- Index 3 = the GEEP entry in CATEGORY_DATA.certifications above -
+               update this if that array's order ever changes. -->
+          <button onclick="showCategoryDetail('certifications', 3)" class="text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">View certification details ↗</button>
+        </div>
         {{CAROUSEL}}
       `
     }
@@ -2806,8 +2852,7 @@ const CATEGORY_DATA = {
         <!-- Cause is its own small section, mirroring how LinkedIn separates
              the "Cause" tag from the role description. -->
         <div class="modal-section">
-          <p class="font-mono text-xs uppercase tracking-widest text-faint mb-1.5">Cause</p>
-          <p class="text-sm text-dim">Children</p>
+          <p class="font-mono text-xs uppercase tracking-widest text-faint">Cause: <span class="text-dim normal-case tracking-normal">Children</span></p>
         </div>
         <div class="modal-section">
           <p>Supported and supervised children in a dynamic summer community programme, ensuring a safe, engaging, and well-organised environment.</p>
@@ -2873,7 +2918,7 @@ const CATEGORY_DATA = {
     {
       size: 'modal-md',
       eyebrow: 'Following',
-      title: 'Organizations & Companies',
+      title: 'Organisations & Companies',
       body: `
         <div class="modal-section">
           <!-- To add another followed company: copy a <li> line below, keep the
@@ -2926,13 +2971,13 @@ Developed deep technical expertise in modern operating system architectures and 
 
 Core Technical Skills
 Process & Thread Management: Mastered process creation via fork()/exec() and multi-threading with pthreads.
-Concurrency Control: Engineered race-condition fixes using POSIX/System V semaphores and synchronization algorithms.
+Concurrency Control: Engineered race-condition fixes using POSIX/System V semaphores and synchronisation algorithms.
 Inter-Process Communication (IPC): Implemented data pipelines using shared memory, signals, and pipes.
 Network & Memory Programming: Built network applications via TCP/UDP sockets and simulated low-level memory allocation.
 
 💻 Key Portfolio Projects
-System-Level C Application: Architected an independent Linux service integrating multi-processing, signals, and thread synchronization.
-Performance Evaluation: Produced a critical technical report assessing code optimization, resource efficiency, and structural limitations.</p>
+System-Level C Application: Architected an independent Linux service integrating multi-processing, signals, and thread synchronisation.
+Performance Evaluation: Produced a critical technical report assessing code optimisation, resource efficiency, and structural limitations.</p>
           </details>
 
           <details class="group border border-line p-3 rounded bg-panel open:bg-[#161618] transition-colors cursor-pointer [&_summary::-webkit-details-marker]:hidden">
@@ -3058,7 +3103,7 @@ const CATEGORY_LABELS = {
   courses: 'Courses',
   volunteering: 'Volunteering',
   partTime: 'Part-Time Experience',
-  certifications: 'Licenses & Certifications',
+  certifications: 'Licences & Certifications',
   following: 'Following'
 };
 
@@ -3110,8 +3155,8 @@ function renderCategoryTOC(categoryKey) {
 // clicking through everything one at a time via prev/next.
 function renderCategoryTOCView(categoryKey) {
   currentCategoryKey = categoryKey;
-  document.getElementById('modalEyebrow').textContent = CATEGORY_LABELS[categoryKey] || '';
-  document.getElementById('modalTitle').textContent = 'Select an item to view';
+  document.getElementById('modalEyebrow').textContent = 'View All';
+  document.getElementById('modalTitle').textContent = CATEGORY_LABELS[categoryKey] || '';
   document.getElementById('modalCategoryNav').classList.add('hidden');
   setModalLogo(null);
   document.getElementById('modalBody').innerHTML = renderCategoryTOC(categoryKey);
@@ -3290,4 +3335,4 @@ function goToSlide(prefix, index) {
 </script>
 
 </body>
-  </html>
+</html>
