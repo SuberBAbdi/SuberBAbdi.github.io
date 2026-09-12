@@ -499,6 +499,13 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         <h1 class="font-display font-extrabold uppercase leading-[0.92] text-4xl sm:text-5xl lg:text-[2.6rem] text-white">
           Suber<br>Abdi
         </h1>
+        <!-- Current workplace logo, shown right under the name - see the
+             `logo` field pattern used elsewhere (Experience, certifications,
+             etc.); update this path if the current employer ever changes. -->
+        <div class="flex items-center gap-2 mt-2.5">
+          <img src="Logos/leonardo_logo.jpg" alt="Leonardo logo" onerror="handleLogoError(this)" class="w-5 h-5 rounded-sm border border-line object-cover bg-[#141416] shrink-0">
+          <span class="font-mono text-[10px] uppercase tracking-widest text-faint">Currently at Leonardo</span>
+        </div>
         <p class="font-mono text-xs uppercase tracking-widest text-dim mt-3 pr-4">
           Software Engineering with<br>Electronics · Graduate 2027
         </p>
@@ -678,12 +685,17 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 
       <div class="pt-6 border-t border-line">
         <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Education</p>
-        <h4 class="font-display font-semibold text-white text-sm">University of Westminster, London</h4>
-        <!-- Course name links out to the official Westminster course page -->
-        <p class="text-sm text-dim mt-0.5">
-          <a href="https://www.westminster.ac.uk/computer-science-and-engineering-courses/2026-27/september/full-time/software-engineering-with-electronics-beng-honours" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-2">BEng Software Engineering with Electronics ↗</a>
-        </p>
-        <p class="font-mono text-xs text-faint mt-1 uppercase">Sep 2024 - Jun 2027</p>
+        <div class="flex items-start gap-3">
+          <img src="Logos/university_of_westminster_logo.jpg" alt="University of Westminster logo" onerror="handleLogoError(this)" class="company-logo">
+          <div class="min-w-0">
+            <h4 class="font-display font-semibold text-white text-sm">University of Westminster, London</h4>
+            <!-- Course name links out to the official Westminster course page -->
+            <p class="text-sm text-dim mt-0.5">
+              <a href="https://www.westminster.ac.uk/computer-science-and-engineering-courses/2026-27/september/full-time/software-engineering-with-electronics-beng-honours" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-2">BEng Software Engineering with Electronics ↗</a>
+            </p>
+            <p class="font-mono text-xs text-faint mt-1 uppercase">Sep 2024 - Jun 2027</p>
+          </div>
+        </div>
 
         <!-- "View Key Modules" and the Dissertation entry now sit in the same
              flowing block as the university info above (no divider/heading
@@ -968,9 +980,8 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       id: 'leonardo',
       role: 'Microwave Engineer (Internship)',
       company: 'Leonardo',
-      // TODO: upload the real logo to logos/Leonardo.png (same dimensions as
-      // the other company logos below, so they line up consistently).
-      logo: 'logos/Leonardo.png',
+      // Logo lives in the repo's Logos/ folder (https://github.com/SuberBAbdi/SuberBAbdi.github.io/tree/main/Logos)
+      logo: 'Logos/leonardo_logo.jpg',
       location: 'Luton, England, UK · Hybrid',
       dates: 'Jun 2026 - Sep 2026',
       current: true, // set false (or remove) on past roles to make them collapsible
@@ -2678,13 +2689,15 @@ const CATEGORY_DATA = {
   // yet). The big in-body image is the certificate/badge itself - if it
   // 404s, handleCertImageError swaps it for a labelled placeholder box that
   // tells you exactly which file to add and where.
-  // TODO: upload logo files to `logos/` and certificate images to `certs/`
-  // in the repo root, matching the paths below.
+  // Institution logos live in the repo's Logos/ folder
+  // (https://github.com/SuberBAbdi/SuberBAbdi.github.io/tree/main/Logos).
+  // The big in-body image is still just a TODO - upload certificate/badge
+  // images to a `certs/` folder to match those paths.
   certifications: [
     {
       size: 'modal-md',
       group: 'University of Westminster',
-      logo: 'logos/University_of_Westminster.png',
+      logo: 'Logos/university_of_westminster_logo.jpg',
       eyebrow: 'License & Certification',
       title: 'Future Ready Mentoring - Group Mentoring <span class="text-dim text-sm font-normal block mt-1">5ELEN020W Embedded Systems Project (WBL) 2025/26</span>',
       body: `
@@ -2700,7 +2713,7 @@ const CATEGORY_DATA = {
     {
       size: 'modal-md',
       group: 'University of Westminster',
-      logo: 'logos/University_of_Westminster.png',
+      logo: 'Logos/university_of_westminster_logo.jpg',
       eyebrow: 'License & Certification',
       title: 'WBL Live Project (CSE)',
       body: `
@@ -2716,7 +2729,7 @@ const CATEGORY_DATA = {
     {
       size: 'modal-md',
       group: 'University of Westminster',
-      logo: 'logos/University_of_Westminster.png',
+      logo: 'Logos/university_of_westminster_logo.jpg',
       eyebrow: 'License & Certification',
       title: 'Westminster Award: Bronze',
       body: `
@@ -2732,7 +2745,7 @@ const CATEGORY_DATA = {
     {
       size: 'modal-md',
       group: 'Royal Academy of Engineering',
-      logo: 'logos/Royal_Academy_of_Engineering.png',
+      logo: 'Logos/the_royal_academy_of_engineering_logo.jpeg',
       eyebrow: 'License & Certification',
       title: 'Graduate Engineering Engagement Programme',
       body: `
@@ -2749,7 +2762,7 @@ const CATEGORY_DATA = {
     {
       size: 'modal-lg',
       eyebrow: 'Course · Royal Academy of Engineering',
-      logo: 'logos/Royal_Academy_of_Engineering.png',
+      logo: 'Logos/the_royal_academy_of_engineering_logo.jpeg',
       title: '<a href="https://raeng.org.uk/" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4">GEEP Graduate Programme ↗</a>',
       slides: [
         { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GEEP_Certificate.jpg', cap: '1. GEEP Completion Certificate' },
@@ -2786,7 +2799,7 @@ const CATEGORY_DATA = {
   volunteering: [
     {
       size: 'modal-md',
-      logo: 'logos/CARIS_Haringey.png',
+      logo: 'Logos/carisharingey_logo.jpg',
       eyebrow: 'Volunteering',
       title: 'Volunteer, CARIS Haringey <span class="text-dim text-sm font-normal block mt-1">Aug 2024</span>',
       body: `
@@ -2810,7 +2823,7 @@ const CATEGORY_DATA = {
   partTime: [
     {
       size: 'modal-md',
-      logo: 'logos/Westminster_SU.png',
+      logo: 'Logos/westminster_students_union_logo.jpg',
       eyebrow: 'Part-Time Experience',
       title: 'Student Team Leader <span class="text-dim text-sm font-normal block mt-1">Westminster SU · Oct 2026 - Present</span>',
       body: `
@@ -2827,7 +2840,7 @@ const CATEGORY_DATA = {
     },
     {
       size: 'modal-md',
-      logo: 'logos/Krispy_Kreme.png',
+      logo: 'Logos/krispy_kreme_logo.jpg',
       eyebrow: 'Part-Time Experience',
       title: 'Sales Team Member <span class="text-dim text-sm font-normal block mt-1">Krispy Kreme · Feb 2024 - Oct 2026</span>',
       body: `
@@ -2842,7 +2855,7 @@ const CATEGORY_DATA = {
     },
     {
       size: 'modal-md',
-      logo: 'logos/Pabulum.png',
+      logo: 'Logos/pabulum_logo.jpg',
       eyebrow: 'Part-Time Experience',
       title: 'Till Operator <span class="text-dim text-sm font-normal block mt-1">Pabulum Ltd · Sep 2022 - Apr 2024</span>',
       body: `
