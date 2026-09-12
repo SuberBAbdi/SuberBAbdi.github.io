@@ -322,6 +322,96 @@
   .ls-pct{ font-size:11px; color:#a3a3a8; font-variant-numeric:tabular-nums; }
   .ls-dot{ width:5px; height:5px; border-radius:50%; background:#a3a3a8; flex-shrink:0; animation:hwBlink 1.2s steps(1) infinite; }
 
+
+  /* ---- Click-to-copy email (left sidebar contact block) -------------------
+     The address is a <button> so it's keyboard operable. The trailing glyph
+     swaps from a copy icon to a green tick for ~1.6s on success. Deliberately
+     small and low-opacity at rest so it reads as an affordance, not a badge. */
+  .copy-email{ display:inline-flex; align-items:center; gap:7px; background:none; border:none;
+               padding:0; margin:0; font:inherit; color:#f1f1ef; cursor:pointer; text-align:right; }
+  .copy-email:hover{ color:#ffffff; }
+  .cp-glyph{ position:relative; width:12px; height:12px; flex:none; display:inline-block; }
+  .cp-glyph svg{ position:absolute; inset:0; width:12px; height:12px;
+                 transition:opacity .18s ease, transform .18s ease; }
+  .cp-copy{ opacity:.4; }
+  .copy-email:hover .cp-copy{ opacity:.85; }
+  .cp-tick{ opacity:0; transform:scale(.55); color:#22c55e; }
+  .copy-email.copied .cp-copy{ opacity:0; transform:scale(.55); }
+  .copy-email.copied .cp-tick{ opacity:1; transform:scale(1); }
+
+  /* ---- Generic collapse ---------------------------------------------------
+     grid-template-rows 0fr -> 1fr animates height without measuring pixels.
+     Used by the mentor note and by every non-current experience entry. */
+  .collapsible{ display:grid; grid-template-rows:0fr; transition:grid-template-rows .28s ease; }
+  .collapsible > .collapsible-inner{ overflow:hidden; min-height:0; }
+  .collapsible.is-open{ grid-template-rows:1fr; }
+  .chev{ transition:transform .22s ease; }
+  .chev.is-open{ transform:rotate(180deg); }
+  .collapse-trigger{ background:none; border:none; padding:0; margin:0; font:inherit;
+                     color:inherit; cursor:pointer; width:100%; text-align:left; }
+  @media (prefers-reduced-motion: reduce){
+    .collapsible{ transition:none; }
+    .chev{ transition:none; }
+  }
+
+  /* ---- Organisation mark (experience / part-time / volunteering) ----------
+     Quiet identifier only: desaturated at rest, colour on hover of the parent
+     row. Falls back to a monogram if the logo file isn't in the repo yet. */
+  .org-mark{ width:30px; height:30px; border:1px solid #27272a; border-radius:4px;
+             background:#131315; display:inline-flex; align-items:center; justify-content:center;
+             overflow:hidden; flex:none; }
+  .org-mark img{ width:100%; height:100%; object-fit:contain; padding:4px;
+                 filter:grayscale(1); opacity:.65; transition:filter .2s ease, opacity .2s ease; }
+  .xp:hover .org-mark img, .org-mark:hover img{ filter:none; opacity:1; }
+  .org-letter{ font-family:'Outfit', sans-serif; font-weight:700; font-size:12px;
+               color:#68686d; line-height:1; }
+  .org-mark--sm{ width:22px; height:22px; border-radius:3px; }
+  .org-mark--sm .org-letter{ font-size:10px; }
+
+  /* ---- Hierarchical tag filter -------------------------------------------
+     Level 1 = overarching section (single-select), Level 2 = sub-section tags
+     (multi-select, OR/AND). Panel drops below the Projects header; the
+     magnifier keeps its original inline expand behaviour. */
+  #projectFilterPanel{ display:grid; grid-template-rows:0fr;
+                       transition:grid-template-rows .26s ease, opacity .2s ease;
+                       opacity:0; }
+  #projectFilterPanel > div{ overflow:hidden; min-height:0; }
+  #projectFilterPanel.is-open{ grid-template-rows:1fr; opacity:1; }
+
+  .tf-tag{ font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.06em;
+           text-transform:uppercase; padding:4px 9px; border:1px solid #27272a; border-radius:2px;
+           color:#8f8f95; background:transparent; cursor:pointer;
+           transition:color .15s ease, border-color .15s ease, background .15s ease, transform .15s ease, opacity .15s ease; }
+  .tf-tag:hover:not(:disabled){ color:#f1f1ef; border-color:#4a4a52; transform:translateY(-1px); }
+  .tf-tag.is-active{ color:#f1f1ef; border-color:#7a7a83; background:rgba(241,241,239,.09); }
+  .tf-tag:disabled{ opacity:.26; cursor:not-allowed; transform:none; }
+  .tf-tag--master.is-active{ background:#f1f1ef; color:#0c0c0d; border-color:#f1f1ef; }
+
+  .tf-label{ font-family:'JetBrains Mono', monospace; font-size:9.5px; letter-spacing:.12em;
+             text-transform:uppercase; color:#68686d; }
+  .tf-mode{ font-family:'JetBrains Mono', monospace; font-size:9.5px; letter-spacing:.08em;
+            text-transform:uppercase; border:1px solid #27272a; border-radius:2px; overflow:hidden;
+            display:inline-flex; }
+  .tf-mode button{ padding:3px 8px; background:transparent; color:#68686d; border:none; cursor:pointer;
+                   transition:color .15s ease, background .15s ease; }
+  .tf-mode button.is-active{ background:rgba(241,241,239,.09); color:#f1f1ef; }
+  .tf-count{ font-family:'JetBrains Mono', monospace; font-size:9.5px; letter-spacing:.08em;
+             text-transform:uppercase; color:#f1f1ef; border:1px solid #3f3f46; border-radius:999px;
+             padding:2px 7px; }
+
+  /* Filter-toggle button badge (count of active sub-section tags) */
+  .tf-badge{ position:absolute; top:-4px; right:-4px; min-width:14px; height:14px; padding:0 3px;
+             border-radius:999px; background:#f1f1ef; color:#0c0c0d;
+             font-family:'JetBrains Mono', monospace; font-size:9px; line-height:14px;
+             text-align:center; }
+
+  /* Certification card (right sidebar list + modal) */
+  .cert-row{ display:flex; gap:10px; align-items:flex-start; padding:9px 0;
+             border-bottom:1px solid #1a1a1c; }
+  .cert-row:last-child{ border-bottom:none; }
+  .cert-thumb{ width:34px; height:34px; border:1px solid #27272a; border-radius:3px; background:#131315;
+               display:flex; align-items:center; justify-content:center; overflow:hidden; flex:none; }
+  .cert-thumb img{ width:100%; height:100%; object-fit:cover; }
 </style>
 </head>
 <body class="text-[#e6e6e4] antialiased min-h-screen flex flex-col justify-between">
@@ -492,21 +582,21 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
           <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Toolchain</p>
           <div class="flex flex-wrap gap-1.5" id="toolchain-container">
             <span class="tag">C / C++</span>
-            <span class="tag">Python</span>
             <span class="tag">Assembly</span>
-            <span class="tag">MATLAB</span>
+            <span class="tag">VHDL</span>
+            <span class="tag">Python</span>
             <span class="tag">KiCAD</span>
-            <span class="tag">Arduino</span>
-            <span class="tag">PIC16F877A</span>
-            <span class="tag">Mbed / Keil</span>
             <span class="tag">Keysight ADS</span>
-            <button class="tag hover:text-white hover:border-dim transition-colors cursor-pointer focus-ring" onclick="openModal('toolchain')">See More (+4)</button>
+            <span class="tag">MATLAB</span>
+            <span class="tag">PIC16F877A</span>
+            <span class="tag">Linux</span>
+            <button class="tag hover:text-white hover:border-dim transition-colors cursor-pointer focus-ring" onclick="openModal('toolchain')">See More (+8)</button>
           </div>
         </div>
 
         <div class="mt-8 pt-6 border-t border-line">
           <p class="font-mono text-xs uppercase tracking-widest text-faint mb-2">Contact Me</p>
-          <div class="spec-row"><span class="k">Email</span><a href="mailto:suberabdi54@gmail.com" class="v hover:text-white transition-colors">suberabdi54@gmail.com ↗</a></div>
+          <div class="spec-row"><span class="k">Email</span><button type="button" id="copyEmailBtn" class="copy-email v focus-ring" data-email="suberabdi54@gmail.com" onclick="copyEmail(this)" title="Click to copy" aria-label="Copy email address to clipboard">suberabdi54@gmail.com<span class="cp-glyph" aria-hidden="true"><svg class="cp-copy" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg><svg class="cp-tick" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"></path></svg></span></button></div>
           <div class="spec-row"><span class="k">GitHub</span><a href="https://github.com/SuberBAbdi" target="_blank" rel="noopener" class="v hover:text-white transition-colors">SuberBAbdi ↗</a></div>
           <div class="spec-row"><span class="k">LinkedIn</span><a href="https://www.linkedin.com/in/suber-abdi-889182331/" target="_blank" rel="noopener" class="v hover:text-white transition-colors">Profile ↗</a></div>
           <div class="spec-row"><span class="k">Location</span><span class="v">London, UK</span></div>
@@ -514,11 +604,24 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         </div>
 
         <div class="mt-8 pt-6 border-t border-line">
-          <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Mentor Note</p>
-          <p class="text-sm text-dim leading-relaxed italic">
-            "I have had the privilege of mentoring Suber as part of the GEEP programme. Suber has shown to be very diligent in his work ethic and very effective in his communication as shown in securing a internship with Leonardo. I wish you all the best for the future in the placement and your third year."
-          </p>
-          <p class="font-mono text-xs text-faint mt-2">- <a href="https://www.linkedin.com/in/matthew-kingham-9059a081/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base%3BhbmdhNLhTima1YsNmyUtcQ%3D%3D" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-2">Matthew Kingham</a>, GEEP Mentor · Johnson Matthey</p>
+          <!-- Collapsed by default to save sidebar space. The attribution line
+               stays visible in both states - it's the part that carries the
+               credibility, so it should never be hidden behind a toggle. -->
+          <button type="button" class="collapse-trigger focus-ring flex items-center justify-between w-full gap-2 mb-3"
+                  aria-expanded="false" aria-controls="mentorNoteBody" onclick="toggleCollapse('mentorNoteBody', this)">
+            <span class="font-mono text-xs uppercase tracking-widest text-faint">Mentor Note</span>
+            <i data-lucide="chevron-down" class="chev w-3.5 h-3.5 text-faint shrink-0"></i>
+          </button>
+
+          <div id="mentorNoteBody" class="collapsible">
+            <div class="collapsible-inner">
+              <p class="text-sm text-dim leading-relaxed italic pb-2">
+                "I have had the privilege of mentoring Suber as part of the GEEP programme. Suber has shown to be very diligent in his work ethic and very effective in his communication as shown in securing a internship with Leonardo. I wish you all the best for the future in the placement and your third year."
+              </p>
+            </div>
+          </div>
+
+          <p class="font-mono text-xs text-faint mt-1">- <a href="https://www.linkedin.com/in/matthew-kingham-9059a081/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base%3BhbmdhNLhTima1YsNmyUtcQ%3D%3D" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-2">Matthew Kingham</a>, GEEP Mentor · Johnson Matthey</p>
         </div>
       </div>
     </aside>
@@ -535,11 +638,11 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
                  a single icon button by default to save space; expands on
                  click (see toggleProjectSearch). Search matches any word
                  against a project's title, tags, status, and description
-                 text (see getProjectSearchText). Filter is a single-select
-                 of every tag in use, defaulting to "All Tags". Both are
-                 combined (AND) in getFilteredProjects. `items-center` on the
-                 row above keeps this vertically centred with the Projects
-                 heading's midline regardless of which state it's in. -->
+                 text (see getProjectSearchText). The second button opens the
+                 two-tier tag panel below (sections -> sub-sections). Search,
+                 section and tags are all combined in getFilteredProjects.
+                 `items-center` on the row above keeps this vertically centred
+                 with the Projects heading's midline in either state. -->
             <div class="flex items-center gap-2">
               <button id="projectSearchToggleBtn" onclick="toggleProjectSearch()" type="button"
                       aria-label="Search and filter projects" aria-expanded="false"
@@ -553,10 +656,57 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
                          onblur="maybeCollapseProjectSearch()"
                          class="focus-ring bg-transparent border border-line rounded-sm px-2.5 py-1.5 text-xs font-mono text-dim placeholder:text-faint focus:border-faint transition-colors w-28 sm:w-40">
                 </div>
-                <select id="projectTagFilter" onchange="onProjectTagFilterChange(this.value)" onblur="maybeCollapseProjectSearch()"
-                        class="focus-ring bg-panel border border-line rounded-sm px-2 py-1.5 text-xs font-mono text-dim focus:border-faint transition-colors cursor-pointer shrink-0">
-                  <option value="all">All Tags</option>
-                </select>
+              </div>
+              <!-- Opens the two-tier tag panel below. Kept separate from the
+                   magnifier so the original search-expand behaviour is
+                   untouched. Badge shows the active sub-section count. -->
+              <button id="projectFilterToggleBtn" onclick="toggleFilterPanel()" type="button"
+                      aria-label="Filter projects by tag" aria-expanded="false" aria-controls="projectFilterPanel"
+                      class="focus-ring relative w-8 h-8 flex items-center justify-center border border-line rounded-sm text-dim hover:text-white hover:border-faint transition-colors shrink-0">
+                <i data-lucide="sliders-horizontal" class="w-4 h-4"></i>
+                <span id="projectFilterBadge" class="tf-badge hidden"></span>
+              </button>
+            </div>
+          </div>
+
+          <!-- ============ HIERARCHICAL TAG FILTER ============
+               Level 1 (sections) is single-select and scopes Level 2.
+               Level 2 (sub-sections) is multi-select with an OR/AND mode.
+               Both rows are built from the projects array itself - add a
+               project with a new section/tag and it appears here with no
+               other change required. -->
+          <div id="projectFilterPanel" aria-hidden="true">
+            <div>
+              <div class="border border-line rounded-sm bg-panel p-3 mb-3">
+
+                <div class="flex items-center justify-between gap-2 mb-2">
+                  <span class="tf-label">Sections</span>
+                  <div class="flex items-center gap-2">
+                    <span id="tfActiveCount" class="tf-count hidden">0 active</span>
+                    <button id="tfClearAll" onclick="clearAllFilters()" type="button"
+                            class="hidden focus-ring font-mono text-[9.5px] uppercase tracking-wider text-faint hover:text-white transition-colors underline decoration-faint underline-offset-2">Clear All</button>
+                  </div>
+                </div>
+
+                <div id="tfSectionRow" class="flex flex-wrap gap-1.5" role="group" aria-label="Overarching sections"></div>
+
+                <div class="flex items-center justify-between gap-2 mt-4 mb-2">
+                  <span class="tf-label">Sub-sections</span>
+                  <div class="flex items-center gap-2">
+                    <div class="tf-mode" role="group" aria-label="Match mode">
+                      <button type="button" id="tfModeOr"  onclick="setTagMode('OR')"  class="is-active">Any</button>
+                      <button type="button" id="tfModeAnd" onclick="setTagMode('AND')">All</button>
+                    </div>
+                    <input type="text" id="tfTagSearch" placeholder="Find tag" autocomplete="off"
+                           oninput="onTagSearchInput(this.value)" aria-label="Filter the tag list"
+                           class="focus-ring bg-transparent border border-line rounded-sm px-2 py-1 text-[10px] font-mono text-dim placeholder:text-faint focus:border-faint transition-colors w-20 sm:w-28">
+                  </div>
+                </div>
+
+                <div id="tfTagRow" class="flex flex-wrap gap-1.5" role="group" aria-label="Sub-section tags"></div>
+                <p id="tfNoTags" class="hidden font-mono text-[10px] text-faint mt-1">No tags match that search.</p>
+
+                <p id="tfResultCount" class="font-mono text-[9.5px] uppercase tracking-wider text-faint mt-3 pt-3 border-t border-lineSoft"></p>
               </div>
             </div>
           </div>
@@ -573,24 +723,12 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 
         <div>
           <p class="scan-header font-display font-extrabold uppercase text-2xl sm:text-3xl text-white tracking-tight border-b border-line pb-4 mb-5">Experience</p>
-          <div class="flex flex-col gap-7">
-            <div>
-              <div class="flex items-start justify-between flex-wrap gap-2">
-                <h4 class="font-display font-semibold text-white text-base sm:text-lg">Microwave Engineer (Internship)</h4>
-                <span class="font-mono text-xs text-faint uppercase">Jun 2026 - Sep 2026</span>
-              </div>
-              <p class="font-mono text-xs text-dim mt-0.5 uppercase tracking-wide">Leonardo · Luton, England, UK · Hybrid</p>
-              <p class="text-sm text-dim mt-3 leading-relaxed">Working within a multi-disciplinary team to design and evaluate advanced RF components used in electronic warfare self-protection systems.</p>
-              <ul class="bullet-list mt-3 text-sm text-dim space-y-1.5">
-                <li><strong>RF Circuit & Component Design:</strong> Assist in designing and developing microwave and RF components operating up to 40 GHz, including transmit/receive modules (TRMs) and up/down converters.</li>
-                <li><strong>Simulation & Modelling:</strong> Use industry-standard simulation tools (Keysight ADS) to model integrated RF/digital boards and optimise component performance.</li>
-                <li><strong>Laboratory Testing:</strong> Test and validate hardware designs in anechoic chambers and state-of-the-art lab environments, ensuring compliance with strict environmental and safety standards.</li>
-                <li><strong>Cross-Disciplinary Collaboration:</strong> Partner with mechanical, systems, and manufacturing teams to ensure seamless integration of RF modules into larger defence platforms.</li>
-              </ul>
-            </div>
-          </div>
+          <!-- Rendered from the `experience` array in JS (see renderExperience).
+               Entries with current:true stay permanently expanded; every other
+               entry collapses to its header row to save vertical space. To add
+               a past role, append an object to that array - no markup needed. -->
+          <div id="experienceList" class="flex flex-col gap-5"></div>
         </div>
-
       </div>
 
       <div id="projectDetailView">
@@ -611,42 +749,61 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
           <button id="aboutToggleBtn" onclick="const t = document.getElementById('aboutText'); t.classList.toggle('line-clamp-3'); this.innerText = t.classList.contains('line-clamp-3') ? 'See More' : 'See Less';" class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring">See More</button>
         </div>
         <p id="aboutText" class="text-sm text-dim leading-relaxed line-clamp-3 transition-all duration-300">
-          Software Engineering with Electronics student at the University of Westminster with
-          hands-on experience across robotics, embedded systems, programming and hardware/software
-          integration. Currently on a summer placement at Leonardo, contributing to RF component
-          design for electronic warfare self-protection systems. Actively building a robotic arm
-          through the SCC programme, and open to placements in embedded systems, robotics,
-          automation and firmware development.
+          Final-year Software Engineering with Electronics student at the University of Westminster,
+          working across the hardware/software boundary - from PCB design and RF hardware through to
+          embedded firmware and systems programming. Spent summer 2026 at Leonardo contributing to the
+          requirements, architecture and PCB development of an internal multi-channel microwave
+          electronics prototype. My dissertation analyses and designs wireless energy harvesters for
+          battery-free IoT devices at 3.6 GHz. Selected for the Royal Academy of Engineering's GEEP
+          programme, and open to graduate roles in RF and microwave engineering, hardware design,
+          embedded systems and firmware.
         </p>
       </div>
 
       <div class="pt-6 border-t border-line">
         <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Education</p>
-        <h4 class="font-display font-semibold text-white text-sm">University of Westminster, London</h4>
+
+        <h4 class="font-display font-semibold text-white text-sm leading-snug">University of Westminster, London</h4>
         <!-- Course name links out to the official Westminster course page -->
-        <p class="text-sm text-dim mt-0.5">
+        <p class="text-sm text-dim mt-1.5 leading-snug">
           <a href="https://www.westminster.ac.uk/computer-science-and-engineering-courses/2026-27/september/full-time/software-engineering-with-electronics-beng-honours" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-2">BEng Software Engineering with Electronics ↗</a>
         </p>
-        <p class="font-mono text-xs text-faint mt-1 uppercase">Sep 2024 - Jun 2027</p>
+        <p class="font-mono text-xs text-faint mt-1.5 uppercase tracking-wide">Sep 2024 - Jun 2027</p>
 
-        <!-- "View Key Modules" now sits directly under the university info,
-             above the dissertation entry below, per site content ordering. -->
-        <button class="module-btn focus-ring mt-4" onclick="openModal('modules')">
+        <!-- Dissertation sits between the course details and the modules
+             disclosure so the block reads: institution → course → dates →
+             research → detail toggle. The label is a metadata eyebrow, not a
+             heading, so it matches every other field label on the page. -->
+        <div class="mt-5 pt-4 border-t border-lineSoft">
+          <p class="font-mono text-[10px] uppercase tracking-[0.14em] text-faint mb-1.5">Dissertation</p>
+          <h4 class="font-display font-semibold text-white text-sm leading-snug cursor-pointer hover:underline decoration-faint underline-offset-2" onclick="openProject('harvester'); return false;">Analysis and Design of Wireless Energy Harvesters for IoT Applications <i data-lucide="link" class="w-3.5 h-3.5 text-faint inline-block align-text-bottom ml-1 shrink-0"></i></h4>
+        </div>
+
+        <button class="module-btn focus-ring mt-5 pt-4 border-t border-lineSoft" onclick="openModal('modules')">
           <h4 class="module-title font-display font-semibold text-dim text-sm">View Key Modules ↗</h4>
         </button>
-
-        <h4 class="font-display font-semibold text-white text-sm pt-4 cursor-pointer hover:underline" onclick="openProject('harvester'); return false;">Analysis and Design of Wireless Energy Harvesters for IoT Applications <i data-lucide="link" class="w-3.5 h-3.5 text-faint inline-block align-text-bottom ml-1 shrink-0"></i></h4>
       </div>
 
       <div class="pt-6 border-t border-line">
         <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Top Skills</p>
         <div class="flex flex-wrap gap-1.5">
+          <span class="tag">RF &amp; Microwave Design</span>
+          <span class="tag">PCB Design</span>
+          <span class="tag">Embedded C</span>
           <span class="tag">Communication</span>
-          <span class="tag">C++</span>
-          <span class="tag">Microcontrollers</span>
-          <span class="tag">RF Design</span>
-          <button class="tag hover:text-white hover:border-dim transition-colors cursor-pointer focus-ring" onclick="openModal('skills')">See More (+2)</button>
+          <button class="tag hover:text-white hover:border-dim transition-colors cursor-pointer focus-ring" onclick="openModal('skills')">See More (+5)</button>
         </div>
+      </div>
+
+      <div class="pt-6 border-t border-line">
+        <div class="flex items-center justify-between">
+          <p class="font-mono text-xs uppercase tracking-widest text-faint">Licenses &amp; Certifications</p>
+          <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openModalCategory('certifications', 0)">View All ↗</button>
+        </div>
+        <!-- Thumbnails resolve to assets/certs/*.png once those files are
+             committed to the repo. Until then the <img> onerror hides it and
+             the monogram fallback behind it shows instead - nothing breaks. -->
+        <div class="mt-3" id="certList"></div>
       </div>
 
       <div class="pt-6 border-t border-line">
@@ -757,6 +914,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       // block in openProject(). Placeholder ID below - swap once recorded.
       presentationVideoId: '1rsLRHpR1H8',
 
+      section: 'RF & Microwave',
       tags: ['RF Design', 'Antenna Filters', 'IoT Power'],
       github: null
     },
@@ -768,6 +926,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       stack: 'Prototype arm builds, wiring loom design, instructional guide, voluntary student questionnaire for evaluation.',
       challenges: 'Testing prototype arms for assembly difficulty, mechanical reliability, wiring layout and responsiveness, then refining both hardware and documentation from that feedback.',
       outcome: 'Public toolkit released to CS/Engineering students, with findings feeding back into an accessible, reliable beginner robotics resource.',
+      section: 'Embedded & Robotics',
       tags: ['Embedded', 'Robotics', 'Documentation'],
       github: 'https://github.com/SuberBAbdi/SCC-Robotic-Arm'
     },
@@ -779,6 +938,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       stack: 'C++ on Mbed via Keil Studio, ultrasonic/IR sensor fusion for wall-following, 3D-printed chassis, GitHub for version control.',
       challenges: 'Coordinating a team codebase, tuning sensor thresholds for reliable wall-following, and iterating the maze-solving algorithm under time pressure.',
       outcome: 'Delivered a working autonomous robot as a team, from wiring through firmware to a live maze-run demo.',
+      section: 'Embedded & Robotics',
       tags: ['C++', 'Mbed', '3D Printing'],
       github: 'https://github.com/SuberBAbdi'
     },
@@ -790,6 +950,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       stack: 'Greyscale conversion → thresholding → noise removal → morphological operations → binarization, wrapped in a custom MATLAB GUI.',
       challenges: 'Handling inconsistent lighting and image noise across the input set while keeping the pipeline fast enough for a responsive GUI.',
       outcome: 'Working end-to-end plate isolation and identification with a usable GUI front-end.',
+      section: 'Software & Signals',
       tags: ['MATLAB', 'Image Processing'],
       github: null,
       report: 'https://SuberBAbdi.github.io/Number Plate Recognition System/Number_Plate_Recognition_System_Report.pdf',
@@ -808,6 +969,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       stack: 'Breadboard, jumper wires, Arduino Nano, HC-SR04 ultrasonic sensor, SG90 servo motor, live visualisation in Processing.',
       challenges: 'Synchronising servo sweep angle with ultrasonic distance readings to plot an accurate, smooth radar sweep in real time.',
       outcome: 'A fully functional radar demo with live on-screen visualisation.',
+      section: 'Embedded & Robotics',
       tags: ['Arduino', 'Ultrasonic Sensing', 'Processing'],
       github: null
     },
@@ -819,6 +981,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       stack: 'DFMiniPlayer module, speaker output, C++ firmware, voltage-range triggering logic.',
       challenges: 'Mapping analogue voltage ranges reliably to distinct playback triggers without false positives.',
       outcome: 'Working voltage-triggered playback system, used directly as preparation for the radar project.',
+      section: 'Embedded & Robotics',
       tags: ['C++', 'Arduino', 'Audio'],
       github: null
     },
@@ -855,6 +1018,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
           span2: true
         }
       ],
+      section: 'Digital & Low-Level',
       tags: ['Assembly', 'PIC16F877A', 'MPLAB X'],
       github: null
     }
@@ -927,8 +1091,17 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
   }
 
   let projectsExpanded = false;
+  // ---------------- PROJECT SEARCH + TWO-TIER TAG FILTER ----------------
+  // Level 1: `activeSection` - single-select, scopes which sub-section tags
+  //          are offered and which projects can match at all.
+  // Level 2: `activeTags`    - multi-select, combined with OR (Any) or
+  //          AND (All) via `tagMatchMode`.
+  // Free-text search is ANDed on top of both.
   let projectSearchQuery = '';
-  let projectTagFilter = 'all';
+  let activeSection = 'all';
+  let activeTags = new Set();
+  let tagMatchMode = 'OR';
+  let tagQuery = '';
 
   // Builds one lowercase blob of searchable text for a project: title, tags,
   // status, and whichever description fields it has (default projects use
@@ -936,53 +1109,180 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
   // layout - see the DAC project - get their section titles/text included
   // too, with HTML tags stripped out).
   function getProjectSearchText(p) {
-    const parts = [p.title, p.status, (p.tags || []).join(' '), p.overview || '', p.stack || '', p.challenges || '', p.outcome || ''];
+    const parts = [p.title, p.status, p.section || '', (p.tags || []).join(' '), p.overview || '', p.stack || '', p.challenges || '', p.outcome || ''];
     if (p.sections) {
       p.sections.forEach(s => parts.push(s.title, (s.html || '').replace(/<[^>]+>/g, ' ')));
     }
     return parts.join(' ').toLowerCase();
   }
 
-  // Search: matches if EVERY word the user typed appears somewhere in the
-  // project's searchable text (order-independent, so "PIC assembly" matches
-  // the DAC project). Filter: 'all' or an exact tag match.
-  function getFilteredProjects() {
-    const words = projectSearchQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
-    return projects.filter(p => {
-      const matchesTag = projectTagFilter === 'all' || (p.tags || []).includes(projectTagFilter);
-      if (!matchesTag) return false;
-      if (words.length === 0) return true;
-      const text = getProjectSearchText(p);
-      return words.every(w => text.includes(w));
+  // section -> Set(tags), derived from the projects array in first-seen order.
+  function getTaxonomy() {
+    const map = new Map();
+    projects.forEach(p => {
+      const s = p.section || 'Other';
+      if (!map.has(s)) map.set(s, new Set());
+      (p.tags || []).forEach(t => map.get(s).add(t));
     });
+    return map;
   }
 
-  // Populates the tag filter <select> with every unique tag in use across
-  // all projects, in first-seen order. Called once on load - if projects
-  // are ever added/edited with new tags, this picks them up automatically.
-  function populateProjectTagFilter() {
-    const select = document.getElementById('projectTagFilter');
-    if (!select) return;
-    const uniqueTags = [...new Set(projects.flatMap(p => p.tags || []))];
-    uniqueTags.forEach(tag => {
-      const opt = document.createElement('option');
-      opt.value = tag;
-      opt.textContent = tag;
-      select.appendChild(opt);
+  // Single source of truth for "does this project survive the filters?", used
+  // both for the visible grid and for the zero-result test that disables tags.
+  function projectMatches(p, section, tagSet, mode, words) {
+    if (section !== 'all' && (p.section || 'Other') !== section) return false;
+    const pt = p.tags || [];
+    if (tagSet.size) {
+      if (mode === 'AND') {
+        for (const t of tagSet) if (!pt.includes(t)) return false;
+      } else {
+        let any = false;
+        for (const t of tagSet) { if (pt.includes(t)) { any = true; break; } }
+        if (!any) return false;
+      }
+    }
+    if (words.length) {
+      const text = getProjectSearchText(p);
+      if (!words.every(w => text.includes(w))) return false;
+    }
+    return true;
+  }
+
+  function searchWords() {
+    return projectSearchQuery.trim().toLowerCase().split(/\s+/).filter(Boolean);
+  }
+
+  function getFilteredProjects() {
+    const words = searchWords();
+    return projects.filter(p => projectMatches(p, activeSection, activeTags, tagMatchMode, words));
+  }
+
+  // How many projects would remain if `tag` were added to the current
+  // selection - 0 means the tag is a dead end, so it renders disabled.
+  function resultCountWithTag(tag) {
+    const words = searchWords();
+    const test = new Set(activeTags);
+    test.add(tag);
+    return projects.filter(p => projectMatches(p, activeSection, test, tagMatchMode, words)).length;
+  }
+
+  function resultCountForSection(section) {
+    const words = searchWords();
+    return projects.filter(p => projectMatches(p, section, new Set(), 'OR', words)).length;
+  }
+
+  // ---- state changes -------------------------------------------------
+  function selectSection(section) {
+    activeSection = section;
+    // Drop any selected tags that don't exist inside the new section.
+    if (section !== 'all') {
+      const allowed = getTaxonomy().get(section) || new Set();
+      activeTags = new Set([...activeTags].filter(t => allowed.has(t)));
+    }
+    renderFilterPanel();
+    renderProjectGrid();
+  }
+
+  function toggleTag(tag) {
+    if (activeTags.has(tag)) activeTags.delete(tag); else activeTags.add(tag);
+    renderFilterPanel();
+    renderProjectGrid();
+  }
+
+  function setTagMode(mode) {
+    tagMatchMode = mode;
+    document.getElementById('tfModeOr').classList.toggle('is-active', mode === 'OR');
+    document.getElementById('tfModeAnd').classList.toggle('is-active', mode === 'AND');
+    renderFilterPanel();
+    renderProjectGrid();
+  }
+
+  function onTagSearchInput(value) {
+    tagQuery = value;
+    renderFilterPanel();
+  }
+
+  // The master reset: clears section, tags, tag search AND the free-text
+  // search, so the full dataset comes back in one click.
+  function clearAllFilters() {
+    activeSection = 'all';
+    activeTags = new Set();
+    tagQuery = '';
+    projectSearchQuery = '';
+    const ts = document.getElementById('tfTagSearch');
+    if (ts) ts.value = '';
+    const ps = document.getElementById('projectSearchInput');
+    if (ps) ps.value = '';
+    renderFilterPanel();
+    renderProjectGrid();
+  }
+
+  // ---- rendering -----------------------------------------------------
+  function renderFilterPanel() {
+    const secRow = document.getElementById('tfSectionRow');
+    const tagRow = document.getElementById('tfTagRow');
+    if (!secRow || !tagRow) return;
+
+    const tax = getTaxonomy();
+
+    // Level 1
+    let secHtml = `<button type="button" class="tf-tag tf-tag--master ${activeSection === 'all' ? 'is-active' : ''}"
+                     aria-pressed="${activeSection === 'all'}" onclick="selectSection('all')">All Sections</button>`;
+    tax.forEach((_tags, name) => {
+      const n = resultCountForSection(name);
+      const isActive = activeSection === name;
+      secHtml += `<button type="button" class="tf-tag ${isActive ? 'is-active' : ''}"
+                    aria-pressed="${isActive}" ${n === 0 && !isActive ? 'disabled' : ''}
+                    onclick="selectSection('${name.replace(/'/g, "\\'")}')">${name}</button>`;
     });
+    secRow.innerHTML = secHtml;
+
+    // Level 2 - only the active section's tags, or all of them when unscoped
+    let tags = activeSection === 'all'
+      ? [...new Set(projects.flatMap(p => p.tags || []))]
+      : [...(tax.get(activeSection) || [])];
+
+    if (tagQuery.trim()) {
+      const q = tagQuery.trim().toLowerCase();
+      tags = tags.filter(t => t.toLowerCase().includes(q));
+    }
+
+    tagRow.innerHTML = tags.map(t => {
+      const isActive = activeTags.has(t);
+      const dead = !isActive && resultCountWithTag(t) === 0;
+      return `<button type="button" class="tf-tag ${isActive ? 'is-active' : ''}"
+                aria-pressed="${isActive}" ${dead ? 'disabled' : ''}
+                onclick="toggleTag('${t.replace(/'/g, "\\'")}')">${t}</button>`;
+    }).join('');
+
+    document.getElementById('tfNoTags').classList.toggle('hidden', tags.length > 0);
+
+    // Counter, Clear All, badge
+    const activeCount = activeTags.size + (activeSection !== 'all' ? 1 : 0) + (projectSearchQuery.trim() ? 1 : 0);
+    const countEl = document.getElementById('tfActiveCount');
+    const clearEl = document.getElementById('tfClearAll');
+    countEl.textContent = activeCount + ' active';
+    countEl.classList.toggle('hidden', activeCount === 0);
+    clearEl.classList.toggle('hidden', activeCount === 0);
+
+    const badge = document.getElementById('projectFilterBadge');
+    if (badge) {
+      badge.textContent = activeCount;
+      badge.classList.toggle('hidden', activeCount === 0);
+    }
+
+    const total = projects.length;
+    const shown = getFilteredProjects().length;
+    document.getElementById('tfResultCount').textContent = `Showing ${shown} of ${total} projects`;
   }
 
   function onProjectSearchInput(value) {
     projectSearchQuery = value;
+    renderFilterPanel();
     renderProjectGrid();
   }
 
-  function onProjectTagFilterChange(value) {
-    projectTagFilter = value;
-    renderProjectGrid();
-  }
-
-  // Expand/collapse the search+filter bar (icon-only by default to save
+  // Expand/collapse the search input (icon-only by default to save
   // space; see #projectSearchExpand / .proj-search-* in <style>).
   function toggleProjectSearch() {
     const wrap = document.getElementById('projectSearchExpand');
@@ -998,17 +1298,190 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     }
   }
 
-  // Auto-collapses the bar back to just the icon once focus leaves it,
-  // but only if there's nothing active to show (no search text, no tag
-  // filter applied), otherwise it'd hide an active filter from view.
+  // Auto-collapses the search box back to just the icon once focus leaves it,
+  // but only if there's no query to show, otherwise it'd hide active input.
   function maybeCollapseProjectSearch() {
     setTimeout(() => {
       const wrap = document.getElementById('projectSearchExpand');
-      if (wrap.contains(document.activeElement)) return; // focus just moved between the input/select, keep it open
-      if (projectSearchQuery.trim() !== '' || projectTagFilter !== 'all') return; // an active filter is in use, keep it visible
+      if (wrap.contains(document.activeElement)) return;
+      if (projectSearchQuery.trim() !== '') return;
       wrap.classList.replace('proj-search-expanded', 'proj-search-collapsed');
       document.getElementById('projectSearchToggleBtn').setAttribute('aria-expanded', 'false');
-    }, 120); // small delay so moving focus within the bar (input -> select) doesn't collapse it
+    }, 120);
+  }
+
+  // Drops the tag panel open/closed beneath the Projects header.
+  function toggleFilterPanel(force) {
+    const panel = document.getElementById('projectFilterPanel');
+    const btn = document.getElementById('projectFilterToggleBtn');
+    const open = typeof force === 'boolean' ? force : !panel.classList.contains('is-open');
+    panel.classList.toggle('is-open', open);
+    panel.setAttribute('aria-hidden', String(!open));
+    btn.setAttribute('aria-expanded', String(open));
+    btn.classList.toggle('text-white', open);
+    btn.classList.toggle('border-faint', open);
+  }
+
+  // Esc closes the panel and returns focus to its trigger.
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    const panel = document.getElementById('projectFilterPanel');
+    if (panel && panel.classList.contains('is-open')) {
+      toggleFilterPanel(false);
+      document.getElementById('projectFilterToggleBtn').focus();
+    }
+  });
+
+
+  // ==================== ORG MARKS ====================
+  // Small, desaturated identifier next to a role. `logo` is a path in the
+  // repo; if the file isn't there yet the <img> hides itself and the
+  // monogram behind it shows, so nothing renders broken.
+  function orgMark(name, logo, small) {
+    const letter = (name || '?').trim().charAt(0).toUpperCase();
+    const cls = 'org-mark' + (small ? ' org-mark--sm' : '');
+    const img = logo
+      ? `<img src="${logo}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='inline-block';">`
+      : '';
+    return `<span class="${cls}" aria-hidden="true">${img}<span class="org-letter" style="display:${logo ? 'none' : 'inline-block'}">${letter}</span></span>`;
+  }
+
+  // ==================== EXPERIENCE ====================
+  // `current: true` pins an entry open and hides its chevron. Every other
+  // entry starts collapsed to its header row. To add a role, append an
+  // object here - the collapse behaviour comes for free.
+  const experience = [
+    {
+      id: 'leonardo',
+      role: 'Microwave Engineer (Internship)',
+      org: 'Leonardo',
+      meta: 'Leonardo · Luton, England, UK · Hybrid',
+      dates: 'Jun 2026 - Sep 2026',
+      logo: 'assets/logos/leonardo.png',
+      current: true,
+      summary: 'Contributed to the requirements, architecture and PCB development of an internal multi-channel microwave electronics prototype.',
+      bullets: [
+        ['Requirements &amp; Architecture', 'Translated project objectives into microwave, hardware and PCB design requirements, and produced technical documentation covering hardware architecture, component selection, fabrication requirements and design risks.'],
+        ['PCB Design', 'Developed a preliminary four-layer hybrid stack-up combining a low-loss microwave laminate with conventional high-Tg material, accounting for controlled impedance, RF return paths, ground-via fencing, connector launches and component placement.'],
+        ['Design Tooling', 'Used KiCad for schematic development, symbol and footprint management, PCB preparation and design-rule review.'],
+        ['Component Review', 'Assessed microwave, power, control and passive devices against manufacturer datasheets, reference designs and land patterns, and maintained the bill of materials.'],
+        ['Analysis &amp; Verification', 'Produced preliminary gain, noise, frequency-planning and local-oscillator power assessments, and defined verification activities for power-up, interface checks and prototype bring-up.'],
+        ['Communication', 'Presented the design approach and technical findings to engineering stakeholders, working in accordance with organisational confidentiality requirements.']
+      ],
+      footnote: 'Public descriptions intentionally exclude proprietary technical information.'
+    }
+    // To add a past role, copy the object above, set current:false (or omit
+    // it) and it will render collapsed by default.
+  ];
+
+  function renderExperience() {
+    const wrap = document.getElementById('experienceList');
+    if (!wrap) return;
+
+    wrap.innerHTML = experience.map((x, i) => {
+      const bodyId = 'xpBody_' + x.id;
+      const open = !!x.current;
+      const bullets = (x.bullets || []).map(b =>
+        `<li><strong class="text-[#d2d2d0] font-medium">${b[0]}:</strong> ${b[1]}</li>`).join('');
+
+      return `
+        <div class="xp border border-line rounded-sm px-3.5 py-3">
+          <div class="${open ? '' : 'collapse-trigger focus-ring cursor-pointer '}w-full"
+              ${open ? '' : `role="button" tabindex="0" aria-expanded="false" aria-controls="${bodyId}"
+               onclick="toggleCollapse('${bodyId}', this)"
+               onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleCollapse('${bodyId}', this);}"`}>
+            <div class="flex items-start gap-3">
+              ${orgMark(x.org, x.logo)}
+              <div class="min-w-0 flex-1">
+                <div class="flex items-start justify-between flex-wrap gap-x-3 gap-y-1">
+                  <h4 class="font-display font-semibold text-white text-base sm:text-lg leading-snug">${x.role}</h4>
+                  <span class="font-mono text-xs text-faint uppercase shrink-0">${x.dates}</span>
+                </div>
+                <p class="font-mono text-xs text-dim mt-0.5 uppercase tracking-wide text-left">${x.meta}</p>
+              </div>
+              ${open ? '' : '<i data-lucide="chevron-down" class="chev w-4 h-4 text-faint shrink-0 mt-1"></i>'}
+            </div>
+          </div>
+
+          <div id="${bodyId}" class="collapsible ${open ? 'is-open' : ''}">
+            <div class="collapsible-inner">
+              ${x.summary ? `<p class="text-sm text-dim mt-3 leading-relaxed">${x.summary}</p>` : ''}
+              ${bullets ? `<ul class="bullet-list mt-3 text-sm text-dim space-y-1.5">${bullets}</ul>` : ''}
+              ${x.footnote ? `<p class="font-mono text-[10px] text-faint mt-3 pt-2 border-t border-lineSoft leading-relaxed">${x.footnote}</p>` : ''}
+            </div>
+          </div>
+        </div>`;
+    }).join('');
+
+    lucide.createIcons();
+  }
+
+  // ==================== CERTIFICATIONS (sidebar list) ====================
+  // Data lives in CATEGORY_DATA.certifications (see the modal script block);
+  // this renders the compact sidebar preview from the same source so the two
+  // can never drift apart.
+  function renderCertList() {
+    const wrap = document.getElementById('certList');
+    if (!wrap || typeof CATEGORY_DATA === 'undefined' || !CATEGORY_DATA.certifications) return;
+
+    wrap.innerHTML = CATEGORY_DATA.certifications.map((c, i) => `
+      <button type="button" class="cert-row w-full text-left focus-ring group" onclick="openModalCategory('certifications', ${i})">
+        <span class="cert-thumb">
+          <img src="${c.image}" alt="" loading="lazy" onerror="this.style.display='none';this.nextElementSibling.style.display='flex';">
+          <span class="org-letter" style="display:none;align-items:center;justify-content:center;width:100%;height:100%">${c.issuer.charAt(0)}</span>
+        </span>
+        <span class="min-w-0 flex-1">
+          <span class="block text-[13px] text-dim leading-snug group-hover:text-white transition-colors">${c.shortTitle}</span>
+          <span class="block font-mono text-[10px] text-faint uppercase tracking-wide mt-0.5">${c.issuer} · ${c.issued}</span>
+        </span>
+      </button>
+    `).join('');
+  }
+
+  // ==================== GENERIC COLLAPSE ====================
+  // Shared by the mentor note and every non-current experience entry.
+  function toggleCollapse(bodyId, trigger) {
+    const body = document.getElementById(bodyId);
+    if (!body) return;
+    const open = !body.classList.contains('is-open');
+    body.classList.toggle('is-open', open);
+    if (trigger) {
+      trigger.setAttribute('aria-expanded', String(open));
+      const chev = trigger.querySelector('.chev');
+      if (chev) chev.classList.toggle('is-open', open);
+    }
+  }
+
+  // ==================== COPY EMAIL ====================
+  function copyEmail(btn) {
+    const value = btn.dataset.email;
+    const confirm = () => {
+      btn.classList.add('copied');
+      btn.setAttribute('title', 'Copied');
+      clearTimeout(btn._cpTimer);
+      btn._cpTimer = setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.setAttribute('title', 'Click to copy');
+      }, 1600);
+    };
+
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(value).then(confirm).catch(() => fallbackCopy(value, confirm));
+    } else {
+      fallbackCopy(value, confirm);
+    }
+  }
+
+  // execCommand path for non-secure contexts (e.g. opening the file locally).
+  function fallbackCopy(value, done) {
+    const ta = document.createElement('textarea');
+    ta.value = value;
+    ta.setAttribute('readonly', '');
+    ta.style.cssText = 'position:fixed;top:-1000px;opacity:0';
+    document.body.appendChild(ta);
+    ta.select();
+    try { document.execCommand('copy'); done(); } catch (e) { /* clipboard unavailable */ }
+    document.body.removeChild(ta);
   }
 
   function renderProjectGrid() {
@@ -1062,8 +1535,11 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     renderProjectGrid();
   }
 
-  populateProjectTagFilter();
+  renderFilterPanel();
   renderProjectGrid();
+  renderExperience();
+  // renderCertList() is called at the end of the modal script block below,
+  // because it reads CATEGORY_DATA which isn't defined until then.
 
   function togglePdfViewer(url) {
     const container = document.getElementById('pdfViewerContainer');
@@ -2246,14 +2722,133 @@ const CATEGORY_DATA = {
       `
     }
   ],
+  // ---- Licenses & certifications -------------------------------------
+  // `image` points at a file in the repo (assets/certs/*.png). Commit the
+  // images and both the sidebar list and this modal pick them up with no
+  // further edits. `shortTitle` is what the compact sidebar row shows.
+  certifications: [
+    {
+      size: 'modal-md',
+      eyebrow: 'License & Certification',
+      shortTitle: 'Future Ready Mentoring - Group Mentoring',
+      issuer: 'University of Westminster',
+      issued: 'Aug 2026',
+      image: 'assets/certs/future-ready-mentoring.png',
+      title: 'Future Ready Mentoring - Group Mentoring <span class="text-dim text-sm font-normal block mt-1">5ELEN020W Embedded Systems Project (WBL) 2025/26</span>',
+      body: `
+        <div class="modal-section">
+          <!-- Image path: commit the file to the repo at this path and it
+               appears automatically. Until then it's hidden, not broken. -->
+          <img src="assets/certs/future-ready-mentoring.png" alt="Future Ready Mentoring certificate" loading="lazy"
+               class="w-full rounded border border-line bg-panel"
+               onerror="this.style.display='none'">
+        </div>
+        <div class="modal-section">
+          <p class="text-sm text-dim">Group mentoring strand run alongside the Level 5 Embedded Systems Project (WBL) module, supporting students through the work-based project lifecycle.</p>
+        </div>
+        <div class="modal-section">
+          <div class="spec-row"><span class="k">Issuer</span><span class="v">University of Westminster</span></div><div class="spec-row"><span class="k">Issued</span><span class="v">Aug 2026</span></div><div class="spec-row"><span class="k">Credential ID</span><span class="v">9b1f3d4f91d3da0e981ccbeb1d12817c84127cbd</span></div>
+        </div>
+        <div class="modal-section">
+          <a href="https://openbadgefactory.com/obv3/credentials/9b1f3d4f91d3da0e981ccbeb1d12817c84127cbd.html" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4 text-sm text-dim">Show credential ↗</a>
+        </div>
+      `
+    },
+    {
+      size: 'modal-md',
+      eyebrow: 'License & Certification',
+      shortTitle: 'WBL Live Project (CSE)',
+      issuer: 'University of Westminster',
+      issued: 'Aug 2026',
+      image: 'assets/certs/wbl-live-project.png',
+      title: 'WBL Live Project (CSE) <span class="text-dim text-sm font-normal block mt-1">University of Westminster</span>',
+      body: `
+        <div class="modal-section">
+          <!-- Image path: commit the file to the repo at this path and it
+               appears automatically. Until then it's hidden, not broken. -->
+          <img src="assets/certs/wbl-live-project.png" alt="WBL Live Project certificate" loading="lazy"
+               class="w-full rounded border border-line bg-panel"
+               onerror="this.style.display='none'">
+        </div>
+        <div class="modal-section">
+          <p class="text-sm text-dim">Recognition for completing a live, industry-facing work-based learning project within the School of Computer Science and Engineering.</p>
+        </div>
+        <div class="modal-section">
+          <div class="spec-row"><span class="k">Issuer</span><span class="v">University of Westminster</span></div><div class="spec-row"><span class="k">Issued</span><span class="v">Aug 2026</span></div><div class="spec-row"><span class="k">Credential ID</span><span class="v">21660620</span></div>
+        </div>
+        <div class="modal-section">
+          <a href="https://certificate.westminster.ac.uk/b3e11150-4575-4742-8dbc-53224d9faf9f" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4 text-sm text-dim">Show credential ↗</a>
+        </div>
+      `
+    },
+    {
+      size: 'modal-md',
+      eyebrow: 'License & Certification',
+      shortTitle: 'Graduate Engineering Engagement Programme',
+      issuer: 'Royal Academy of Engineering',
+      issued: 'Jul 2026',
+      image: 'assets/certs/geep-rae.png',
+      title: 'Graduate Engineering Engagement Programme <span class="text-dim text-sm font-normal block mt-1">Royal Academy of Engineering</span>',
+      body: `
+        <div class="modal-section">
+          <!-- Image path: commit the file to the repo at this path and it
+               appears automatically. Until then it's hidden, not broken. -->
+          <img src="assets/certs/geep-rae.png" alt="GEEP certificate" loading="lazy"
+               class="w-full rounded border border-line bg-panel"
+               onerror="this.style.display='none'">
+        </div>
+        <div class="modal-section">
+          <p class="text-sm text-dim">The Graduate Engineering Engagement Programme supports underrepresented engineering talent into graduate roles through technical bootcamps, assessment centre practice and one-to-one industry mentoring.</p>
+        </div>
+        <div class="modal-section">
+          <div class="spec-row"><span class="k">Issuer</span><span class="v">Royal Academy of Engineering</span></div><div class="spec-row"><span class="k">Issued</span><span class="v">Jul 2026</span></div>
+        </div>
+        <div class="modal-section">
+          
+        </div>
+      `
+    },
+    {
+      size: 'modal-md',
+      eyebrow: 'License & Certification',
+      shortTitle: 'Westminster Award: Bronze',
+      issuer: 'University of Westminster',
+      issued: 'Jun 2025',
+      image: 'assets/certs/westminster-award-bronze.png',
+      title: 'Westminster Award: Bronze <span class="text-dim text-sm font-normal block mt-1">University of Westminster</span>',
+      body: `
+        <div class="modal-section">
+          <!-- Image path: commit the file to the repo at this path and it
+               appears automatically. Until then it's hidden, not broken. -->
+          <img src="assets/certs/westminster-award-bronze.png" alt="Westminster Award Bronze certificate" loading="lazy"
+               class="w-full rounded border border-line bg-panel"
+               onerror="this.style.display='none'">
+        </div>
+        <div class="modal-section">
+          <p class="text-sm text-dim">University-wide award recognising extracurricular engagement, employability development and contribution to the student community.</p>
+        </div>
+        <div class="modal-section">
+          <div class="spec-row"><span class="k">Issuer</span><span class="v">University of Westminster</span></div><div class="spec-row"><span class="k">Issued</span><span class="v">Jun 2025</span></div><div class="spec-row"><span class="k">Credential ID</span><span class="v">16162373</span></div>
+        </div>
+        <div class="modal-section">
+          <a href="https://certificate.westminster.ac.uk/01a5da4e-b1d9-4722-adba-2de64498db94" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4 text-sm text-dim">Show credential ↗</a>
+        </div>
+      `
+    }
+  ],
   volunteering: [
     {
       size: 'modal-md',
       eyebrow: 'Volunteering',
-      title: 'Volunteer, CARIS Haringey <span class="text-dim text-sm font-normal block mt-1">Aug 2024</span>',
+      title: '<span class="org-mark org-mark--sm align-middle mr-2"><img src="assets/logos/caris-haringey.png" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline-block\';"><span class="org-letter" style="display:none">C</span></span>Volunteer, CARIS Haringey <span class="text-dim text-sm font-normal block mt-1">Aug 2024</span>',
       body: `
         <div class="modal-section">
-          <p>Volunteered at CARIS Haringey, a charity supporting homeless families. Assisted with organising and distributing essential supplies to those in need, developing strong community engagement and teamwork skills.</p>
+          <p>Supported and supervised children in a dynamic summer community programme, ensuring a safe, engaging and well-organised environment.</p>
+          <ul class="bullet-list mt-3 text-sm text-dim space-y-2">
+            <li><strong class="text-[#d2d2d0] font-medium">Activity Coordination:</strong> Led and coordinated diverse recreational activities, including sports and painting, for children aged 8 to 14.</li>
+            <li><strong class="text-[#d2d2d0] font-medium">Child Support:</strong> Supervised and looked after participants to ensure safety, teamwork and positive engagement throughout the playscheme.</li>
+            <li><strong class="text-[#d2d2d0] font-medium">Support:</strong> Assisted with setting up, moving and organising equipment and materials needed for daily activities.</li>
+          </ul>
         </div>
       `
     }
@@ -2262,7 +2857,7 @@ const CATEGORY_DATA = {
     {
       size: 'modal-md',
       eyebrow: 'Part-Time Experience',
-      title: 'Student Team Leader <span class="text-dim text-sm font-normal block mt-1">Westminster SU · Oct 2026 - Present</span>',
+      title: '<span class="org-mark org-mark--sm align-middle mr-2"><img src="assets/logos/westminster-su.png" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline-block\';"><span class="org-letter" style="display:none">W</span></span>Student Team Leader <span class="text-dim text-sm font-normal block mt-1">Westminster SU · Oct 2026 - Present</span>',
       body: `
         <div class="modal-section">
           <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
@@ -2278,7 +2873,7 @@ const CATEGORY_DATA = {
     {
       size: 'modal-md',
       eyebrow: 'Part-Time Experience',
-      title: 'Sales Team Member <span class="text-dim text-sm font-normal block mt-1">Krispy Kreme · Feb 2024 - Oct 2026</span>',
+      title: '<span class="org-mark org-mark--sm align-middle mr-2"><img src="assets/logos/krispy-kreme.png" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline-block\';"><span class="org-letter" style="display:none">K</span></span>Sales Team Member <span class="text-dim text-sm font-normal block mt-1">Krispy Kreme · Feb 2024 - Oct 2026</span>',
       body: `
         <div class="modal-section">
           <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
@@ -2292,7 +2887,7 @@ const CATEGORY_DATA = {
     {
       size: 'modal-md',
       eyebrow: 'Part-Time Experience',
-      title: 'Till Operator <span class="text-dim text-sm font-normal block mt-1">Pabulum Ltd · Sep 2022 - Apr 2024</span>',
+      title: '<span class="org-mark org-mark--sm align-middle mr-2"><img src="assets/logos/pabulum.png" alt="" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'inline-block\';"><span class="org-letter" style="display:none">P</span></span>Till Operator <span class="text-dim text-sm font-normal block mt-1">Pabulum Ltd · Sep 2022 - Apr 2024</span>',
       body: `
         <div class="modal-section">
           <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
@@ -2395,20 +2990,44 @@ Performance Evaluation: Produced a critical technical report assessing code opti
     title: 'Complete Toolchain',
     body: `
       <div class="modal-section">
-        <div class="flex flex-wrap gap-2">
+        <div class="mb-4">
+          <div class="modal-label">Languages</div>
+          <div class="flex flex-wrap gap-2">
             <span class="tag">C / C++</span>
-            <span class="tag">Python</span>
             <span class="tag">Assembly</span>
+            <span class="tag">VHDL</span>
+            <span class="tag">Python</span>
             <span class="tag">MATLAB</span>
+          </div>
+        </div>
+        <div class="mb-4">
+          <div class="modal-label">Design &amp; EDA</div>
+          <div class="flex flex-wrap gap-2">
             <span class="tag">KiCAD</span>
-            <span class="tag">Arduino</span>
-            <span class="tag">PIC16F877A</span>
-            <span class="tag">Mbed / Keil</span>
             <span class="tag">Keysight ADS</span>
-            <span class="tag">SPI / I2C</span>
+            <span class="tag">MPLAB X</span>
+            <span class="tag">Mbed / Keil</span>
             <span class="tag">Fusion 360</span>
+          </div>
+        </div>
+        <div class="mb-4">
+          <div class="modal-label">Hardware</div>
+          <div class="flex flex-wrap gap-2">
+            <span class="tag">PIC16F877A</span>
+            <span class="tag">Arduino</span>
+            <span class="tag">SPI / I2C</span>
+            <span class="tag">PCB Stack-up</span>
+            <span class="tag">Lab Test &amp; Bring-up</span>
+          </div>
+        </div>
+        <div>
+          <div class="modal-label">Platforms &amp; Workflow</div>
+          <div class="flex flex-wrap gap-2">
+            <span class="tag">Linux</span>
+            <span class="tag">Git / GitHub</span>
             <span class="tag">Azure</span>
             <span class="tag">Confluence</span>
+          </div>
         </div>
       </div>
     `
@@ -2420,12 +3039,15 @@ Performance Evaluation: Produced a critical technical report assessing code opti
     body: `
       <div class="modal-section">
         <div class="flex flex-wrap gap-2">
+          <span class="tag">RF &amp; Microwave Design</span>
+          <span class="tag">PCB Design</span>
+          <span class="tag">Embedded C</span>
           <span class="tag">Communication</span>
-          <span class="tag">C++</span>
+          <span class="tag">VHDL / FPGA</span>
           <span class="tag">Microcontrollers</span>
-          <span class="tag">RF Design</span>
+          <span class="tag">Hardware Documentation</span>
+          <span class="tag">Signal Integrity</span>
           <span class="tag">Problem Solving</span>
-          <span class="tag">Embedded Systems</span>
         </div>
       </div>
     `
@@ -2434,6 +3056,9 @@ Performance Evaluation: Produced a critical technical report assessing code opti
 
 let currentCategoryKey = null;
 let currentCategoryIndex = 0;
+
+// CATEGORY_DATA now exists, so the sidebar certification list can be built.
+renderCertList();
 
 function openModalCategory(categoryKey, index = 0) {
   const cat = CATEGORY_DATA[categoryKey];
