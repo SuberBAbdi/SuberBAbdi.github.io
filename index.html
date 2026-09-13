@@ -865,15 +865,26 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       // block in openProject(). Placeholder ID below - swap once recorded.
       presentationVideoId: '1rsLRHpR1H8',
 
-      // Shown as a small icon-link to the far right of the project title
-      // (see the title row in openProject) as well as the standard "GitHub
-      // Code" button further down the page.
+      // Shown inline on the tags row, right-aligned, in openProject's title block.
       github: 'https://github.com/SuberBAbdi/Wireless-Energy-Harvester-for-IoT',
 
       // Rendered as its own card near the bottom of the page (see the
       // `contribution` block in openProject) - update this if the project
       // ever becomes a group effort instead of a solo dissertation.
       contribution: 'This project is an individual final-year dissertation. All research, analysis, RF/antenna design, simulation, PCB layout, and testing were carried out independently, under academic supervision from the University of Westminster.',
+
+      // Rendered as a vertical timeline card, directly below Contribution
+      // (see the `timeline` block in openProject). Dates below are
+      // provisional milestones for the dissertation - update them (and add
+      // more) as the real project progresses.
+      timeline: [
+        { date: 'Sep 2026', title: 'Project proposal approved', description: 'Scope agreed with the supervisor: antenna filter design at 3.6 GHz feeding an RF-to-DC conversion path for IoT power delivery.' },
+        { date: 'Oct 2026', title: 'Literature review & requirements', description: 'Reviewed existing energy-harvesting and antenna filter approaches to set the design requirements and constraints.' },
+        { date: 'Dec 2026', title: 'Antenna & filter design, simulation', description: 'Modelled the antenna filter and RF-to-DC path, iterating on gain vs selectivity trade-offs at 3.6 GHz.' },
+        { date: 'Feb 2027', title: 'PCB layout & fabrication', description: 'Translated the simulated design into a PCB layout, including the enclosure and controller board, ready for fabrication.' },
+        { date: 'Apr 2027', title: 'Prototype assembly & testing', description: 'Assembled the physical prototype and began lab testing against the simulated performance figures.' },
+        { date: 'Jun 2027', title: 'Final report & submission', description: 'Write-up of the full design, simulation and testing process for final dissertation submission.' }
+      ],
 
       tags: ['RF Design', 'Antenna Filters', 'IoT Power']
     },
@@ -1104,7 +1115,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     if (!container) return;
 
     container.innerHTML = recommendations.map(r => `
-      <div class="relative">
+      <div>
         <div class="flex items-center justify-between gap-3">
           <div class="min-w-0">
             <a href="${r.linkedin}" target="_blank" rel="noopener" class="text-sm text-white font-medium hover:underline decoration-faint underline-offset-2 truncate block">${r.name}</a>
@@ -1116,15 +1127,16 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
             <i data-lucide="quote" class="w-4 h-4"></i>
           </button>
         </div>
-        <!-- Hidden until toggled - a small anchored card, not the site's
-             full-screen modal, so the rest of the page stays visible and
-             sharp behind it. Positioned/clamped by JS (see
-             positionRecommendationPopover) rather than pure CSS so it can
-             never spill off-screen regardless of viewport width or zoom. -->
-        <div id="recPopover-${r.id}" class="hidden absolute top-full mt-2 bg-[#0f0f11] border border-line rounded-sm p-4 z-20 shadow-lg">
-          <p class="text-sm text-dim leading-relaxed italic">${r.statement}</p>
-          <p class="font-mono text-xs text-faint mt-3">- ${r.name}, ${r.role}</p>
-        </div>
+      </div>
+    `).join('') + recommendations.map(r => `
+      <!-- Rendered fixed to the viewport (see positionRecommendationPopover)
+           rather than absolutely inside the list above, so it can never be
+           clipped by a scrolling/overflowing ancestor and its position is
+           computed purely from real on-screen pixel coordinates - this is
+           what keeps it fully on-screen regardless of viewport size or zoom. -->
+      <div id="recPopover-${r.id}" class="hidden fixed bg-[#0f0f11] border border-line rounded-sm p-4 shadow-lg" style="z-index:200;">
+        <p class="text-sm text-dim leading-relaxed italic">${r.statement}</p>
+        <p class="font-mono text-xs text-faint mt-3">- ${r.name}, ${r.role}</p>
       </div>
     `).join('');
 
@@ -1135,7 +1147,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     if (e) e.stopPropagation();
     const pop = document.getElementById('recPopover-' + id);
     const btn = document.getElementById('recToggleBtn-' + id);
-    if (!pop) return;
+    if (!pop || !btn) return;
     const willOpen = pop.classList.contains('hidden');
     // Close any other open recommendation popover first, so only one shows
     // at a time.
@@ -1147,47 +1159,59 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       }
     });
     pop.classList.toggle('hidden');
-    btn?.setAttribute('aria-expanded', String(willOpen));
-    if (willOpen) positionRecommendationPopover(pop);
+    btn.setAttribute('aria-expanded', String(willOpen));
+    if (willOpen) positionRecommendationPopover(pop, btn);
   }
 
-  // Clamps a recommendation popover to stay fully within the viewport,
-  // regardless of screen size/zoom. Measures actual pixel positions at
-  // open-time (via getBoundingClientRect, which already accounts for zoom)
-  // rather than relying on a fixed CSS `right: 0`, which could otherwise
-  // push part of the card off the left edge of narrower or zoomed-in
-  // viewports. Popover stays position:absolute (so it scrolls naturally
-  // with the page) - only its `left` is set, in pixels relative to its own
-  // positioned parent (the `.relative` wrapper it lives in).
-  function positionRecommendationPopover(pop) {
+  // Positions a recommendation popover using `position: fixed` anchored to
+  // the toggle button's actual on-screen coordinates (getBoundingClientRect
+  // already accounts for scroll position and zoom), then clamps the result
+  // so every edge stays within the viewport - horizontally against left/
+  // right, and vertically by flipping above the button if there isn't
+  // room below. This sidesteps any ambiguity from parent offsets/overflow
+  // that a plain CSS `right: 0` could run into.
+  function positionRecommendationPopover(pop, btn) {
     const margin = 12;
-    const wrapper = pop.parentElement;
-    if (!wrapper) return;
+    const rect = btn.getBoundingClientRect();
+    const width = Math.min(300, window.innerWidth - margin * 2);
+    pop.style.width = width + 'px';
 
-    const popWidth = Math.min(300, window.innerWidth - margin * 2);
-    pop.style.width = popWidth + 'px';
-    pop.style.right = 'auto';
-
-    const wrapperRect = wrapper.getBoundingClientRect();
-    // Default to right-aligned with the wrapper (mirrors the old `right:0`).
-    let left = wrapperRect.width - popWidth;
-    // Shift right if that would spill off the left edge of the viewport...
-    const minLeft = margin - wrapperRect.left;
-    if (left < minLeft) left = minLeft;
-    // ...or shift left if it would spill off the right edge instead.
-    const maxLeft = (window.innerWidth - margin) - wrapperRect.left - popWidth;
-    if (left > maxLeft) left = maxLeft;
-
+    let left = rect.right - width; // default: right-align with the button
+    left = Math.max(margin, Math.min(left, window.innerWidth - width - margin));
     pop.style.left = left + 'px';
+
+    // Measure height now that width is set, to decide which side it fits on.
+    const height = pop.offsetHeight;
+    let top = rect.bottom + 8;
+    if (top + height > window.innerHeight - margin) {
+      const above = rect.top - height - 8;
+      top = above >= margin ? above : Math.max(margin, window.innerHeight - height - margin);
+    }
+    pop.style.top = top + 'px';
   }
 
-  // Re-clamp any open popover if the viewport is resized (e.g. rotating a
-  // device, or the browser window/zoom changing) while it's showing.
+  // Re-clamp (or just close) any open popover if the viewport changes while
+  // it's showing - resizing/rotating recalculates position; scrolling closes
+  // it outright since a fixed-position card would otherwise visually detach
+  // from the button it belongs to.
   window.addEventListener('resize', () => {
     document.querySelectorAll('[id^="recPopover-"]').forEach(pop => {
-      if (!pop.classList.contains('hidden')) positionRecommendationPopover(pop);
+      if (!pop.classList.contains('hidden')) {
+        const id = pop.id.replace('recPopover-', '');
+        const btn = document.getElementById('recToggleBtn-' + id);
+        if (btn) positionRecommendationPopover(pop, btn);
+      }
     });
   });
+  window.addEventListener('scroll', () => {
+    document.querySelectorAll('[id^="recPopover-"]').forEach(pop => {
+      if (!pop.classList.contains('hidden')) {
+        pop.classList.add('hidden');
+        const id = pop.id.replace('recPopover-', '');
+        document.getElementById('recToggleBtn-' + id)?.setAttribute('aria-expanded', 'false');
+      }
+    });
+  }, true);
 
   document.addEventListener('click', (e) => {
     document.querySelectorAll('[id^="recPopover-"]').forEach(pop => {
@@ -1532,7 +1556,9 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     const emptyState = document.getElementById('projectEmptyState');
 
     const filtered = getFilteredProjects();
-    const limit = projectsExpanded ? filtered.length : 3;
+    // Default number of projects shown before "Expand All Projects" - was 3,
+    // bumped to 5 so more of the project list is visible up front.
+    const limit = projectsExpanded ? filtered.length : 5;
     const visible = filtered.slice(0, limit);
 
     emptyState.classList.toggle('hidden', filtered.length > 0);
@@ -1560,7 +1586,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       </div>
     `).join('');
 
-    if (filtered.length > 3) {
+    if (filtered.length > 5) {
       toggleContainer.innerHTML = `
         <button onclick="toggleProjects()" class="w-full py-3.5 flex items-center justify-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white bg-panel border-x border-b border-line hover:border-faint transition-colors rounded-b-sm focus-ring mt-0 relative top-[-1px]">
           ${projectsExpanded ? 'Retract Projects <i data-lucide="chevron-up" class="w-4 h-4"></i>' : 'Expand All Projects <i data-lucide="chevron-down" class="w-4 h-4"></i>'}
@@ -2418,8 +2444,8 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       `;
     }
 
-    // ---- Contribution note - rendered at the very bottom of the page,
-    // after everything else (see the `contribution` field on a project). ----
+    // ---- Contribution note - rendered near the bottom of the page (see the
+    // `contribution` field on a project). ----
     if (p.contribution) {
       extraAssets += `
         <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
@@ -2429,25 +2455,48 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       `;
     }
 
+    // ---- Timeline - rendered last, directly below Contribution, as a
+    // vertical list of dated milestones (see the `timeline` field: an array
+    // of { date, title, description } objects, in chronological order). ----
+    if (p.timeline && p.timeline.length > 0) {
+      extraAssets += `
+        <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
+          <p class="font-mono text-xs text-dim uppercase tracking-wider mb-4">${p.title} - Timeline</p>
+          <div class="flex flex-col">
+            ${p.timeline.map((ev, i) => `
+            <div class="flex gap-4">
+              <div class="flex flex-col items-center">
+                <span class="w-2.5 h-2.5 rounded-full bg-ink shrink-0 mt-1"></span>
+                ${i !== p.timeline.length - 1 ? '<span class="w-px flex-1 bg-line mt-1"></span>' : ''}
+              </div>
+              <div class="${i !== p.timeline.length - 1 ? 'pb-5' : ''}">
+                <p class="font-mono text-[10px] uppercase tracking-widest text-faint">${ev.date}</p>
+                <p class="text-sm text-white font-medium mt-0.5">${ev.title}</p>
+                ${ev.description ? `<p class="text-sm text-dim mt-1 leading-relaxed">${ev.description}</p>` : ''}
+              </div>
+            </div>`).join('')}
+          </div>
+        </div>
+      `;
+    }
+
     detailContent.innerHTML = `
       <p class="font-mono text-xs text-faint uppercase tracking-wider">${p.status}</p>
-      <div class="flex items-start justify-between gap-4 mt-2">
-        <h3 class="font-display font-extrabold text-3xl sm:text-4xl text-white leading-[1.05]">${p.title}</h3>
-        <!-- GitHub repo link, top-right next to the title. Bright text/icon
-             (not just a faint bordered icon box) so it's actually noticeable
-             against the dark background, with a visible label rather than
-             an icon-only square. -->
+      <h3 class="font-display font-extrabold text-3xl sm:text-4xl text-white mt-2 leading-[1.05]">${p.title}</h3>
+
+      <!-- Tags render right under the title so they're immediately visible on
+           open. The GitHub link sits on the same row, right-aligned, so it
+           reads as part of the title's metadata rather than floating on its
+           own in the empty space beside the heading. -->
+      <div class="flex flex-wrap items-center justify-between gap-3 mt-4">
+        <div class="flex flex-wrap gap-1.5">
+          ${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+        </div>
         ${p.github ? `
         <a href="${p.github}" target="_blank" rel="noopener" title="View repository on GitHub"
-           class="focus-ring shrink-0 mt-1 inline-flex items-center gap-2 border border-line rounded-sm px-3 py-2 text-xs font-mono uppercase tracking-wider text-white hover:border-faint hover:bg-line/40 transition-colors">
-          <i data-lucide="github" class="w-4 h-4"></i> GitHub ↗
+           class="focus-ring shrink-0 inline-flex items-center gap-1.5 border border-line rounded-sm px-2.5 py-1.5 text-[11px] font-mono uppercase tracking-wider text-white hover:border-faint hover:bg-line/40 transition-colors">
+          <i data-lucide="github" class="w-3.5 h-3.5"></i> GitHub ↗
         </a>` : ''}
-      </div>
-
-      <!-- Tags now render right under the title so they're immediately visible
-           on open, rather than after the tech stack / assets further down. -->
-      <div class="flex flex-wrap gap-1.5 mt-4">
-        ${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}
       </div>
 
       <p class="text-base text-[#d2d2d0] mt-6 leading-relaxed max-w-2xl">${p.overview}</p>
