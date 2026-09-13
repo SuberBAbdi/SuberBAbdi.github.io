@@ -1021,6 +1021,34 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     // Leonardo stays the only role expanded by default.
   ];
 
+  // Computes a compact "1 yr 4 mos" style duration between two "Mon YYYY"
+  // date tokens (or "Present" for an ongoing role) - used next to dates on
+  // Experience/Part-Time/Volunteering entries only (NOT Projects or
+  // Education, which don't get a computed duration).
+  function durationLabel(startStr, endStr) {
+    const parseMonth = (s) => {
+      if (!s) return null;
+      if (/present/i.test(s)) return new Date();
+      const parts = s.trim().split(/\s+/);
+      const months = ['jan','feb','mar','apr','may','jun','jul','aug','sep','oct','nov','dec'];
+      const mIdx = months.indexOf((parts[0] || '').slice(0, 3).toLowerCase());
+      const year = parseInt(parts[1], 10);
+      if (mIdx === -1 || isNaN(year)) return null;
+      return new Date(year, mIdx, 1);
+    };
+    const start = parseMonth(startStr);
+    const end = parseMonth(endStr);
+    if (!start || !end) return '';
+    let totalMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1;
+    if (totalMonths < 1) totalMonths = 1;
+    const yrs = Math.floor(totalMonths / 12);
+    const mos = totalMonths % 12;
+    const parts = [];
+    if (yrs > 0) parts.push(yrs + (yrs === 1 ? ' yr' : ' yrs'));
+    if (mos > 0 || parts.length === 0) parts.push(mos + (mos === 1 ? ' mo' : ' mos'));
+    return parts.join(' ');
+  }
+
   function renderExperience() {
     const container = document.getElementById('experienceList');
     if (!container) return;
@@ -1036,15 +1064,20 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       // until the real logo file is uploaded to the path in `e.logo`.
       const logoHtml = `<img src="${e.logo}" alt="${e.company} logo" onerror="handleLogoError(this)" class="company-logo">`;
 
+      // Date range sits on its own line directly under the role title
+      // (left-aligned with it, not floated to the right), with a computed
+      // duration appended - see durationLabel above.
+      const [startStr, endStr] = (e.dates || '').split(' - ').map(s => (s || '').trim());
+      const dur = durationLabel(startStr, endStr);
+      const datesHtml = `${e.dates}${dur ? ' · ' + dur : ''}`;
+
       if (e.current) {
         return `
           <div class="flex gap-3 items-start">
             ${logoHtml}
             <div class="flex-1 min-w-0">
-              <div class="flex items-start justify-between flex-wrap gap-2">
-                <h4 class="font-display font-semibold text-white text-base sm:text-lg">${e.role}</h4>
-                <span class="font-mono text-xs text-faint uppercase">${e.dates}</span>
-              </div>
+              <h4 class="font-display font-semibold text-white text-base sm:text-lg">${e.role}</h4>
+              <p class="font-mono text-xs text-faint uppercase mt-0.5">${datesHtml}</p>
               <p class="font-mono text-xs text-dim mt-0.5 uppercase tracking-wide">${e.company} · ${e.location}</p>
               ${detailHtml}
             </div>
@@ -1065,12 +1098,10 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
             <button type="button" id="exp-toggle-${e.id}" class="flex-1 min-w-0 text-left focus-ring group" onclick="toggleExperienceDetail('${e.id}')" aria-expanded="false" aria-controls="${detailId}">
               <div class="flex items-start justify-between flex-wrap gap-2">
                 <h4 class="font-display font-semibold text-white text-base sm:text-lg transition-colors">${e.role}</h4>
-                <span class="font-mono text-xs text-faint uppercase">${e.dates}</span>
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-faint shrink-0 mt-1 transition-transform" id="exp-chevron-${e.id}"></i>
               </div>
-              <p class="font-mono text-xs text-dim mt-0.5 uppercase tracking-wide flex items-center gap-1.5">
-                ${e.company} · ${e.location}
-                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-faint ml-auto transition-transform" id="exp-chevron-${e.id}"></i>
-              </p>
+              <p class="font-mono text-xs text-faint uppercase mt-0.5">${datesHtml}</p>
+              <p class="font-mono text-xs text-dim mt-0.5 uppercase tracking-wide">${e.company} · ${e.location}</p>
             </button>
           </div>
           <div id="${detailId}" class="hidden pl-[52px]">${detailHtml}</div>
@@ -2482,22 +2513,23 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 
     detailContent.innerHTML = `
       <p class="font-mono text-xs text-faint uppercase tracking-wider">${p.status}</p>
-      <h3 class="font-display font-extrabold text-3xl sm:text-4xl text-white mt-2 leading-[1.05]">${p.title}</h3>
-
-      <!-- Tags render right under the title so they're immediately visible on
-           open. The GitHub link sits on the same row, right-aligned, so it
-           reads as part of the title's metadata rather than floating on its
-           own in the empty space beside the heading. -->
-      <div class="flex flex-wrap items-center justify-between gap-3 mt-4">
-        <div class="flex flex-wrap gap-1.5">
-          ${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}
-        </div>
+      <!-- GitHub link sits directly beside the title text on the same
+           baseline (not a separate row off on its own) - a small, plain
+           icon button, the common "repo link next to a heading" pattern. -->
+      <div class="flex items-center flex-wrap gap-3 mt-2">
+        <h3 class="font-display font-extrabold text-3xl sm:text-4xl text-white leading-[1.05]">${p.title}</h3>
         ${p.github ? `
-        <a href="${p.github}" target="_blank" rel="noopener" title="View repository on GitHub"
-           class="focus-ring shrink-0 inline-flex items-center gap-1.5 border border-line rounded-sm px-2.5 py-1.5 text-[11px] font-mono uppercase tracking-wider text-white hover:border-faint hover:bg-line/40 transition-colors">
-          <i data-lucide="github" class="w-3.5 h-3.5"></i> GitHub ↗
+        <a href="${p.github}" target="_blank" rel="noopener" title="View repository on GitHub" aria-label="View ${p.title} repository on GitHub"
+           class="focus-ring shrink-0 w-8 h-8 flex items-center justify-center border border-line rounded-sm text-dim hover:text-white hover:border-faint transition-colors">
+          <i data-lucide="github" class="w-4 h-4"></i>
         </a>` : ''}
       </div>
+
+      <!-- Tags render right under the title so they're immediately visible on open. -->
+      <div class="flex flex-wrap gap-1.5 mt-4">
+        ${p.tags.map(t => `<span class="tag">${t}</span>`).join('')}
+      </div>
+
 
       <p class="text-base text-[#d2d2d0] mt-6 leading-relaxed max-w-2xl">${p.overview}</p>
 
@@ -2952,7 +2984,7 @@ const CATEGORY_DATA = {
       size: 'modal-md',
       logo: 'Logos/westminster_students_union_logo.jpg',
       eyebrow: 'Part-Time Experience',
-      title: 'Student Team Leader <span class="text-dim text-sm font-normal block mt-1">Westminster SU · Oct 2026 - Present</span>',
+      title: `Student Team Leader <span class="text-dim text-sm font-normal block mt-1">Westminster SU · Oct 2026 - Present · ${durationLabel('Oct 2026', 'Present')}</span>`,
       body: `
         <div class="modal-section">
           <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
@@ -2969,7 +3001,7 @@ const CATEGORY_DATA = {
       size: 'modal-md',
       logo: 'Logos/krispy_kreme_logo.jpg',
       eyebrow: 'Part-Time Experience',
-      title: 'Sales Team Member <span class="text-dim text-sm font-normal block mt-1">Krispy Kreme · Feb 2024 - Oct 2026</span>',
+      title: `Sales Team Member <span class="text-dim text-sm font-normal block mt-1">Krispy Kreme · Feb 2024 - Oct 2026 · ${durationLabel('Feb 2024', 'Oct 2026')}</span>`,
       body: `
         <div class="modal-section">
           <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
@@ -2984,7 +3016,7 @@ const CATEGORY_DATA = {
       size: 'modal-md',
       logo: 'Logos/pabulum_logo.jpg',
       eyebrow: 'Part-Time Experience',
-      title: 'Till Operator <span class="text-dim text-sm font-normal block mt-1">Pabulum Ltd · Sep 2022 - Apr 2024</span>',
+      title: `Till Operator <span class="text-dim text-sm font-normal block mt-1">Pabulum Ltd · Sep 2022 - Apr 2024 · ${durationLabel('Sep 2022', 'Apr 2024')}</span>`,
       body: `
         <div class="modal-section">
           <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
@@ -3237,7 +3269,7 @@ function renderCategoryTOC(categoryKey) {
 // clicking through everything one at a time via prev/next.
 function renderCategoryTOCView(categoryKey) {
   currentCategoryKey = categoryKey;
-  document.getElementById('modalEyebrow').textContent = 'View All';
+  document.getElementById('modalEyebrow').textContent = '';
   document.getElementById('modalTitle').textContent = CATEGORY_LABELS[categoryKey] || '';
   document.getElementById('modalCategoryNav').classList.add('hidden');
   setModalLogo(null);
