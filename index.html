@@ -890,7 +890,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     },
     {
       id: 'arm',
-      status: 'Complete · Apr–Jul 2026',
+      status: 'Complete · Apr – Jul 2026',
       title: 'SCC Robotic Arm',
       overview: 'Research project designing a guide and toolkit enabling CS and Engineering students to build their own robotic arms using first-year programming and electronics skills - evaluating the easiest way to build a low-budget arm and how structured resources improve learning outcomes.',
       stack: 'Prototype arm builds, wiring loom design, instructional guide, voluntary student questionnaire for evaluation.',
@@ -901,7 +901,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     },
     {
       id: 'micromouse',
-      status: 'Complete · Feb–Apr 2026',
+      status: 'Complete · Feb – Apr 2026',
       title: 'Micro Mouse (Autonomous Maze-Solving Robot)',
       overview: 'A team embedded-systems project to build a robot capable of solving a maze without human input, from mechanical design through to firmware.',
       stack: 'C++ on Mbed via Keil Studio, ultrasonic/IR sensor fusion for wall-following, 3D-printed chassis, GitHub for version control.',
@@ -912,7 +912,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     },
     {
       id: 'anpr',
-      status: 'Complete · Dec 2025–Jan 2026',
+      status: 'Complete · Dec 2025 – Jan 2026',
       title: 'Number Plate Recognition System',
       overview: 'A MATLAB-based computer vision tool with a custom GUI that processes vehicle images from a dataset to isolate and identify licence plates, improving image quality before extraction.',
       stack: 'Greyscale conversion → thresholding → noise removal → morphological operations → binarisation, wrapped in a custom MATLAB GUI.',
@@ -930,7 +930,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     },
     {
       id: 'radar',
-      status: 'Complete · Sep–Oct 2025',
+      status: 'Complete · Sep – Oct 2025',
       title: 'Arduino Radar System',
       overview: 'A hardware radar rig that sweeps an ultrasonic sensor across a field of view and plots detected objects in real time on a Processing (open-source) display.',
       stack: 'Breadboard, jumper wires, Arduino Nano, HC-SR04 ultrasonic sensor, SG90 servo motor, live visualisation in Processing.',
@@ -952,7 +952,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     },
     {
       id: 'dac',
-      status: 'Complete · Mar–May 2025',
+      status: 'Complete · Mar – May 2025',
       title: 'DAC with PIC16F877A',
       overview: 'A microcontroller instrumentation project converting analogue thermistor readings into a digital display using low-level Assembly firmware.',
       // NOTE: this project intentionally skips stack/challenges/outcome and
@@ -1025,6 +1025,11 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
   // date tokens (or "Present" for an ongoing role) - used next to dates on
   // Experience/Part-Time/Volunteering entries only (NOT Projects or
   // Education, which don't get a computed duration).
+  // Computes a compact "1 yr 4 mos" style duration between two "Mon YYYY"
+  // date tokens (or "Present" for an ongoing role) - used next to dates on
+  // Experience/Part-Time/Volunteering entries only (NOT Projects or
+  // Education, which don't get a computed duration). Uses a plain calendar
+  // month difference (e.g. Jun -> Sep = 3 mos), not an inclusive +1 count.
   function durationLabel(startStr, endStr) {
     const parseMonth = (s) => {
       if (!s) return null;
@@ -1039,7 +1044,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     const start = parseMonth(startStr);
     const end = parseMonth(endStr);
     if (!start || !end) return '';
-    let totalMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth()) + 1;
+    let totalMonths = (end.getFullYear() - start.getFullYear()) * 12 + (end.getMonth() - start.getMonth());
     if (totalMonths < 1) totalMonths = 1;
     const yrs = Math.floor(totalMonths / 12);
     const mos = totalMonths % 12;
@@ -1064,10 +1069,12 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       // until the real logo file is uploaded to the path in `e.logo`.
       const logoHtml = `<img src="${e.logo}" alt="${e.company} logo" onerror="handleLogoError(this)" class="company-logo">`;
 
-      // Two-row, two-column layout: title + date range share a row (date
-      // range right-aligned), and company/location + duration share the row
-      // below (duration right-aligned, lining up under the date range) -
-      // see durationLabel above for how the duration itself is computed.
+      // Two-column CSS grid (not flex+justify-between, which could wrap/
+      // misalign at narrower widths): column 1 auto-sizes to fit the
+      // longest of the title/company text, column 2 is exactly as wide as
+      // its content and stays aligned across both rows automatically -
+      // title+dates on row 1, company/location+duration on row 2 - see
+      // durationLabel above for how the duration itself is computed.
       const [startStr, endStr] = (e.dates || '').split(' - ').map(s => (s || '').trim());
       const dur = durationLabel(startStr, endStr);
 
@@ -1075,16 +1082,12 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         return `
           <div class="flex gap-3 items-start">
             ${logoHtml}
-            <div class="flex-1 min-w-0">
-              <div class="flex items-start justify-between gap-2">
-                <h4 class="font-display font-semibold text-white text-base sm:text-lg">${e.role}</h4>
-                <span class="font-mono text-xs text-faint uppercase shrink-0">${e.dates}</span>
-              </div>
-              <div class="flex items-start justify-between gap-2 mt-0.5">
-                <p class="font-mono text-xs text-dim uppercase tracking-wide">${e.company} · ${e.location}</p>
-                ${dur ? `<span class="font-mono text-xs text-faint shrink-0">${dur}</span>` : ''}
-              </div>
-              ${detailHtml}
+            <div class="grid grid-cols-[1fr_auto] gap-x-3 flex-1 min-w-0">
+              <h4 class="font-display font-semibold text-white text-base sm:text-lg min-w-0">${e.role}</h4>
+              <span class="font-mono text-xs text-faint uppercase whitespace-nowrap">${e.dates}</span>
+              <p class="font-mono text-xs text-dim uppercase tracking-wide mt-0.5 min-w-0">${e.company} · ${e.location}</p>
+              <span class="font-mono text-xs text-faint whitespace-nowrap mt-0.5">${dur}</span>
+              <div class="col-span-2">${detailHtml}</div>
             </div>
           </div>
         `;
@@ -1100,18 +1103,14 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         <div>
           <div class="flex gap-3 items-start">
             ${logoHtml}
-            <button type="button" id="exp-toggle-${e.id}" class="flex-1 min-w-0 text-left focus-ring group" onclick="toggleExperienceDetail('${e.id}')" aria-expanded="false" aria-controls="${detailId}">
-              <div class="flex items-start justify-between gap-2">
-                <h4 class="font-display font-semibold text-white text-base sm:text-lg transition-colors">${e.role}</h4>
-                <span class="font-mono text-xs text-faint uppercase shrink-0">${e.dates}</span>
-              </div>
-              <div class="flex items-start justify-between gap-2 mt-0.5">
-                <p class="font-mono text-xs text-dim uppercase tracking-wide flex items-center gap-1.5">
-                  ${e.company} · ${e.location}
-                  <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-faint transition-transform" id="exp-chevron-${e.id}"></i>
-                </p>
-                ${dur ? `<span class="font-mono text-xs text-faint shrink-0">${dur}</span>` : ''}
-              </div>
+            <button type="button" id="exp-toggle-${e.id}" class="grid grid-cols-[1fr_auto] gap-x-3 flex-1 min-w-0 text-left focus-ring group" onclick="toggleExperienceDetail('${e.id}')" aria-expanded="false" aria-controls="${detailId}">
+              <h4 class="font-display font-semibold text-white text-base sm:text-lg min-w-0 transition-colors">${e.role}</h4>
+              <span class="font-mono text-xs text-faint uppercase whitespace-nowrap">${e.dates}</span>
+              <p class="font-mono text-xs text-dim uppercase tracking-wide mt-0.5 min-w-0 flex items-center gap-1.5">
+                ${e.company} · ${e.location}
+                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-faint transition-transform shrink-0" id="exp-chevron-${e.id}"></i>
+              </p>
+              <span class="font-mono text-xs text-faint whitespace-nowrap mt-0.5">${dur}</span>
             </button>
           </div>
           <div id="${detailId}" class="hidden pl-[52px]">${detailHtml}</div>
@@ -1597,9 +1596,8 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     const emptyState = document.getElementById('projectEmptyState');
 
     const filtered = getFilteredProjects();
-    // Default number of projects shown before "Expand All Projects" - was 3,
-    // bumped to 5 so more of the project list is visible up front.
-    const limit = projectsExpanded ? filtered.length : 5;
+    // Default number of projects shown before "Expand All Projects".
+    const limit = projectsExpanded ? filtered.length : 3;
     const visible = filtered.slice(0, limit);
 
     emptyState.classList.toggle('hidden', filtered.length > 0);
@@ -1627,7 +1625,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       </div>
     `).join('');
 
-    if (filtered.length > 5) {
+    if (filtered.length > 3) {
       toggleContainer.innerHTML = `
         <button onclick="toggleProjects()" class="w-full py-3.5 flex items-center justify-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white bg-panel border-x border-b border-line hover:border-faint transition-colors rounded-b-sm focus-ring mt-0 relative top-[-1px]">
           ${projectsExpanded ? 'Retract Projects <i data-lucide="chevron-up" class="w-4 h-4"></i>' : 'Expand All Projects <i data-lucide="chevron-down" class="w-4 h-4"></i>'}
@@ -2975,7 +2973,7 @@ const CATEGORY_DATA = {
       size: 'modal-md',
       logo: 'Logos/carisharingey_logo.jpg',
       eyebrow: 'Volunteering',
-      title: `Volunteer, CARIS Haringey <span class="text-dim text-sm font-normal block mt-1">Aug 2024</span><span class="text-faint text-xs font-mono block mt-0.5">2 weeks</span>`,
+      title: `Volunteer, CARIS Haringey <span class="text-dim text-sm font-normal block mt-1">Aug 2024 · 2 weeks</span>`,
       body: `
         <!-- Cause sits in the same section/flow as the description below
              (not a separate modal-section) so there's no odd divider gap
@@ -2997,7 +2995,7 @@ const CATEGORY_DATA = {
       size: 'modal-md',
       logo: 'Logos/westminster_students_union_logo.jpg',
       eyebrow: 'Part-Time Experience',
-      title: `Student Team Leader <span class="text-dim text-sm font-normal block mt-1">Westminster SU · Oct 2026 - Present</span><span class="text-faint text-xs font-mono block mt-0.5">${durationLabel('Oct 2026', 'Present')}</span>`,
+      title: `Student Team Leader <span class="text-dim text-sm font-normal block mt-1">Westminster SU · Oct 2026 - Present</span><span class="text-faint text-xs font-mono block mt-0.5">· ${durationLabel('Oct 2026', 'Present')}</span>`,
       body: `
         <div class="modal-section">
           <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
@@ -3014,7 +3012,7 @@ const CATEGORY_DATA = {
       size: 'modal-md',
       logo: 'Logos/krispy_kreme_logo.jpg',
       eyebrow: 'Part-Time Experience',
-      title: `Sales Team Member <span class="text-dim text-sm font-normal block mt-1">Krispy Kreme · Feb 2024 - Oct 2026</span><span class="text-faint text-xs font-mono block mt-0.5">${durationLabel('Feb 2024', 'Oct 2026')}</span>`,
+      title: `Sales Team Member <span class="text-dim text-sm font-normal block mt-1">Krispy Kreme · Feb 2024 - Oct 2026</span><span class="text-faint text-xs font-mono block mt-0.5">· ${durationLabel('Feb 2024', 'Oct 2026')}</span>`,
       body: `
         <div class="modal-section">
           <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
@@ -3029,7 +3027,7 @@ const CATEGORY_DATA = {
       size: 'modal-md',
       logo: 'Logos/pabulum_logo.jpg',
       eyebrow: 'Part-Time Experience',
-      title: `Till Operator <span class="text-dim text-sm font-normal block mt-1">Pabulum Ltd · Sep 2022 - Apr 2024</span><span class="text-faint text-xs font-mono block mt-0.5">${durationLabel('Sep 2022', 'Apr 2024')}</span>`,
+      title: `Till Operator <span class="text-dim text-sm font-normal block mt-1">Pabulum Ltd · Sep 2022 - Apr 2024</span><span class="text-faint text-xs font-mono block mt-0.5">· ${durationLabel('Sep 2022', 'Apr 2024')}</span>`,
       body: `
         <div class="modal-section">
           <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
