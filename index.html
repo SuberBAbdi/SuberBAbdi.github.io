@@ -531,7 +531,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         <div class="mt-8 pt-6 border-t border-line">
           <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Toolchain</p>
           <!-- Quick view: highest-relevance tools given the current Leonardo
-               RF/microwave placement + embedded coursework. Full list (18
+               RF/microwave placement + embedded coursework. Full list (20
                items) lives in the "toolchain" entry of SINGLE_MODALS below -
                keep the "See More (+N)" count in sync with however many of
                that full list aren't shown here. -->
@@ -540,12 +540,8 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
             <span class="tag">Python</span>
             <span class="tag">KiCad</span>
             <span class="tag">Keysight ADS</span>
-            <span class="tag">Assembly</span>
-            <span class="tag">Arduino</span>
-            <span class="tag">PIC16F877A</span>
-            <span class="tag">MATLAB</span>
-            <span class="tag">Mbed / Keil</span>
-            <button class="tag hover:text-white hover:border-dim transition-colors cursor-pointer focus-ring" onclick="openModal('toolchain')">See More (+9)</button>
+            <span class="tag">Verilog / VHDL</span>
+            <button class="tag hover:text-white hover:border-dim transition-colors cursor-pointer focus-ring" onclick="openModal('toolchain')">See More (+15)</button>
           </div>
         </div>
 
@@ -655,9 +651,18 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       </div>
 
       <div id="projectDetailView">
-        <button onclick="closeProject()" class="focus-ring inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white transition-colors mb-6">
-          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="arrow-left" aria-hidden="true" class="lucide lucide-arrow-left w-3.5 h-3.5"><path d="m12 19-7-7 7-7"></path><path d="M19 12H5"></path></svg> Back to Portfolio
-        </button>
+        <div class="flex items-center gap-4 flex-wrap mb-6">
+          <button onclick="closeProject()" class="focus-ring inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white transition-colors">
+            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Portfolio
+          </button>
+          <!-- Opens the same "All Projects" popup used by the homepage's
+               "View All Projects" button (see openAllProjectsModal) - lets
+               someone jump to a different project without returning to the
+               full portfolio page first. -->
+          <button onclick="openAllProjectsModal()" class="focus-ring inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white transition-colors">
+            <i data-lucide="list" class="w-3.5 h-3.5"></i> Back to Project List
+          </button>
+        </div>
         <div id="projectDetailContent"></div>
       </div>
 
@@ -800,9 +805,93 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 
   const projects = [
     {
+      id: 'riscv',
+      status: 'Personal Project · In Progress',
+      favourite: true,
+      hoverDescription: 'A small 32-bit RISC-V (RV32I) processor core built in Verilog/VHDL, implemented on an FPGA, with the firmware, peripherals and verification environment built around it - demonstrating both hardware (RTL) and firmware engineering, not just an arithmetic datapath.',
+      title: 'FPGA RISC-V Safety & Control Processor',
+      overview: 'Designing a small 32-bit RISC-V (RV32I) processor core in Verilog/VHDL, implementing it on an FPGA, then writing the firmware, peripherals and verification environment around it - a portfolio centrepiece built to support a return to Leonardo as a Firmware Engineer, and to target Arm (firmware/hardware/GPU roles).',
+      // Custom section layout (like the DAC project) rather than the default
+      // Technical Stack / Trade-offs / Outcome grid, since this project has
+      // several genuinely distinct pieces (career rationale, scope, build
+      // order, deliverable, fallback plan) that don't map cleanly onto that
+      // 3-box layout.
+      sections: [
+        {
+          title: 'Career Goal',
+          html: `<p>Portfolio centrepiece to support a return to Leonardo as a Firmware Engineer, and to target Arm (firmware/hardware/GPU roles). Chosen over five alternative project briefs (sensor-monitoring FPGA systems, flight-data recorder, hardware task scheduler, FPGA mini-GPU) because it's the only one that demonstrates CPU microarchitecture design - directly relevant to Arm's core business - while still covering everything Leonardo's firmware requirements ask for (real-time behaviour, diagnostics, watchdog, fault-status registers, Built-In Test).</p>`,
+          span2: true
+        },
+        {
+          title: 'Project Goal',
+          html: `<p>Design a small 32-bit RISC-V processor core in Verilog/VHDL, implement it on an FPGA, then write the firmware, peripherals and verification environment around it. Demonstrates both hardware (RTL) and firmware engineering, not just an arithmetic datapath.</p>`,
+          span2: true
+        },
+        {
+          title: 'Instruction Set',
+          html: `<p>RV32I (32-bit base integer instruction set) - a documented ISA, avoiding invented instructions/conventions. Covers integer arithmetic, logical ops, comparisons, branches, jumps, loads/stores, immediates, and control/status instructions.</p>`
+        },
+        {
+          title: 'Hardware & Toolchain',
+          html: `<p>FPGA dev board: Digilent Basys 3 (Artix-7) or Arty A7. RTL in Verilog or VHDL; vendor toolchain (Xilinx Vivado) for synthesis, place-and-route and timing closure; RISC-V GCC toolchain for compiling embedded C to run on the core.</p>`
+        },
+        {
+          title: 'Scope for V1',
+          html: `<ul class="bullet-list space-y-1">
+            <li><strong>Core:</strong> RV32I only, single-cycle or a simple 2-stage pipeline - skipping pipeline hazards/forwarding for now.</li>
+            <li><strong>Peripherals:</strong> GPIO, UART, timer and watchdog only.</li>
+            <li><strong>Explicitly out of scope for V1:</strong> floating point, caches, virtual memory, multi-core, SPI, interrupt controller, full Built-In Test (BIT) - these are V2 stretch goals only if time allows.</li>
+          </ul>`,
+          span2: true
+        },
+        {
+          title: 'Full System Components (Target End-State)',
+          html: `<ul class="bullet-list space-y-1">
+            <li>Custom RISC-V processor core</li>
+            <li>Instruction and data memory</li>
+            <li>Timer, GPIO, UART, SPI controller</li>
+            <li>Interrupt controller and watchdog</li>
+            <li>Fault-status registers and Built-In Test (BIT)</li>
+            <li>Bootloader and debug interface</li>
+          </ul>`,
+          span2: true
+        },
+        {
+          title: 'Suggested Build Order',
+          html: `<ol class="bullet-list space-y-1" style="list-style:none;">
+            <li>1. Get the RV32I core simulating correctly in a testbench, no hardware yet.</li>
+            <li>2. Synthesise onto the FPGA board and confirm it boots.</li>
+            <li>3. Add memory-mapped GPIO and blink an LED from the CPU.</li>
+            <li>4. Add UART and get "hello world" printing from firmware running on the core.</li>
+            <li>5. Add the timer and watchdog.</li>
+            <li>6. Write a short embedded C program exercising the peripherals, compiled with the RISC-V toolchain and run on the core.</li>
+            <li>7. (Stretch) SPI, interrupt controller, fuller BIT.</li>
+          </ol>`,
+          span2: true
+        },
+        {
+          title: 'Deliverable',
+          html: `<p>A video of the board booting and running the embedded C program (blink + UART output), a block diagram of the system, and a short write-up of design decisions - why single-cycle first, what would be pipelined next, and what was left out and why. This is what turns it into an interview talking point, not just a repo.</p>`,
+          span2: true
+        },
+        {
+          title: 'Fallback / Parallel Project',
+          html: `<p>If the timeline slips: a <strong>Fault-Tolerant Environmental Control Unit</strong> - an STM32 Nucleo-based safety controller (temperature/humidity sensors, PWM fan control, CAN/RS-485, watchdog, deterministic state machine) representing an avionics enclosure or battery compartment controller. Same-week buildable and domain-matched to Leonardo, but doesn't move the needle for Arm the way the CPU project does - used only if the RISC-V timeline slips, not attempted alongside it to a polished standard alongside the dissertation.</p>`,
+          span2: true
+        }
+      ],
+      tags: ['RISC-V', 'FPGA', 'Verilog/VHDL'],
+      github: null
+    },
+    {
       id: 'harvester',
       status: 'Dissertation · In Progress',
+      favourite: true,
       title: 'Wireless Energy Harvester for IoT',
+      // Shown as a native browser tooltip on hover over the homepage project
+      // card (see hoverDescription usage in renderProjectGrid) - any project
+      // can opt into this by adding the same field.
+      hoverDescription: 'The concept and implementation of efficient wireless energy harvesters for IoT and sub-6GHz 5G applications. The analysis, design, and simulation, as well as the possible implementation and testing of a wireless energy harvester including one antenna filter at 3.6 GHz.',
       overview: 'Final-year dissertation analysing, designing, simulating and testing a wireless energy harvester - including an antenna filter at 3.6 GHz - aimed at efficient, battery-free power delivery for IoT and sub-6GHz 5G devices.',
       stack: 'Antenna filter design, RF-to-DC conversion path, IoT power budget analysis at 3.6 GHz.',
       challenges: 'Balancing antenna gain against filter selectivity at 3.6GHz while staying within the size and cost constraints typical of IoT devices.',
@@ -942,6 +1031,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     {
       id: 'dfmini',
       status: 'Complete · Aug 2025',
+      favourite: true,
       title: 'DFMiniPlayer Voltage-Triggered Audio System',
       overview: 'A small embedded audio project used to build confidence with voltage-triggered logic and serial audio modules ahead of the Arduino Radar System build.',
       stack: 'DFMiniPlayer module, speaker output, C++ firmware, voltage-range triggering logic.',
@@ -1030,6 +1120,13 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
   // Experience/Part-Time/Volunteering entries only (NOT Projects or
   // Education, which don't get a computed duration). Uses a plain calendar
   // month difference (e.g. Jun -> Sep = 3 mos), not an inclusive +1 count.
+  // Computes a compact "1 yr 4 months" style duration between two
+  // "Mon YYYY" date tokens (or "Present" for an ongoing role) - used next
+  // to dates on Experience/Part-Time/Volunteering entries only (NOT
+  // Projects or Education, which don't get a computed duration). Spells
+  // "year"/"years" and "month"/"months" out in full rather than abbreviating
+  // to "yr"/"mo". Uses a plain calendar month difference (e.g. Jun -> Sep =
+  // 3 months), not an inclusive +1 count.
   function durationLabel(startStr, endStr) {
     const parseMonth = (s) => {
       if (!s) return null;
@@ -1049,8 +1146,8 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     const yrs = Math.floor(totalMonths / 12);
     const mos = totalMonths % 12;
     const parts = [];
-    if (yrs > 0) parts.push(yrs + (yrs === 1 ? ' yr' : ' yrs'));
-    if (mos > 0 || parts.length === 0) parts.push(mos + (mos === 1 ? ' mo' : ' mos'));
+    if (yrs > 0) parts.push(yrs + (yrs === 1 ? ' year' : ' years'));
+    if (mos > 0 || parts.length === 0) parts.push(mos + (mos === 1 ? ' month' : ' months'));
     return parts.join(' ');
   }
 
@@ -1069,12 +1166,13 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       // until the real logo file is uploaded to the path in `e.logo`.
       const logoHtml = `<img src="${e.logo}" alt="${e.company} logo" onerror="handleLogoError(this)" class="company-logo">`;
 
-      // Two-column CSS grid (not flex+justify-between, which could wrap/
-      // misalign at narrower widths): column 1 auto-sizes to fit the
-      // longest of the title/company text, column 2 is exactly as wide as
-      // its content and stays aligned across both rows automatically -
-      // title+dates on row 1, company/location+duration on row 2 - see
-      // durationLabel above for how the duration itself is computed.
+      // CSS TABLE layout (display:table / table-row / table-cell) rather
+      // than flex or grid - table cells are the one layout mode that is
+      // guaranteed never to wrap onto a new line and always keeps a given
+      // column's width identical across every row, so the date range lines
+      // up with the title and the duration lines up with the company line
+      // no matter how long the title/company text is or how narrow the
+      // viewport gets. See durationLabel above for how duration is computed.
       const [startStr, endStr] = (e.dates || '').split(' - ').map(s => (s || '').trim());
       const dur = durationLabel(startStr, endStr);
 
@@ -1082,12 +1180,26 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         return `
           <div class="flex gap-3 items-start">
             ${logoHtml}
-            <div class="grid grid-cols-[1fr_auto] gap-x-3 flex-1 min-w-0">
-              <h4 class="font-display font-semibold text-white text-base sm:text-lg min-w-0">${e.role}</h4>
-              <span class="font-mono text-xs text-faint uppercase whitespace-nowrap">${e.dates}</span>
-              <p class="font-mono text-xs text-dim uppercase tracking-wide mt-0.5 min-w-0">${e.company} · ${e.location}</p>
-              <span class="font-mono text-xs text-faint whitespace-nowrap mt-0.5">${dur}</span>
-              <div class="col-span-2">${detailHtml}</div>
+            <div class="flex-1 min-w-0">
+              <div style="display:table; width:100%; border-collapse:collapse;">
+                <div style="display:table-row;">
+                  <div style="display:table-cell; vertical-align:top;">
+                    <h4 class="font-display font-semibold text-white text-base sm:text-lg">${e.role}</h4>
+                  </div>
+                  <div style="display:table-cell; vertical-align:top; white-space:nowrap; text-align:right; padding-left:12px;">
+                    <span class="font-mono text-xs text-faint uppercase">${e.dates}</span>
+                  </div>
+                </div>
+                <div style="display:table-row;">
+                  <div style="display:table-cell; vertical-align:top;">
+                    <p class="font-mono text-xs text-dim uppercase tracking-wide mt-0.5">${e.company} · ${e.location}</p>
+                  </div>
+                  <div style="display:table-cell; vertical-align:top; white-space:nowrap; text-align:right; padding-left:12px;">
+                    <span class="font-mono text-xs text-faint mt-0.5">${dur}</span>
+                  </div>
+                </div>
+              </div>
+              ${detailHtml}
             </div>
           </div>
         `;
@@ -1103,16 +1215,29 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         <div>
           <div class="flex gap-3 items-start">
             ${logoHtml}
-            <button type="button" id="exp-toggle-${e.id}" class="grid grid-cols-[1fr_auto] gap-x-3 flex-1 min-w-0 text-left focus-ring group" onclick="toggleExperienceDetail('${e.id}')" aria-expanded="false" aria-controls="${detailId}">
-              <h4 class="font-display font-semibold text-white text-base sm:text-lg min-w-0 transition-colors">${e.role}</h4>
-              <span class="font-mono text-xs text-faint uppercase whitespace-nowrap">${e.dates}</span>
-              <p class="font-mono text-xs text-dim uppercase tracking-wide mt-0.5 min-w-0 flex items-center gap-1.5">
-                ${e.company} · ${e.location}
-                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-faint transition-transform shrink-0" id="exp-chevron-${e.id}"></i>
-              </p>
-              <span class="font-mono text-xs text-faint whitespace-nowrap mt-0.5">${dur}</span>
+            <button type="button" id="exp-toggle-${e.id}" class="flex-1 min-w-0 text-left focus-ring group" onclick="toggleExperienceDetail('${e.id}')" aria-expanded="false" aria-controls="${detailId}" style="display:table; width:100%; border-collapse:collapse;">
+              <span style="display:table-row;">
+                <span style="display:table-cell; vertical-align:top;">
+                  <h4 class="font-display font-semibold text-white text-base sm:text-lg transition-colors">${e.role}</h4>
+                </span>
+                <span style="display:table-cell; vertical-align:top; white-space:nowrap; text-align:right; padding-left:12px;">
+                  <span class="font-mono text-xs text-faint uppercase">${e.dates}</span>
+                </span>
+              </span>
+              <span style="display:table-row;">
+                <span style="display:table-cell; vertical-align:top;">
+                  <p class="font-mono text-xs text-dim uppercase tracking-wide mt-0.5 flex items-center gap-1.5">
+                    ${e.company} · ${e.location}
+                    <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-faint transition-transform shrink-0" id="exp-chevron-${e.id}"></i>
+                  </p>
+                </span>
+                <span style="display:table-cell; vertical-align:top; white-space:nowrap; text-align:right; padding-left:12px;">
+                  <span class="font-mono text-xs text-faint mt-0.5">${dur}</span>
+                </span>
+              </span>
             </button>
           </div>
+
           <div id="${detailId}" class="hidden pl-[52px]">${detailHtml}</div>
         </div>
       `;
@@ -1332,7 +1457,6 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     lucide.createIcons();
   }
 
-  let projectsExpanded = false;
   let projectSearchQuery = '';
 
   // ===== Hierarchical project tag filter =====
@@ -1344,6 +1468,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
   const TAG_TAXONOMY = {
     'RF & Wireless': ['RF Design', 'Antenna Filters', 'IoT Power'],
     'Embedded & Firmware': ['Embedded', 'Assembly', 'PIC16F877A', 'MPLAB X', 'Mbed', 'Arduino', 'Audio'],
+    'FPGA & Processor Design': ['RISC-V', 'FPGA', 'Verilog/VHDL'],
     'Robotics & Hardware': ['Robotics', '3D Printing', 'Ultrasonic Sensing', 'Processing'],
     'Software & Analysis': ['C++', 'MATLAB', 'Image Processing', 'Documentation']
   };
@@ -1596,22 +1721,30 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     const emptyState = document.getElementById('projectEmptyState');
 
     const filtered = getFilteredProjects();
-    // Default number of projects shown before "Expand All Projects".
-    const limit = projectsExpanded ? filtered.length : 3;
-    const visible = filtered.slice(0, limit);
+    const noActiveFilter = projectSearchQuery.trim() === '' && activeTagSection === 'all' && activeTags.size === 0;
+
+    // Default (no search/filter active) view shows only the pinned
+    // favourites - see `favourite: true` on a project - capped at 3, so the
+    // homepage stays easy to scan regardless of how many projects exist in
+    // total. "View All Projects" (below) opens the full list in a popup
+    // instead of expanding this grid inline. An active search/filter always
+    // shows its real matches, favourite or not.
+    const visible = noActiveFilter ? filtered.filter(p => p.favourite).slice(0, 3) : filtered.slice(0, 3);
 
     emptyState.classList.toggle('hidden', filtered.length > 0);
 
     grid.innerHTML = visible.map((p, i) => `
       <div class="case-card group focus-ring px-3 py-4 border-t border-l border-r border-line ${i === visible.length - 1 ? 'border-b rounded-b-sm' : ''}" tabindex="0" role="button"
-           aria-label="View ${p.title}" onclick="openProject('${p.id}')"
+           aria-label="View ${p.title}" onclick="openProject('${p.id}')" title="${p.hoverDescription ? p.hoverDescription.replace(/"/g, '&quot;') : ''}"
            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProject('${p.id}');}">
         <div class="flex items-center justify-between gap-3">
           <div class="flex items-center gap-3 min-w-0 flex-1">
             <span class="font-mono text-xs text-faint shrink-0">${String(i + 1).padStart(2, '0')}</span>
             <div class="min-w-0 flex-1">
               <p class="font-mono text-[11px] text-faint uppercase tracking-wider truncate">${p.status}</p>
-              <h4 class="font-display font-semibold text-lg sm:text-xl leading-snug truncate">${p.title}</h4>
+              <h4 class="font-display font-semibold text-lg sm:text-xl leading-snug truncate">
+                ${p.favourite ? '<span class="text-white" title="Favourite project">★</span> ' : ''}${p.title}
+              </h4>
               <!-- Tags shown next to/under the title on the homepage card too,
                    mirroring the project detail view. Uses the smaller
                    .tag-mini style (defined in <style>) so cards stay compact. -->
@@ -1625,10 +1758,13 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       </div>
     `).join('');
 
-    if (filtered.length > 3) {
+    // Shown whenever there are more matching projects than are currently
+    // displayed - opens the full list as a popup (see openAllProjectsModal)
+    // rather than expanding this grid inline.
+    if (filtered.length > visible.length) {
       toggleContainer.innerHTML = `
-        <button onclick="toggleProjects()" class="w-full py-3.5 flex items-center justify-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white bg-panel border-x border-b border-line hover:border-faint transition-colors rounded-b-sm focus-ring mt-0 relative top-[-1px]">
-          ${projectsExpanded ? 'Retract Projects <i data-lucide="chevron-up" class="w-4 h-4"></i>' : 'Expand All Projects <i data-lucide="chevron-down" class="w-4 h-4"></i>'}
+        <button onclick="openAllProjectsModal()" class="w-full py-3.5 flex items-center justify-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white bg-panel border-x border-b border-line hover:border-faint transition-colors rounded-b-sm focus-ring mt-0 relative top-[-1px]">
+          View All Projects <i data-lucide="chevron-down" class="w-4 h-4"></i>
         </button>
       `;
     } else {
@@ -1637,9 +1773,45 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     lucide.createIcons();
   }
 
-  function toggleProjects() {
-    projectsExpanded = !projectsExpanded;
-    renderProjectGrid();
+  // Opens every project (favourite or not) as a clickable list in the
+  // site's existing popup/modal shell - picking one closes the popup and
+  // navigates straight to that project page, rather than showing yet
+  // another nested list.
+  function openAllProjectsModal() {
+    currentCategoryKey = null;
+    document.getElementById('modalCategoryNav').classList.add('hidden');
+    setModalLogo(null);
+    document.getElementById('modalEyebrow').textContent = '';
+    document.getElementById('modalTitle').textContent = 'All Projects';
+    document.getElementById('modalBody').innerHTML = `
+      <div class="flex flex-col divide-y divide-lineSoft border-t border-b border-lineSoft">
+        ${projects.map(p => `
+          <button onclick="goToProjectFromModal('${p.id}')" class="w-full text-left py-3 flex items-center gap-3 group focus-ring">
+            <div class="min-w-0 flex-1">
+              <p class="font-mono text-[10px] text-faint uppercase tracking-wider truncate">${p.status}</p>
+              <span class="text-sm text-dim group-hover:text-white transition-colors truncate block">
+                ${p.favourite ? '<span class="text-white">★</span> ' : ''}${p.title}
+              </span>
+            </div>
+            <i data-lucide="chevron-right" class="w-4 h-4 text-faint group-hover:text-white transition-colors shrink-0"></i>
+          </button>
+        `).join('')}
+      </div>
+    `;
+    document.getElementById('modalPanel').className = 'modal-panel modal-md';
+    lucide.createIcons();
+
+    const overlay = document.getElementById('modalOverlay');
+    overlay.classList.add('open');
+    document.body.classList.add('modal-open');
+    setTimeout(() => overlay.classList.add('shown'), 10);
+  }
+
+  // Closes the All Projects popup, then opens the chosen project page once
+  // the close animation (see closeModal's 200ms transition) has finished.
+  function goToProjectFromModal(id) {
+    closeModal();
+    setTimeout(() => openProject(id), 210);
   }
 
   renderProjectGrid();
@@ -2521,15 +2693,15 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 
     detailContent.innerHTML = `
       <p class="font-mono text-xs text-faint uppercase tracking-wider">${p.status}</p>
-      <!-- GitHub link sits directly beside the title text on the same
-           baseline (not a separate row off on its own) - a small, plain
-           icon button, the common "repo link next to a heading" pattern. -->
-      <div class="flex items-center flex-wrap gap-3 mt-2">
+      <!-- GitHub link: solid fill (matches the sidebar's "Resume" button
+           style) so it's unmistakably a clickable button rather than a
+           faint outline that's easy to miss, right-aligned on the title row. -->
+      <div class="flex items-start justify-between gap-4 mt-2 flex-wrap">
         <h3 class="font-display font-extrabold text-3xl sm:text-4xl text-white leading-[1.05]">${p.title}</h3>
         ${p.github ? `
-        <a href="${p.github}" target="_blank" rel="noopener" title="View repository on GitHub" aria-label="View ${p.title} repository on GitHub"
-           class="focus-ring shrink-0 w-8 h-8 flex items-center justify-center border border-line rounded-sm text-dim hover:text-white hover:border-faint transition-colors">
-          <i data-lucide="github" class="w-4 h-4"></i>
+        <a href="${p.github}" target="_blank" rel="noopener" title="View repository on GitHub"
+           class="focus-ring shrink-0 inline-flex items-center gap-2 bg-ink text-base px-3.5 py-2 rounded-sm text-xs font-mono font-bold uppercase tracking-wider hover:bg-white transition-colors">
+          <i data-lucide="github" class="w-4 h-4"></i> GitHub ↗
         </a>` : ''}
       </div>
 
@@ -2831,6 +3003,77 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 </div>
 
 <script>
+// ---- Following (companies/organisations followed) ----
+// Grouped by sector, each with a LinkedIn company URL and a logo. Logos
+// point at Logos/<company>_logo.jpg placeholders - upload the real files
+// there (matching these exact names) and they'll appear automatically;
+// until then handleLogoError shows a neutral placeholder icon instead of a
+// broken image. To add another followed company: copy a line below with
+// the right `group` string (an existing group name joins that section, a
+// new one creates its own heading) - renderFollowingBody() below handles
+// the rest.
+const FOLLOWING_COMPANIES = [
+  { group: 'University & Industry', name: 'Westminster SU', url: 'https://www.linkedin.com/company/westminstersu/', logo: 'Logos/westminster_students_union_logo.jpg' },
+  { group: 'University & Industry', name: 'Honeywell', url: 'https://www.linkedin.com/company/honeywell/posts/?feedView=all', logo: 'Logos/honeywell_logo.jpg' },
+
+  { group: 'Defence & Aerospace', name: 'Leonardo UK', url: 'https://www.linkedin.com/company/leonardo-electronics/', logo: 'Logos/leonardo_logo.jpg' },
+  { group: 'Defence & Aerospace', name: 'BAE Systems', url: 'https://www.linkedin.com/company/bae-systems/', logo: 'Logos/bae_systems_logo.jpg' },
+  { group: 'Defence & Aerospace', name: 'Thales UK', url: 'https://www.linkedin.com/company/thales/', logo: 'Logos/thales_logo.jpg' },
+  { group: 'Defence & Aerospace', name: 'MBDA UK', url: 'https://www.linkedin.com/company/mbda/', logo: 'Logos/mbda_logo.jpg' },
+  { group: 'Defence & Aerospace', name: 'QinetiQ', url: 'https://www.linkedin.com/company/qinetiq/', logo: 'Logos/qinetiq_logo.jpg' },
+  { group: 'Defence & Aerospace', name: 'Raytheon UK', url: 'https://www.linkedin.com/company/raytheon-uk/', logo: 'Logos/raytheon_uk_logo.jpg' },
+  { group: 'Defence & Aerospace', name: 'Chemring Group', url: 'https://www.linkedin.com/company/chemring-group/', logo: 'Logos/chemring_group_logo.jpg' },
+  // Added by me - same sector/culture fit as the rest of this group.
+  { group: 'Defence & Aerospace', name: 'Elbit Systems UK', url: 'https://www.linkedin.com/company/elbit-systems-uk/', logo: 'Logos/elbit_systems_uk_logo.jpg' },
+  { group: 'Defence & Aerospace', name: 'General Dynamics UK', url: 'https://www.linkedin.com/company/general-dynamics-uk-limited/', logo: 'Logos/general_dynamics_uk_logo.jpg' },
+
+  { group: 'Semiconductor & CPU/GPU IP', name: 'Arm', url: 'https://www.linkedin.com/company/arm/posts/?feedView=all', logo: 'Logos/arm_logo.jpg' },
+  { group: 'Semiconductor & CPU/GPU IP', name: 'Imagination Technologies', url: 'https://www.linkedin.com/company/imagination-technologies/', logo: 'Logos/imagination_technologies_logo.jpg' },
+  { group: 'Semiconductor & CPU/GPU IP', name: 'AMD', url: 'https://www.linkedin.com/company/amd/', logo: 'Logos/amd_logo.jpg' },
+  { group: 'Semiconductor & CPU/GPU IP', name: 'Nvidia', url: 'https://www.linkedin.com/company/nvidia/', logo: 'Logos/nvidia_logo.jpg' },
+  { group: 'Semiconductor & CPU/GPU IP', name: 'Synopsys', url: 'https://www.linkedin.com/company/synopsys/', logo: 'Logos/synopsys_logo.jpg' },
+  { group: 'Semiconductor & CPU/GPU IP', name: 'Cadence Design Systems', url: 'https://www.linkedin.com/company/cadence-design-systems/', logo: 'Logos/cadence_design_systems_logo.jpg' },
+  { group: 'Semiconductor & CPU/GPU IP', name: 'Nordic Semiconductor', url: 'https://www.linkedin.com/company/nordic-semiconductor/', logo: 'Logos/nordic_semiconductor_logo.jpg' },
+  { group: 'Semiconductor & CPU/GPU IP', name: 'STMicroelectronics', url: 'https://www.linkedin.com/company/stmicroelectronics/', logo: 'Logos/stmicroelectronics_logo.jpg' },
+  // Added by me - both are directly relevant to CPU/GPU IP and mobile/edge silicon.
+  { group: 'Semiconductor & CPU/GPU IP', name: 'Qualcomm', url: 'https://www.linkedin.com/company/qualcomm/', logo: 'Logos/qualcomm_logo.jpg' },
+  { group: 'Semiconductor & CPU/GPU IP', name: 'Broadcom', url: 'https://www.linkedin.com/company/broadcom/', logo: 'Logos/broadcom_logo.jpg' },
+
+  { group: 'FPGA-Focused & Consultancy', name: 'Sondrel', url: 'https://www.linkedin.com/company/sondrel/', logo: 'Logos/sondrel_logo.jpg' },
+  { group: 'FPGA-Focused & Consultancy', name: 'Roke', url: 'https://www.linkedin.com/company/roke-manor-research/', logo: 'Logos/roke_logo.jpg' },
+  { group: 'FPGA-Focused & Consultancy', name: 'Sundance Multiprocessor Technology', url: 'https://www.linkedin.com/company/sundance-multiprocessor-technology-ltd-/', logo: 'Logos/sundance_logo.jpg' },
+  { group: 'FPGA-Focused & Consultancy', name: 'Enclustra', url: 'https://www.linkedin.com/company/enclustra-gmbh/', logo: 'Logos/enclustra_logo.jpg' },
+  // Added by me - both are established FPGA silicon vendors, same space as
+  // the consultancies above.
+  { group: 'FPGA-Focused & Consultancy', name: 'Lattice Semiconductor', url: 'https://www.linkedin.com/company/lattice-semiconductor/', logo: 'Logos/lattice_semiconductor_logo.jpg' },
+  { group: 'FPGA-Focused & Consultancy', name: 'Achronix', url: 'https://www.linkedin.com/company/achronix-semiconductor-corporation/', logo: 'Logos/achronix_logo.jpg' }
+];
+
+// Renders FOLLOWING_COMPANIES as sector-grouped lists with a logo + link
+// per company - groups appear in first-seen order, matching the pattern
+// used for grouped certifications (see renderCategoryTOC).
+function renderFollowingBody() {
+  const groups = [];
+  FOLLOWING_COMPANIES.forEach(c => {
+    let bucket = groups.find(g => g.name === c.group);
+    if (!bucket) { bucket = { name: c.group, items: [] }; groups.push(bucket); }
+    bucket.items.push(c);
+  });
+  return groups.map(g => `
+    <div class="modal-section">
+      <div class="modal-label">${g.name}</div>
+      <ul class="flex flex-col divide-y divide-lineSoft border-t border-b border-lineSoft">
+        ${g.items.map(c => `
+          <li class="flex items-center gap-3 py-2.5">
+            <img src="${c.logo}" alt="" onerror="handleLogoError(this)" class="w-7 h-7 rounded-sm border border-line object-cover shrink-0 bg-[#141416]">
+            <a href="${c.url}" target="_blank" rel="noopener" class="text-sm text-dim hover:text-white transition-colors">${c.name} ↗</a>
+          </li>
+        `).join('')}
+      </ul>
+    </div>
+  `).join('');
+}
+
 const CATEGORY_DATA = {
   // ---- Licences & Certifications ----
   // `group` clusters entries under a shared heading in the table-of-contents
@@ -2854,7 +3097,7 @@ const CATEGORY_DATA = {
       size: 'modal-md',
       group: 'University of Westminster',
       logo: 'Logos/university_of_westminster_logo.jpg',
-      eyebrow: 'Licence & Certification',
+      eyebrow: 'Licence & Certifications',
       // Full title (with the module code/year subtitle) stays in the detail
       // popup as-is; the list/TOC row uses the shorter version below instead.
       shortTitle: 'Future Ready Mentoring - Group Mentoring',
@@ -2862,10 +3105,13 @@ const CATEGORY_DATA = {
       body: `
         <div class="modal-section">
           <img src="Licenses%20%26%20Certifications%20Images/Future%20Ready%20Mentoring%20Badge.png" alt="Future Ready Mentoring - Group Mentoring badge" class="w-full max-w-xs rounded-sm border border-line mb-4" onerror="handleCertImageError(this, 'Add image: Licenses &amp; Certifications Images/Future Ready Mentoring Badge.png')">
-          <p class="text-sm text-dim">University of Westminster</p>
-          <p class="font-mono text-xs text-faint mt-1 uppercase">Issued Aug 2026</p>
-          <p class="font-mono text-xs text-faint mt-1">Credential ID: 9b1f3d4f91d3da0e981ccbeb1d12817c84127cbd</p>
-          <a href="https://www.linkedin.com/safety/go/?url=https%3A%2F%2Fopenbadgefactory%2Ecom%2Fobv3%2Fcredentials%2F9b1f3d4f91d3da0e981ccbeb1d12817c84127cbd%2Ehtml&urlhash=EGcK&mt=HrIF7MoMUGARs8J2yHlh5T-9CSL9Kxzo9tpNEbxf1zgPsoM0RFueiaVvZJxK6u57w1BLqnUXbo9y6D-M1SN_HPJHseah&isSdui=true" target="_blank" rel="noopener" class="inline-block mt-3 text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credentials ↗</a>
+          <p class="text-sm text-dim leading-relaxed">Recognises structured group mentoring delivered as part of the Embedded Systems Project (Work-Based Learning) module, supporting first-year engineering students.</p>
+          <div class="mt-4">
+            <div class="spec-row"><span class="k">Issuer</span><span class="v">University of Westminster</span></div>
+            <div class="spec-row"><span class="k">Issued</span><span class="v">Aug 2026</span></div>
+            <div class="spec-row"><span class="k">Credential ID</span><span class="v">9b1f3d4f91d3da0e981ccbeb1d12817c84127cbd</span></div>
+          </div>
+          <a href="https://www.linkedin.com/safety/go/?url=https%3A%2F%2Fopenbadgefactory%2Ecom%2Fobv3%2Fcredentials%2F9b1f3d4f91d3da0e981ccbeb1d12817c84127cbd%2Ehtml&urlhash=EGcK&mt=HrIF7MoMUGARs8J2yHlh5T-9CSL9Kxzo9tpNEbxf1zgPsoM0RFueiaVvZJxK6u57w1BLqnUXbo9y6D-M1SN_HPJHseah&isSdui=true" target="_blank" rel="noopener" class="inline-block mt-4 text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credentials ↗</a>
         </div>
       `
     },
@@ -2873,15 +3119,18 @@ const CATEGORY_DATA = {
       size: 'modal-md',
       group: 'University of Westminster',
       logo: 'Logos/university_of_westminster_logo.jpg',
-      eyebrow: 'Licence & Certification',
+      eyebrow: 'Licence & Certifications',
       title: 'WBL Live Project (CSE)',
       body: `
         <div class="modal-section">
           <img src="Licenses%20%26%20Certifications%20Images/WBL_Live_Project.png" alt="WBL Live Project (CSE) certificate" class="w-full max-w-xs rounded-sm border border-line mb-4" onerror="handleCertImageError(this, 'Add image: Licenses &amp; Certifications Images/WBL_Live_Project.png')">
-          <p class="text-sm text-dim">University of Westminster</p>
-          <p class="font-mono text-xs text-faint mt-1 uppercase">Issued Aug 2026</p>
-          <p class="font-mono text-xs text-faint mt-1">Credential ID: 21660620</p>
-          <a href="https://www.linkedin.com/safety/go/?url=https%3A%2F%2Fcertificate%2Ewestminster%2Eac%2Euk%2Fb3e11150-4575-4742-8dbc-53224d9faf9f&urlhash=54RY&mt=BBgdnpb_LlZaYMO5G-yzX-yLb_9XthkpKjIzXBYHFke24rPaiOojKKa1Ha2I1cWjXNdNhHz3rZyTGjRW6KU9WnwTQbO3&isSdui=true" target="_blank" rel="noopener" class="inline-block mt-3 text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credentials ↗</a>
+          <p class="text-sm text-dim leading-relaxed">Awarded for completing a live, industry-facing project as part of the Work-Based Learning strand of the Computer Science and Engineering course.</p>
+          <div class="mt-4">
+            <div class="spec-row"><span class="k">Issuer</span><span class="v">University of Westminster</span></div>
+            <div class="spec-row"><span class="k">Issued</span><span class="v">Aug 2026</span></div>
+            <div class="spec-row"><span class="k">Credential ID</span><span class="v">21660620</span></div>
+          </div>
+          <a href="https://www.linkedin.com/safety/go/?url=https%3A%2F%2Fcertificate%2Ewestminster%2Eac%2Euk%2Fb3e11150-4575-4742-8dbc-53224d9faf9f&urlhash=54RY&mt=BBgdnpb_LlZaYMO5G-yzX-yLb_9XthkpKjIzXBYHFke24rPaiOojKKa1Ha2I1cWjXNdNhHz3rZyTGjRW6KU9WnwTQbO3&isSdui=true" target="_blank" rel="noopener" class="inline-block mt-4 text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credentials ↗</a>
         </div>
       `
     },
@@ -2889,15 +3138,18 @@ const CATEGORY_DATA = {
       size: 'modal-md',
       group: 'University of Westminster',
       logo: 'Logos/university_of_westminster_logo.jpg',
-      eyebrow: 'Licence & Certification',
+      eyebrow: 'Licence & Certifications',
       title: 'Westminster Award: Bronze',
       body: `
         <div class="modal-section">
           <img src="Licenses%20%26%20Certifications%20Images/Westminster_Award_Bronze.png" alt="Westminster Award: Bronze certificate" class="w-full max-w-xs rounded-sm border border-line mb-4" onerror="handleCertImageError(this, 'Add image: Licenses &amp; Certifications Images/Westminster_Award_Bronze.png')">
-          <p class="text-sm text-dim">University of Westminster</p>
-          <p class="font-mono text-xs text-faint mt-1 uppercase">Issued Jun 2025</p>
-          <p class="font-mono text-xs text-faint mt-1">Credential ID: 16162373</p>
-          <a href="https://www.linkedin.com/safety/go/?url=https%3A%2F%2Fcertificate%2Ewestminster%2Eac%2Euk%2F01a5da4e-b1d9-4722-adba-2de64498db94&urlhash=GisA&mt=IwWplZyjUEOByglgEHJAVa2hgiQBaeHUmbvfuEDqCRQX7ZqWKendMmPLBuIU0YEgkDz9p6MWewGDTWL159vdCa7R-vMO&isSdui=true" target="_blank" rel="noopener" class="inline-block mt-3 text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credentials ↗</a>
+          <p class="text-sm text-dim leading-relaxed">University of Westminster's extracurricular recognition scheme for students who complete a set number of hours in volunteering, employability and skills-building activities.</p>
+          <div class="mt-4">
+            <div class="spec-row"><span class="k">Issuer</span><span class="v">University of Westminster</span></div>
+            <div class="spec-row"><span class="k">Issued</span><span class="v">Jun 2025</span></div>
+            <div class="spec-row"><span class="k">Credential ID</span><span class="v">16162373</span></div>
+          </div>
+          <a href="https://www.linkedin.com/safety/go/?url=https%3A%2F%2Fcertificate%2Ewestminster%2Eac%2Euk%2F01a5da4e-b1d9-4722-adba-2de64498db94&urlhash=GisA&mt=IwWplZyjUEOByglgEHJAVa2hgiQBaeHUmbvfuEDqCRQX7ZqWKendMmPLBuIU0YEgkDz9p6MWewGDTWL159vdCa7R-vMO&isSdui=true" target="_blank" rel="noopener" class="inline-block mt-4 text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credentials ↗</a>
         </div>
       `
     },
@@ -2905,7 +3157,7 @@ const CATEGORY_DATA = {
       size: 'modal-md',
       group: 'Royal Academy of Engineering',
       logo: 'Logos/the_royal_academy_of_engineering_logo.jpeg',
-      eyebrow: 'Licence & Certification',
+      eyebrow: 'Licence & Certifications',
       title: 'Graduate Engineering Engagement Programme',
       // Reuses the exact same certificate image as the GEEP course entry
       // below (see courses.GEEP) rather than a separate upload, since
@@ -2914,9 +3166,12 @@ const CATEGORY_DATA = {
       body: `
         <div class="modal-section">
           <img src="https://SuberBAbdi.github.io/GEEP%20Documents/GEEP_Certificate.jpg" alt="Graduate Engineering Engagement Programme certificate" class="w-full max-w-xs rounded-sm border border-line mb-4" onerror="handleCertImageError(this, 'Add image: GEEP Documents/GEEP_Certificate.jpg')">
-          <p class="text-sm text-dim">Royal Academy of Engineering</p>
-          <p class="font-mono text-xs text-faint mt-1 uppercase">Issued Jul 2026</p>
-          <div class="flex flex-wrap gap-x-4 gap-y-1 mt-3">
+          <p class="text-sm text-dim leading-relaxed">Recognises successful completion of the Royal Academy of Engineering's Graduate Engineering Engagement Programme, covering technical interview preparation, assessment centre practice and industry mentoring.</p>
+          <div class="mt-4">
+            <div class="spec-row"><span class="k">Issuer</span><span class="v">Royal Academy of Engineering</span></div>
+            <div class="spec-row"><span class="k">Issued</span><span class="v">Jul 2026</span></div>
+          </div>
+          <div class="flex flex-wrap gap-x-4 gap-y-1 mt-4">
             <a href="https://www.linkedin.com/in/suber-abdi-889182331/overlay/Certifications/1339082712/treasury/?profileId=ACoAAFN_NmkBLcJ6h777qoxmJORtLk3L_rSI7ic" target="_blank" rel="noopener" class="text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credentials ↗</a>
             <button onclick="openModalCategory('courses')" class="text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">View full GEEP course details ↗</button>
           </div>
@@ -2929,7 +3184,9 @@ const CATEGORY_DATA = {
       size: 'modal-lg',
       eyebrow: 'Course · Royal Academy of Engineering',
       logo: 'Logos/the_royal_academy_of_engineering_logo.jpeg',
-      title: '<a href="https://raeng.org.uk/" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4">GEEP Graduate Programme ↗</a>',
+      // TODO: adjust these placeholder dates to the real programme start/end
+      // once confirmed - duration is computed automatically from them.
+      title: `<a href="https://raeng.org.uk/" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4">GEEP Graduate Programme ↗</a><span class="text-dim text-sm font-normal block mt-1">Sep 2025 - Jul 2026 · ${durationLabel('Sep 2025', 'Jul 2026')}</span>`,
       slides: [
         { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GEEP_Certificate.jpg', cap: '1. GEEP Completion Certificate' },
         { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GEEP_London_Gathering_EoY_2026.jpg', cap: '2. GEEP London Gathering EoY 2026' },
@@ -2979,7 +3236,7 @@ const CATEGORY_DATA = {
              (not a separate modal-section) so there's no odd divider gap
              between a one-line label and the paragraph that follows it. -->
         <div class="modal-section">
-          <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Cause: <span class="text-dim normal-case tracking-normal">Children</span></p>
+          <p class="font-mono text-xs uppercase text-faint mb-3">Cause: <span class="text-dim normal-case">Children</span></p>
           <p>Supported and supervised children in a dynamic summer community programme, ensuring a safe, engaging, and well-organised environment.</p>
           <ul class="bullet-list mt-3 text-sm text-dim space-y-2">
             <li><strong class="text-[#d2d2d0] font-medium">Activity Coordination:</strong> Led and coordinated diverse recreational activities, including sports and painting, for children aged 8 to 14.</li>
@@ -2995,7 +3252,7 @@ const CATEGORY_DATA = {
       size: 'modal-md',
       logo: 'Logos/westminster_students_union_logo.jpg',
       eyebrow: 'Part-Time Experience',
-      title: `Student Team Leader <span class="text-dim text-sm font-normal block mt-1">Westminster SU · Oct 2026 - Present</span><span class="text-faint text-xs font-mono block mt-0.5">· ${durationLabel('Oct 2026', 'Present')}</span>`,
+      title: `Student Team Leader <span class="text-dim text-sm font-normal block mt-1">Westminster SU · Oct 2026 - Present · ${durationLabel('Oct 2026', 'Present')}</span>`,
       body: `
         <div class="modal-section">
           <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
@@ -3012,7 +3269,7 @@ const CATEGORY_DATA = {
       size: 'modal-md',
       logo: 'Logos/krispy_kreme_logo.jpg',
       eyebrow: 'Part-Time Experience',
-      title: `Sales Team Member <span class="text-dim text-sm font-normal block mt-1">Krispy Kreme · Feb 2024 - Oct 2026</span><span class="text-faint text-xs font-mono block mt-0.5">· ${durationLabel('Feb 2024', 'Oct 2026')}</span>`,
+      title: `Sales Team Member <span class="text-dim text-sm font-normal block mt-1">Krispy Kreme · Feb 2024 - Oct 2026 · ${durationLabel('Feb 2024', 'Oct 2026')}</span>`,
       body: `
         <div class="modal-section">
           <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
@@ -3027,7 +3284,7 @@ const CATEGORY_DATA = {
       size: 'modal-md',
       logo: 'Logos/pabulum_logo.jpg',
       eyebrow: 'Part-Time Experience',
-      title: `Till Operator <span class="text-dim text-sm font-normal block mt-1">Pabulum Ltd · Sep 2022 - Apr 2024</span><span class="text-faint text-xs font-mono block mt-0.5">· ${durationLabel('Sep 2022', 'Apr 2024')}</span>`,
+      title: `Till Operator <span class="text-dim text-sm font-normal block mt-1">Pabulum Ltd · Sep 2022 - Apr 2024 · ${durationLabel('Sep 2022', 'Apr 2024')}</span>`,
       body: `
         <div class="modal-section">
           <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
@@ -3044,18 +3301,7 @@ const CATEGORY_DATA = {
       size: 'modal-md',
       eyebrow: 'Following',
       title: 'Organisations & Companies',
-      body: `
-        <div class="modal-section">
-          <!-- To add another followed company: copy a <li> line below, keep the
-               same classes for consistent styling, and update the href + label. -->
-          <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
-            <li><a href="https://www.linkedin.com/company/leonardo-electronics/" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4">Leonardo Electronics ↗</a></li>
-            <li><a href="https://www.linkedin.com/company/westminstersu/" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4">Westminster SU ↗</a></li>
-            <li><a href="https://www.linkedin.com/company/arm/posts/?feedView=all" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4">Arm ↗</a></li>
-            <li><a href="https://www.linkedin.com/company/honeywell/posts/?feedView=all" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4">Honeywell ↗</a></li>
-          </ul>
-        </div>
-      `
+      body: renderFollowingBody()
     }
   ]
 };
@@ -3131,7 +3377,7 @@ Performance Evaluation: Produced a critical technical report assessing code opti
     // Full toolchain list, pulled together from every project + module +
     // work experience on the site. Add a new tool here whenever a new
     // project/module introduces one - the sidebar quick view above only
-    // needs updating if it should be promoted into the top 9 shown there.
+    // needs updating if it should be promoted into the top 5 shown there.
     body: `
       <div class="modal-section">
         <div class="flex flex-wrap gap-2">
@@ -3147,6 +3393,8 @@ Performance Evaluation: Produced a critical technical report assessing code opti
             <span class="tag">SPI / I2C</span>
             <span class="tag">PICSim / MPLAB X</span>
             <span class="tag">Verilog / VHDL</span>
+            <span class="tag">Xilinx Vivado</span>
+            <span class="tag">RISC-V GCC Toolchain</span>
             <span class="tag">Linux Kernel Programming</span>
             <span class="tag">Fusion 360</span>
             <span class="tag">Processing</span>
