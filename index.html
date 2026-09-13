@@ -1064,21 +1064,26 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       // until the real logo file is uploaded to the path in `e.logo`.
       const logoHtml = `<img src="${e.logo}" alt="${e.company} logo" onerror="handleLogoError(this)" class="company-logo">`;
 
-      // Date range sits on its own line directly under the role title
-      // (left-aligned with it, not floated to the right), with a computed
-      // duration appended - see durationLabel above.
+      // Two-row, two-column layout: title + date range share a row (date
+      // range right-aligned), and company/location + duration share the row
+      // below (duration right-aligned, lining up under the date range) -
+      // see durationLabel above for how the duration itself is computed.
       const [startStr, endStr] = (e.dates || '').split(' - ').map(s => (s || '').trim());
       const dur = durationLabel(startStr, endStr);
-      const datesHtml = `${e.dates}${dur ? ' · ' + dur : ''}`;
 
       if (e.current) {
         return `
           <div class="flex gap-3 items-start">
             ${logoHtml}
             <div class="flex-1 min-w-0">
-              <h4 class="font-display font-semibold text-white text-base sm:text-lg">${e.role}</h4>
-              <p class="font-mono text-xs text-faint uppercase mt-0.5">${datesHtml}</p>
-              <p class="font-mono text-xs text-dim mt-0.5 uppercase tracking-wide">${e.company} · ${e.location}</p>
+              <div class="flex items-start justify-between gap-2">
+                <h4 class="font-display font-semibold text-white text-base sm:text-lg">${e.role}</h4>
+                <span class="font-mono text-xs text-faint uppercase shrink-0">${e.dates}</span>
+              </div>
+              <div class="flex items-start justify-between gap-2 mt-0.5">
+                <p class="font-mono text-xs text-dim uppercase tracking-wide">${e.company} · ${e.location}</p>
+                ${dur ? `<span class="font-mono text-xs text-faint shrink-0">${dur}</span>` : ''}
+              </div>
               ${detailHtml}
             </div>
           </div>
@@ -1096,12 +1101,17 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
           <div class="flex gap-3 items-start">
             ${logoHtml}
             <button type="button" id="exp-toggle-${e.id}" class="flex-1 min-w-0 text-left focus-ring group" onclick="toggleExperienceDetail('${e.id}')" aria-expanded="false" aria-controls="${detailId}">
-              <div class="flex items-start justify-between flex-wrap gap-2">
+              <div class="flex items-start justify-between gap-2">
                 <h4 class="font-display font-semibold text-white text-base sm:text-lg transition-colors">${e.role}</h4>
-                <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-faint shrink-0 mt-1 transition-transform" id="exp-chevron-${e.id}"></i>
+                <span class="font-mono text-xs text-faint uppercase shrink-0">${e.dates}</span>
               </div>
-              <p class="font-mono text-xs text-faint uppercase mt-0.5">${datesHtml}</p>
-              <p class="font-mono text-xs text-dim mt-0.5 uppercase tracking-wide">${e.company} · ${e.location}</p>
+              <div class="flex items-start justify-between gap-2 mt-0.5">
+                <p class="font-mono text-xs text-dim uppercase tracking-wide flex items-center gap-1.5">
+                  ${e.company} · ${e.location}
+                  <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-faint transition-transform" id="exp-chevron-${e.id}"></i>
+                </p>
+                ${dur ? `<span class="font-mono text-xs text-faint shrink-0">${dur}</span>` : ''}
+              </div>
             </button>
           </div>
           <div id="${detailId}" class="hidden pl-[52px]">${detailHtml}</div>
@@ -2847,6 +2857,9 @@ const CATEGORY_DATA = {
       group: 'University of Westminster',
       logo: 'Logos/university_of_westminster_logo.jpg',
       eyebrow: 'Licence & Certification',
+      // Full title (with the module code/year subtitle) stays in the detail
+      // popup as-is; the list/TOC row uses the shorter version below instead.
+      shortTitle: 'Future Ready Mentoring - Group Mentoring',
       title: 'Future Ready Mentoring - Group Mentoring <span class="text-dim text-sm font-normal block mt-1">5ELEN020W Embedded Systems Project (WBL) 2025/26</span>',
       body: `
         <div class="modal-section">
@@ -2962,7 +2975,7 @@ const CATEGORY_DATA = {
       size: 'modal-md',
       logo: 'Logos/carisharingey_logo.jpg',
       eyebrow: 'Volunteering',
-      title: 'Volunteer, CARIS Haringey <span class="text-dim text-sm font-normal block mt-1">Aug 2024</span>',
+      title: `Volunteer, CARIS Haringey <span class="text-dim text-sm font-normal block mt-1">Aug 2024</span><span class="text-faint text-xs font-mono block mt-0.5">2 weeks</span>`,
       body: `
         <!-- Cause sits in the same section/flow as the description below
              (not a separate modal-section) so there's no odd divider gap
@@ -2984,7 +2997,7 @@ const CATEGORY_DATA = {
       size: 'modal-md',
       logo: 'Logos/westminster_students_union_logo.jpg',
       eyebrow: 'Part-Time Experience',
-      title: `Student Team Leader <span class="text-dim text-sm font-normal block mt-1">Westminster SU · Oct 2026 - Present · ${durationLabel('Oct 2026', 'Present')}</span>`,
+      title: `Student Team Leader <span class="text-dim text-sm font-normal block mt-1">Westminster SU · Oct 2026 - Present</span><span class="text-faint text-xs font-mono block mt-0.5">${durationLabel('Oct 2026', 'Present')}</span>`,
       body: `
         <div class="modal-section">
           <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
@@ -3001,7 +3014,7 @@ const CATEGORY_DATA = {
       size: 'modal-md',
       logo: 'Logos/krispy_kreme_logo.jpg',
       eyebrow: 'Part-Time Experience',
-      title: `Sales Team Member <span class="text-dim text-sm font-normal block mt-1">Krispy Kreme · Feb 2024 - Oct 2026 · ${durationLabel('Feb 2024', 'Oct 2026')}</span>`,
+      title: `Sales Team Member <span class="text-dim text-sm font-normal block mt-1">Krispy Kreme · Feb 2024 - Oct 2026</span><span class="text-faint text-xs font-mono block mt-0.5">${durationLabel('Feb 2024', 'Oct 2026')}</span>`,
       body: `
         <div class="modal-section">
           <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
@@ -3016,7 +3029,7 @@ const CATEGORY_DATA = {
       size: 'modal-md',
       logo: 'Logos/pabulum_logo.jpg',
       eyebrow: 'Part-Time Experience',
-      title: `Till Operator <span class="text-dim text-sm font-normal block mt-1">Pabulum Ltd · Sep 2022 - Apr 2024 · ${durationLabel('Sep 2022', 'Apr 2024')}</span>`,
+      title: `Till Operator <span class="text-dim text-sm font-normal block mt-1">Pabulum Ltd · Sep 2022 - Apr 2024</span><span class="text-faint text-xs font-mono block mt-0.5">${durationLabel('Sep 2022', 'Apr 2024')}</span>`,
       body: `
         <div class="modal-section">
           <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
@@ -3224,14 +3237,16 @@ const CATEGORY_LABELS = {
 // Renders the table-of-contents body for a category: a flat list of
 // clickable rows, or - if any entry sets a `group` (see certifications
 // above) - the same rows clustered under group headings, in first-seen
-// group order. Each row shows the entry's logo (if any) + a plain-text
-// version of its title (HTML stripped, since the full title markup can
-// include spans/links meant for the detail view, not this compact list).
+// group order. Each row shows the entry's logo (if any) + either its
+// optional `shortTitle` (for when the full title is too long/detailed for
+// a compact list row - the detail popup itself is unaffected) or a
+// plain-text version of the full title (HTML stripped, since the full
+// title markup can include spans/links meant only for the detail view).
 function renderCategoryTOC(categoryKey) {
   const list = CATEGORY_DATA[categoryKey] || [];
 
   function tocRow(item, idx) {
-    const plainTitle = item.title.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
+    const plainTitle = item.shortTitle || item.title.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
     const logoHtml = item.logo
       ? `<img src="${item.logo}" alt="" onerror="handleLogoError(this)" class="w-7 h-7 rounded-sm border border-line object-cover shrink-0 bg-[#141416]">`
       : '';
