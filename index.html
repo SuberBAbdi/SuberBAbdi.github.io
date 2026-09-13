@@ -1118,8 +1118,10 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         </div>
         <!-- Hidden until toggled - a small anchored card, not the site's
              full-screen modal, so the rest of the page stays visible and
-             sharp behind it. -->
-        <div id="recPopover-${r.id}" class="hidden absolute right-0 top-full mt-2 w-full max-w-[300px] bg-[#0f0f11] border border-line rounded-sm p-4 z-20 shadow-lg">
+             sharp behind it. Positioned/clamped by JS (see
+             positionRecommendationPopover) rather than pure CSS so it can
+             never spill off-screen regardless of viewport width or zoom. -->
+        <div id="recPopover-${r.id}" class="hidden absolute top-full mt-2 bg-[#0f0f11] border border-line rounded-sm p-4 z-20 shadow-lg">
           <p class="text-sm text-dim leading-relaxed italic">${r.statement}</p>
           <p class="font-mono text-xs text-faint mt-3">- ${r.name}, ${r.role}</p>
         </div>
@@ -1146,7 +1148,47 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     });
     pop.classList.toggle('hidden');
     btn?.setAttribute('aria-expanded', String(willOpen));
+    if (willOpen) positionRecommendationPopover(pop);
   }
+
+  // Clamps a recommendation popover to stay fully within the viewport,
+  // regardless of screen size/zoom. Measures actual pixel positions at
+  // open-time (via getBoundingClientRect, which already accounts for zoom)
+  // rather than relying on a fixed CSS `right: 0`, which could otherwise
+  // push part of the card off the left edge of narrower or zoomed-in
+  // viewports. Popover stays position:absolute (so it scrolls naturally
+  // with the page) - only its `left` is set, in pixels relative to its own
+  // positioned parent (the `.relative` wrapper it lives in).
+  function positionRecommendationPopover(pop) {
+    const margin = 12;
+    const wrapper = pop.parentElement;
+    if (!wrapper) return;
+
+    const popWidth = Math.min(300, window.innerWidth - margin * 2);
+    pop.style.width = popWidth + 'px';
+    pop.style.right = 'auto';
+
+    const wrapperRect = wrapper.getBoundingClientRect();
+    // Default to right-aligned with the wrapper (mirrors the old `right:0`).
+    let left = wrapperRect.width - popWidth;
+    // Shift right if that would spill off the left edge of the viewport...
+    const minLeft = margin - wrapperRect.left;
+    if (left < minLeft) left = minLeft;
+    // ...or shift left if it would spill off the right edge instead.
+    const maxLeft = (window.innerWidth - margin) - wrapperRect.left - popWidth;
+    if (left > maxLeft) left = maxLeft;
+
+    pop.style.left = left + 'px';
+  }
+
+  // Re-clamp any open popover if the viewport is resized (e.g. rotating a
+  // device, or the browser window/zoom changing) while it's showing.
+  window.addEventListener('resize', () => {
+    document.querySelectorAll('[id^="recPopover-"]').forEach(pop => {
+      if (!pop.classList.contains('hidden')) positionRecommendationPopover(pop);
+    });
+  });
+
   document.addEventListener('click', (e) => {
     document.querySelectorAll('[id^="recPopover-"]').forEach(pop => {
       const id = pop.id.replace('recPopover-', '');
@@ -2287,7 +2329,6 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
           <div class="relative w-full rounded-sm overflow-hidden border border-line" style="aspect-ratio:16/9;">
             <iframe class="absolute inset-0 w-full h-full" src="https://www.youtube.com/embed/${p.demoVideoId}" title="${p.title} demo video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
           </div>
-          <p class="font-mono text-[10px] text-faint mt-2">Placeholder video - swap the id in this project's demoVideoId once the real demo is recorded.</p>
         </div>
       `;
     }
@@ -2373,7 +2414,6 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
           <div class="relative w-full rounded-sm overflow-hidden border border-line" style="aspect-ratio:16/9;">
             <iframe class="absolute inset-0 w-full h-full" src="https://www.youtube.com/embed/${p.presentationVideoId}" title="${p.title} presentation video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
           </div>
-          <p class="font-mono text-[10px] text-faint mt-2">Placeholder video - swap the id in this project's presentationVideoId once the real recording is ready.</p>
         </div>
       `;
     }
@@ -2393,12 +2433,14 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       <p class="font-mono text-xs text-faint uppercase tracking-wider">${p.status}</p>
       <div class="flex items-start justify-between gap-4 mt-2">
         <h3 class="font-display font-extrabold text-3xl sm:text-4xl text-white leading-[1.05]">${p.title}</h3>
-        <!-- GitHub repo link, top-right next to the title, in addition to
-             the fuller "GitHub Code" button further down the page. -->
+        <!-- GitHub repo link, top-right next to the title. Bright text/icon
+             (not just a faint bordered icon box) so it's actually noticeable
+             against the dark background, with a visible label rather than
+             an icon-only square. -->
         ${p.github ? `
-        <a href="${p.github}" target="_blank" rel="noopener" title="View repository on GitHub" aria-label="View ${p.title} repository on GitHub"
-           class="focus-ring shrink-0 mt-1 w-9 h-9 flex items-center justify-center border border-line rounded-sm text-dim hover:text-white hover:border-faint transition-colors">
-          <i data-lucide="github" class="w-4 h-4"></i>
+        <a href="${p.github}" target="_blank" rel="noopener" title="View repository on GitHub"
+           class="focus-ring shrink-0 mt-1 inline-flex items-center gap-2 border border-line rounded-sm px-3 py-2 text-xs font-mono uppercase tracking-wider text-white hover:border-faint hover:bg-line/40 transition-colors">
+          <i data-lucide="github" class="w-4 h-4"></i> GitHub ↗
         </a>` : ''}
       </div>
 
@@ -2440,14 +2482,6 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       `}
       
       ${extraAssets}
-
-      ${p.github ? `
-      <div class="mt-7 pt-6 border-t border-line max-w-2xl">
-        <a href="${p.github}" target="_blank" rel="noopener"
-           class="focus-ring inline-flex items-center gap-1.5 text-sm border border-line px-3.5 py-2.5 text-[#d2d2d0] hover:border-faint hover:text-white transition-colors">
-          <i data-lucide="github" class="w-4 h-4"></i> GitHub Code ↗ <i data-lucide="external-link" class="w-3.5 h-3.5"></i>
-        </a>
-      </div>` : ''}
     `;
 
     const rightSidebarEl = document.getElementById('rightSidebar');
@@ -2739,7 +2773,7 @@ const CATEGORY_DATA = {
           <p class="text-sm text-dim">University of Westminster</p>
           <p class="font-mono text-xs text-faint mt-1 uppercase">Issued Aug 2026</p>
           <p class="font-mono text-xs text-faint mt-1">Credential ID: 9b1f3d4f91d3da0e981ccbeb1d12817c84127cbd</p>
-          <a href="https://www.linkedin.com/safety/go/?url=https%3A%2F%2Fopenbadgefactory%2Ecom%2Fobv3%2Fcredentials%2F9b1f3d4f91d3da0e981ccbeb1d12817c84127cbd%2Ehtml&urlhash=EGcK&mt=HrIF7MoMUGARs8J2yHlh5T-9CSL9Kxzo9tpNEbxf1zgPsoM0RFueiaVvZJxK6u57w1BLqnUXbo9y6D-M1SN_HPJHseah&isSdui=true" target="_blank" rel="noopener" class="inline-block mt-3 text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credential ↗</a>
+          <a href="https://www.linkedin.com/safety/go/?url=https%3A%2F%2Fopenbadgefactory%2Ecom%2Fobv3%2Fcredentials%2F9b1f3d4f91d3da0e981ccbeb1d12817c84127cbd%2Ehtml&urlhash=EGcK&mt=HrIF7MoMUGARs8J2yHlh5T-9CSL9Kxzo9tpNEbxf1zgPsoM0RFueiaVvZJxK6u57w1BLqnUXbo9y6D-M1SN_HPJHseah&isSdui=true" target="_blank" rel="noopener" class="inline-block mt-3 text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credentials ↗</a>
         </div>
       `
     },
@@ -2755,7 +2789,7 @@ const CATEGORY_DATA = {
           <p class="text-sm text-dim">University of Westminster</p>
           <p class="font-mono text-xs text-faint mt-1 uppercase">Issued Aug 2026</p>
           <p class="font-mono text-xs text-faint mt-1">Credential ID: 21660620</p>
-          <a href="https://www.linkedin.com/safety/go/?url=https%3A%2F%2Fcertificate%2Ewestminster%2Eac%2Euk%2Fb3e11150-4575-4742-8dbc-53224d9faf9f&urlhash=54RY&mt=BBgdnpb_LlZaYMO5G-yzX-yLb_9XthkpKjIzXBYHFke24rPaiOojKKa1Ha2I1cWjXNdNhHz3rZyTGjRW6KU9WnwTQbO3&isSdui=true" target="_blank" rel="noopener" class="inline-block mt-3 text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credential ↗</a>
+          <a href="https://www.linkedin.com/safety/go/?url=https%3A%2F%2Fcertificate%2Ewestminster%2Eac%2Euk%2Fb3e11150-4575-4742-8dbc-53224d9faf9f&urlhash=54RY&mt=BBgdnpb_LlZaYMO5G-yzX-yLb_9XthkpKjIzXBYHFke24rPaiOojKKa1Ha2I1cWjXNdNhHz3rZyTGjRW6KU9WnwTQbO3&isSdui=true" target="_blank" rel="noopener" class="inline-block mt-3 text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credentials ↗</a>
         </div>
       `
     },
@@ -2771,7 +2805,7 @@ const CATEGORY_DATA = {
           <p class="text-sm text-dim">University of Westminster</p>
           <p class="font-mono text-xs text-faint mt-1 uppercase">Issued Jun 2025</p>
           <p class="font-mono text-xs text-faint mt-1">Credential ID: 16162373</p>
-          <a href="https://www.linkedin.com/safety/go/?url=https%3A%2F%2Fcertificate%2Ewestminster%2Eac%2Euk%2F01a5da4e-b1d9-4722-adba-2de64498db94&urlhash=GisA&mt=IwWplZyjUEOByglgEHJAVa2hgiQBaeHUmbvfuEDqCRQX7ZqWKendMmPLBuIU0YEgkDz9p6MWewGDTWL159vdCa7R-vMO&isSdui=true" target="_blank" rel="noopener" class="inline-block mt-3 text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credential ↗</a>
+          <a href="https://www.linkedin.com/safety/go/?url=https%3A%2F%2Fcertificate%2Ewestminster%2Eac%2Euk%2F01a5da4e-b1d9-4722-adba-2de64498db94&urlhash=GisA&mt=IwWplZyjUEOByglgEHJAVa2hgiQBaeHUmbvfuEDqCRQX7ZqWKendMmPLBuIU0YEgkDz9p6MWewGDTWL159vdCa7R-vMO&isSdui=true" target="_blank" rel="noopener" class="inline-block mt-3 text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credentials ↗</a>
         </div>
       `
     },
@@ -2791,7 +2825,7 @@ const CATEGORY_DATA = {
           <p class="text-sm text-dim">Royal Academy of Engineering</p>
           <p class="font-mono text-xs text-faint mt-1 uppercase">Issued Jul 2026</p>
           <div class="flex flex-wrap gap-x-4 gap-y-1 mt-3">
-            <a href="https://www.linkedin.com/in/suber-abdi-889182331/overlay/Certifications/1339082712/treasury/?profileId=ACoAAFN_NmkBLcJ6h777qoxmJORtLk3L_rSI7ic" target="_blank" rel="noopener" class="text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credential ↗</a>
+            <a href="https://www.linkedin.com/in/suber-abdi-889182331/overlay/Certifications/1339082712/treasury/?profileId=ACoAAFN_NmkBLcJ6h777qoxmJORtLk3L_rSI7ic" target="_blank" rel="noopener" class="text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credentials ↗</a>
             <button onclick="openModalCategory('courses')" class="text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">View full GEEP course details ↗</button>
           </div>
         </div>
@@ -2849,12 +2883,11 @@ const CATEGORY_DATA = {
       eyebrow: 'Volunteering',
       title: 'Volunteer, CARIS Haringey <span class="text-dim text-sm font-normal block mt-1">Aug 2024</span>',
       body: `
-        <!-- Cause is its own small section, mirroring how LinkedIn separates
-             the "Cause" tag from the role description. -->
+        <!-- Cause sits in the same section/flow as the description below
+             (not a separate modal-section) so there's no odd divider gap
+             between a one-line label and the paragraph that follows it. -->
         <div class="modal-section">
-          <p class="font-mono text-xs uppercase tracking-widest text-faint">Cause: <span class="text-dim normal-case tracking-normal">Children</span></p>
-        </div>
-        <div class="modal-section">
+          <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Cause: <span class="text-dim normal-case tracking-normal">Children</span></p>
           <p>Supported and supervised children in a dynamic summer community programme, ensuring a safe, engaging, and well-organised environment.</p>
           <ul class="bullet-list mt-3 text-sm text-dim space-y-2">
             <li><strong class="text-[#d2d2d0] font-medium">Activity Coordination:</strong> Led and coordinated diverse recreational activities, including sports and painting, for children aged 8 to 14.</li>
