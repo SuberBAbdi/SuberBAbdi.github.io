@@ -3067,11 +3067,11 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 
   // ===== GitHub "terminal card" widget =====
   // GitHub statistics are generated at build time by GitHub Actions and saved
-  // to ./GitHub%20Repo%20Data/projects.json. The browser never calls api.github.com.
+  // to ./projects.json. The browser never calls api.github.com.
   let githubStaticDataPromise = null;
   function loadGithubStaticData() {
     if (!githubStaticDataPromise) {
-      githubStaticDataPromise = fetch('./GitHub%20Repo%20Data/projects.json', { cache: 'no-cache' })
+      githubStaticDataPromise = fetch('./projects.json', { cache: 'no-cache' })
         .then(res => {
           if (!res.ok) throw new Error(`projects.json ${res.status}`);
           return res.json();
