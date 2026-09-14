@@ -3075,31 +3075,9 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
   // each stat independently to "Rate limited" if its own request fails,
   // rather than the whole card breaking if any one call is throttled.
   function initGithubTerminalCard(containerId, repoSlug) {
-    const root = document.getElementById(containerId);
-    if (!root) return;
-
-    // GitHub cards are deliberately non-blocking and API-free on project load.
-    // The repository title/link is always available, while the card keeps a
-    // stable layout even when GitHub is rate-limited, offline, or unreachable.
-    const field = (suffix) => root.querySelector('#' + CSS.escape(containerId + '-' + suffix));
-    const setValue = (suffix, value) => {
-      const el = field(suffix);
-      if (el) el.textContent = value;
-    };
-
-    setValue('languages', 'View repository');
-    setValue('commits', 'View repository');
-    setValue('contributors', 'View repository');
-    setValue('updated', 'View repository');
-
-    const contributorRow = root.querySelector('.gtc-hoverable');
-    if (contributorRow) {
-      contributorRow.removeAttribute('tabindex');
-      contributorRow.removeAttribute('aria-describedby');
-      contributorRow.style.cursor = 'default';
-      const tooltip = contributorRow.querySelector('.gtc-tooltip');
-      if (tooltip) tooltip.remove();
-    }
+    // Intentionally API-free: the repository card is a stable direct link.
+    // No GitHub API request is made, so rate limits and network failures cannot
+    // interfere with opening a project.
   }
 
   function openProject(id) {
@@ -3413,13 +3391,10 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
             <a class="gtc-title gtc-repo-link" href="https://github.com/${p.githubCard}" target="_blank" rel="noopener noreferrer" title="Open ${p.githubCard} on GitHub">${p.githubCard.split('/').pop()} <span class="gtc-external-arrow" aria-hidden="true">↗</span></a>
           </div>
           <div class="gtc-body">
-            <div class="gtc-row"><span class="gtc-k">Languages</span><span class="gtc-v" id="ghCard-${p.id}-languages">View repository</span></div>
-            <div class="gtc-row"><span class="gtc-k">Commits</span><span class="gtc-v" id="ghCard-${p.id}-commits">View repository</span></div>
-            <div class="gtc-row gtc-hoverable" tabindex="0" aria-describedby="ghCard-${p.id}-tooltip">
-              <span class="gtc-k">Collaborators</span>
-              <span class="gtc-v" id="ghCard-${p.id}-contributors">View repository</span>
-            </div>
-            <div class="gtc-row"><span class="gtc-k">Last Updated</span><span class="gtc-v" id="ghCard-${p.id}-updated">View repository</span></div>
+            <a class="gtc-row gtc-repo-action" href="https://github.com/${p.githubCard}" target="_blank" rel="noopener noreferrer">
+              <span class="gtc-k">Repository</span>
+              <span class="gtc-v">Open on GitHub <span aria-hidden="true">↗</span></span>
+            </a>
           </div>
         </div>` : '';
     }
