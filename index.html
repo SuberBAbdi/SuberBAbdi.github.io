@@ -1047,18 +1047,25 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       // Same 2D pan/zoom viewer as the schematic, but with multiple aligned
       // KiCad layer plots stacked on top of each other - `layers` gives a
       // toggle checklist (see renderLayer2DDropdown/toggle2DLayer) so each
-      // copper/mask/silkscreen/outline layer can be shown or hidden
+      // copper/mask/silkscreen/fab/outline layer can be shown or hidden
       // independently, same idea as the 3D viewer's body-layer dropdown.
-      // Files live in the repo's `temp./` folder.
+      // Files live in the repo's `temp/` folder and were re-plotted with
+      // colour on (not "force black and white"), matching KiCad's own
+      // in-editor layer colours. Paste/Adhesive/Courtyard/Margin/User.*
+      // layers exist in the repo too but are left out of this list since
+      // they're normally empty/not meaningful to a general viewer - add
+      // more entries here the same way if that ever changes.
       pcbLayoutImage: {
         layers: [
-          { id: 'f-cu', name: 'Front Copper (F.Cu)', path: 'temp./PIC16F877A_Fixed-F_Cu.svg', visible: true },
-          { id: 'b-cu', name: 'Back Copper (B.Cu)', path: 'temp./PIC16F877A_Fixed-B_Cu.svg', visible: true },
-          { id: 'f-mask', name: 'Front Mask (F.Mask)', path: 'temp./PIC16F877A_Fixed-F_Mask.svg', visible: false },
-          { id: 'b-mask', name: 'Back Mask (B.Mask)', path: 'temp./PIC16F877A_Fixed-B_Mask.svg', visible: false },
-          { id: 'f-silkscreen', name: 'Front Silkscreen (F.Silkscreen)', path: 'temp./PIC16F877A_Fixed-F_Silkscreen.svg', visible: true },
-          { id: 'b-silkscreen', name: 'Back Silkscreen (B.Silkscreen)', path: 'temp./PIC16F877A_Fixed-B_Silkscreen.svg', visible: false },
-          { id: 'edge-cuts', name: 'Board Outline (Edge.Cuts)', path: 'temp./PIC16F877A_Fixed-Edge_Cuts.svg', visible: true }
+          { id: 'f-cu', name: 'Front Copper (F.Cu)', path: 'temp/PIC16F877A_Fixed-F_Cu.svg', visible: true },
+          { id: 'b-cu', name: 'Back Copper (B.Cu)', path: 'temp/PIC16F877A_Fixed-B_Cu.svg', visible: true },
+          { id: 'f-silkscreen', name: 'Front Silkscreen (F.Silkscreen)', path: 'temp/PIC16F877A_Fixed-F_Silkscreen.svg', visible: true },
+          { id: 'b-silkscreen', name: 'Back Silkscreen (B.Silkscreen)', path: 'temp/PIC16F877A_Fixed-B_Silkscreen.svg', visible: false },
+          { id: 'f-mask', name: 'Front Mask (F.Mask)', path: 'temp/PIC16F877A_Fixed-F_Mask.svg', visible: false },
+          { id: 'b-mask', name: 'Back Mask (B.Mask)', path: 'temp/PIC16F877A_Fixed-B_Mask.svg', visible: false },
+          { id: 'f-fab', name: 'Front Fabrication (F.Fab)', path: 'temp/PIC16F877A_Fixed-F_Fab.svg', visible: false },
+          { id: 'b-fab', name: 'Back Fabrication (B.Fab)', path: 'temp/PIC16F877A_Fixed-B_Fab.svg', visible: false },
+          { id: 'edge-cuts', name: 'Board Outline (Edge.Cuts)', path: 'temp/PIC16F877A_Fixed-Edge_Cuts.svg', visible: true }
         ]
       },
 
@@ -3008,7 +3015,10 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
               </button>
             </div>
           </div>
-          <div id="pcbLayoutViewerContainer" class="relative w-full h-[28rem] border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing" style="background:#f3f3f2;"></div>
+          <!-- Dark background (rather than the light Fusion-360-style used
+               for the 3D viewers) so the colour layer plots read the same
+               way they do inside KiCad's own dark-theme editor. -->
+          <div id="pcbLayoutViewerContainer" class="relative w-full h-[28rem] border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing" style="background:#0c0c0d;"></div>
           <p class="font-mono text-[10px] text-faint mt-2">Click and drag to pan · Scroll to zoom${hasLayerToggle ? ' · Toggle layers with the layers icon above' : ''}</p>
         </div>
       `;
