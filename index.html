@@ -551,6 +551,53 @@
   .ls-pct{ font-size:11px; color:#a3a3a8; font-variant-numeric:tabular-nums; }
   .ls-dot{ width:5px; height:5px; border-radius:50%; background:#a3a3a8; flex-shrink:0; animation:hwBlink 1.2s steps(1) infinite; }
 
+
+
+  /* ===== Responsive column order / mobile identity =====
+     Desktop keeps the original three-column layout: profile | feed | modules.
+     Smaller screens intentionally change the reading order so the main portfolio
+     content is reached first, while the Suber Abdi identity line remains visible. */
+  @media (max-width: 1023px){
+    #centerColumn{order:1; min-width:0; width:100%;}
+    #leftSidebar{order:2; min-width:0; width:100%; padding-top:0;}
+    #rightSidebar{order:3; min-width:0; width:100%;}
+    #leftSidebar::before{
+      content:'SUBER ABDI  ·  SOFTWARE & ELECTRONICS';
+      display:block;
+      width:100%;
+      box-sizing:border-box;
+      margin:0 0 1.25rem;
+      padding:9px 10px;
+      border-top:1px solid #27272a;
+      border-bottom:1px solid #27272a;
+      background:#0f0f11;
+      color:#a3a3a8;
+      font-family:'JetBrains Mono', monospace;
+      font-size:10px;
+      line-height:1.4;
+      letter-spacing:.08em;
+      text-transform:uppercase;
+    }
+    #leftCollapsedIndicator{display:none !important;}
+  }
+
+  @media (max-width: 639px){
+    .max-w-\[1400px\]{padding-left:12px !important; padding-right:12px !important;}
+    #feedView{padding-top:0 !important;}
+    #centerColumn,
+    #leftSidebar,
+    #rightSidebar{gap:0;}
+    #centerColumn > *, #leftSidebar > *, #rightSidebar > *{max-width:100%;}
+    .project-detail-gh-slot{position:relative !important; top:auto !important; right:auto !important; width:100% !important; margin-top:12px;}
+    .project-detail-title-wrap{max-width:100% !important;}
+  }
+
+  @media (min-width: 1024px){
+    #leftSidebar{order:1;}
+    #centerColumn{order:2;}
+    #rightSidebar{order:3;}
+    #leftSidebar::before{content:none;}
+  }
 </style>
 </head>
 <body class="text-[#e6e6e4] antialiased min-h-screen flex flex-col justify-between">
