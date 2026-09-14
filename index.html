@@ -327,6 +327,30 @@
     object-fit:cover; background:#141416; flex-shrink:0;
   }
 
+  /* ===== "Click to interact" overlay (see addClickToInteractOverlay) =====
+     Sits on top of 3D viewers and 2D pan/zoom viewers so their own drag/
+     wheel/touch listeners never see an event until the person deliberately
+     clicks to "activate" them - this is what stops those elements from
+     hijacking normal page scroll. Deliberately has NO wheel/touchmove
+     listeners of its own, so scrolling over an inactive element behaves
+     exactly like scrolling over plain page content. */
+  .click-to-interact-overlay{
+    position:absolute; inset:0; z-index:45;
+    display:flex; align-items:center; justify-content:center;
+    background:rgba(12,12,13,.32);
+    cursor:pointer;
+    transition:opacity .15s ease;
+  }
+  .click-to-interact-overlay .ctio-label{
+    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.06em;
+    text-transform:uppercase; color:#f1f1ef; background:rgba(12,12,13,.8);
+    border:1px solid #3a3a3e; padding:8px 14px; border-radius:4px;
+    pointer-events:none; display:flex; align-items:center; gap:7px;
+  }
+  /* .ctio-active = this viewer has been clicked into an interactive state -
+     overlay disappears and stops intercepting events entirely. */
+  .click-to-interact-overlay.ctio-active{ opacity:0; pointer-events:none; }
+
   /* ===== Boot / loading screen ===== */
   html.is-loading, html.is-loading body{ overflow:hidden; height:100%; }
   #loadScreen{
@@ -712,7 +736,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 
         <p class="text-sm text-dim mt-3 leading-snug">
           <span class="text-faint block font-mono text-[10px] uppercase tracking-widest mb-1">Dissertation</span>
-          <span class="text-white font-medium cursor-pointer hover:underline transition-colors" onclick="openProject('harvester'); return false;">Analysis and Design of Wireless Energy Harvesters for IoT Applications</span>
+          <span class="text-white font-medium cursor-pointer hover:underline transition-colors" onclick="openProject('harvester'); return false;" title="The concept and implementation of efficient wireless energy harvesters for IoT and sub-6GHz 5G applications. The analysis, design, and simulation, as well as the possible implementation and testing of a wireless energy harvester including one antenna filter at 3.6 GHz.">Analysis and Design of Wireless Energy Harvesters for IoT Applications</span>
         </p>
       </div>
 
@@ -1186,7 +1210,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
                   <div style="display:table-cell; vertical-align:top;">
                     <h4 class="font-display font-semibold text-white text-base sm:text-lg">${e.role}</h4>
                   </div>
-                  <div style="display:table-cell; vertical-align:top; white-space:nowrap; text-align:right; padding-left:12px;">
+                  <div style="display:table-cell; vertical-align:bottom; white-space:nowrap; text-align:right; padding-left:12px;">
                     <span class="font-mono text-xs text-faint uppercase">${e.dates}</span>
                   </div>
                 </div>
@@ -1194,7 +1218,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
                   <div style="display:table-cell; vertical-align:top;">
                     <p class="font-mono text-xs text-dim uppercase tracking-wide mt-0.5">${e.company} · ${e.location}</p>
                   </div>
-                  <div style="display:table-cell; vertical-align:top; white-space:nowrap; text-align:right; padding-left:12px;">
+                  <div style="display:table-cell; vertical-align:bottom; white-space:nowrap; text-align:right; padding-left:12px;">
                     <span class="font-mono text-xs text-faint mt-0.5">${dur}</span>
                   </div>
                 </div>
@@ -1220,7 +1244,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
                 <span style="display:table-cell; vertical-align:top;">
                   <h4 class="font-display font-semibold text-white text-base sm:text-lg transition-colors">${e.role}</h4>
                 </span>
-                <span style="display:table-cell; vertical-align:top; white-space:nowrap; text-align:right; padding-left:12px;">
+                <span style="display:table-cell; vertical-align:bottom; white-space:nowrap; text-align:right; padding-left:12px;">
                   <span class="font-mono text-xs text-faint uppercase">${e.dates}</span>
                 </span>
               </span>
@@ -1231,7 +1255,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
                     <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-faint transition-transform shrink-0" id="exp-chevron-${e.id}"></i>
                   </p>
                 </span>
-                <span style="display:table-cell; vertical-align:top; white-space:nowrap; text-align:right; padding-left:12px;">
+                <span style="display:table-cell; vertical-align:bottom; white-space:nowrap; text-align:right; padding-left:12px;">
                   <span class="font-mono text-xs text-faint mt-0.5">${dur}</span>
                 </span>
               </span>
@@ -2455,6 +2479,66 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     if (view2DResets[containerId]) view2DResets[containerId]();
   }
 
+  // ===== "Click to interact" overlay system =====
+  // Reusable across ANY interactive viewer (3D canvases, 2D pan/zoom
+  // viewers, and anything similar added later) - it doesn't touch the
+  // viewer's own init code at all, it just layers a transparent "shield" on
+  // top that intercepts clicks/touches by default so the page can be
+  // scrolled normally over it. Call this once, right after the viewer's own
+  // init function has finished setting up its listeners on `containerId`.
+  //
+  //   addClickToInteractOverlay('stlViewerContainer', 'Click to Interact');
+  //
+  // Behaviour:
+  //   1. By default the overlay sits on top and swallows clicks/taps, but
+  //      has NO wheel/touchmove listeners of its own - so mouse-wheel and
+  //      touch-scroll gestures pass straight through to the page exactly as
+  //      if the viewer wasn't there.
+  //   2. Clicking the overlay hides it (and disables its own pointer
+  //      events), letting clicks/drags/wheel reach the real viewer beneath
+  //      directly - at that point it behaves like a normal 3D/2D control.
+  //   3. Clicking anywhere outside the currently-active viewer deactivates
+  //      it again, restoring the "click to interact" shield.
+  let activeInteractiveOverlay = null; // the currently-active overlay element, if any
+
+  function addClickToInteractOverlay(containerId, label) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+
+    // Guard against double-adding if this is ever called twice for the
+    // same freshly-rebuilt container.
+    const existing = container.querySelector('.click-to-interact-overlay');
+    if (existing) existing.remove();
+
+    const overlay = document.createElement('div');
+    overlay.className = 'click-to-interact-overlay';
+    overlay.innerHTML = `<span class="ctio-label"><i data-lucide="mouse-pointer-click" class="w-3.5 h-3.5"></i>${label || 'Click to interact'}</span>`;
+    container.appendChild(overlay);
+
+    overlay.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (activeInteractiveOverlay && activeInteractiveOverlay !== overlay) {
+        activeInteractiveOverlay.classList.remove('ctio-active');
+      }
+      overlay.classList.add('ctio-active');
+      activeInteractiveOverlay = overlay;
+    });
+
+    lucide.createIcons();
+  }
+
+  // Clicking outside whichever viewer is currently active deactivates it -
+  // re-shows its "click to interact" shield and stops it capturing further
+  // drag/wheel input until clicked again.
+  document.addEventListener('click', (e) => {
+    if (!activeInteractiveOverlay) return;
+    const container = activeInteractiveOverlay.parentElement;
+    if (!container || !container.contains(e.target)) {
+      activeInteractiveOverlay.classList.remove('ctio-active');
+      activeInteractiveOverlay = null;
+    }
+  });
+
   function openProject(id) {
     const p = projects.find(x => x.id === id);
     if (!p) return;
@@ -2468,6 +2552,9 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     });
     viewer3DInstances = {};
     view2DResets = {};
+    // The old viewer containers are about to be rebuilt/replaced, so any
+    // reference to a previous project's active overlay would be stale.
+    activeInteractiveOverlay = null;
 
     let extraAssets = '';
 
@@ -2763,16 +2850,19 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     if (p.has3DModel) {
       setTimeout(() => {
         init3DViewer('stlViewerContainer', p.stlBodies || []);
+        addClickToInteractOverlay('stlViewerContainer', 'Click to Interact');
       }, 50);
     }
     if (p.kicadSchematic) {
       setTimeout(() => {
         init2DViewer('kicadViewerContainer', p.kicadSchematic.path);
+        addClickToInteractOverlay('kicadViewerContainer', 'Click to Pan / Zoom');
       }, 50);
     }
     if (p.pcbLayoutImage) {
       setTimeout(() => {
         init2DViewer('pcbLayoutViewerContainer', p.pcbLayoutImage.path);
+        addClickToInteractOverlay('pcbLayoutViewerContainer', 'Click to Pan / Zoom');
       }, 50);
     }
     if (p.pcbModel) {
@@ -2780,6 +2870,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         init3DViewer('pcbViewerContainer', [
           { id: 'pcb-solo', name: p.pcbModel.label || 'PCB', path: p.pcbModel.path, visible: true }
         ]);
+        addClickToInteractOverlay('pcbViewerContainer', 'Click to Interact');
       }, 50);
     }
 
@@ -2976,7 +3067,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 <!-- ================= MODAL SHELL ================= -->
 <div id="modalOverlay" class="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
   <div class="modal-panel modal-lg" id="modalPanel">
-    <div class="modal-head">
+    <div class="modal-head" id="modalHead">
       <!-- modalLogoImg: optional company/institution logo shown to the left
            of the title (see the `logo` field on CATEGORY_DATA entries and
            handleLogoError for the placeholder fallback). Hidden by default;
@@ -3013,10 +3104,8 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 // new one creates its own heading) - renderFollowingBody() below handles
 // the rest.
 const FOLLOWING_COMPANIES = [
-  { group: 'University & Industry', name: 'Westminster SU', url: 'https://www.linkedin.com/company/westminstersu/', logo: 'Logos/westminster_students_union_logo.jpg' },
-  { group: 'University & Industry', name: 'Honeywell', url: 'https://www.linkedin.com/company/honeywell/posts/?feedView=all', logo: 'Logos/honeywell_logo.jpg' },
-
   { group: 'Defence & Aerospace', name: 'Leonardo UK', url: 'https://www.linkedin.com/company/leonardo-electronics/', logo: 'Logos/leonardo_logo.jpg' },
+  { group: 'Defence & Aerospace', name: 'Honeywell', url: 'https://www.linkedin.com/company/honeywell/posts/?feedView=all', logo: 'Logos/honeywell_logo.jpg' },
   { group: 'Defence & Aerospace', name: 'BAE Systems', url: 'https://www.linkedin.com/company/bae-systems/', logo: 'Logos/bae_systems_logo.jpg' },
   { group: 'Defence & Aerospace', name: 'Thales UK', url: 'https://www.linkedin.com/company/thales/', logo: 'Logos/thales_logo.jpg' },
   { group: 'Defence & Aerospace', name: 'MBDA UK', url: 'https://www.linkedin.com/company/mbda/', logo: 'Logos/mbda_logo.jpg' },
@@ -3049,9 +3138,13 @@ const FOLLOWING_COMPANIES = [
   { group: 'FPGA-Focused & Consultancy', name: 'Achronix', url: 'https://www.linkedin.com/company/achronix-semiconductor-corporation/', logo: 'Logos/achronix_logo.jpg' }
 ];
 
-// Renders FOLLOWING_COMPANIES as sector-grouped lists with a logo + link
-// per company - groups appear in first-seen order, matching the pattern
-// used for grouped certifications (see renderCategoryTOC).
+// Renders FOLLOWING_COMPANIES as sector-grouped, COLLAPSIBLE lists (each a
+// <details>/<summary> pair, same accordion pattern as the "Key Modules"
+// modal) - a small ">" chevron sits to the LEFT of each heading and rotates
+// 90° when open via Tailwind's group-open: variant. All groups start open
+// (the `open` attribute below) so everything is visible on first view;
+// clicking a heading collapses just that section. Groups appear in
+// first-seen order.
 function renderFollowingBody() {
   const groups = [];
   FOLLOWING_COMPANIES.forEach(c => {
@@ -3059,10 +3152,13 @@ function renderFollowingBody() {
     if (!bucket) { bucket = { name: c.group, items: [] }; groups.push(bucket); }
     bucket.items.push(c);
   });
-  return groups.map(g => `
-    <div class="modal-section">
-      <div class="modal-label">${g.name}</div>
-      <ul class="flex flex-col divide-y divide-lineSoft border-t border-b border-lineSoft">
+  return `<div class="modal-section space-y-2">` + groups.map(g => `
+    <details class="group border border-line rounded-sm bg-panel open:bg-[#161618] transition-colors [&_summary::-webkit-details-marker]:hidden" open>
+      <summary class="cursor-pointer outline-none list-none flex items-center gap-2 px-3 py-2.5 font-display font-semibold text-sm text-white">
+        <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-dim shrink-0 transition-transform group-open:rotate-90"></i>
+        ${g.name}
+      </summary>
+      <ul class="flex flex-col divide-y divide-lineSoft border-t border-lineSoft px-3">
         ${g.items.map(c => `
           <li class="flex items-center gap-3 py-2.5">
             <img src="${c.logo}" alt="" onerror="handleLogoError(this)" class="w-7 h-7 rounded-sm border border-line object-cover shrink-0 bg-[#141416]">
@@ -3070,8 +3166,8 @@ function renderFollowingBody() {
           </li>
         `).join('')}
       </ul>
-    </div>
-  `).join('');
+    </details>
+  `).join('') + `</div>`;
 }
 
 const CATEGORY_DATA = {
@@ -3188,7 +3284,10 @@ const CATEGORY_DATA = {
       // once confirmed - duration is computed automatically from them.
       title: `<a href="https://raeng.org.uk/" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-4">GEEP Graduate Programme ↗</a><span class="text-dim text-sm font-normal block mt-1">Sep 2025 - Jul 2026 · ${durationLabel('Sep 2025', 'Jul 2026')}</span>`,
       slides: [
-        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GEEP_Certificate.jpg', cap: '1. GEEP Completion Certificate' },
+        // Index 3 = the GEEP entry in CATEGORY_DATA.certifications above -
+        // update the showCategoryDetail() call below if that array's order
+        // ever changes.
+        { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GEEP_Certificate.jpg', cap: '1. GEEP Completion Certificate · <button onclick="showCategoryDetail(&#39;certifications&#39;, 3)" class="hover:text-white transition-colors underline decoration-faint underline-offset-4">View certification details ↗</button>' },
         { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GEEP_London_Gathering_EoY_2026.jpg', cap: '2. GEEP London Gathering EoY 2026' },
         { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_001.jpg', cap: '3. GXO Logistics Trip 1' },
         { src: 'https://SuberBAbdi.github.io/GEEP%20Documents/GXO_Trip_002.jpg', cap: '4. GXO Logistics Trip 2' },
@@ -3214,12 +3313,6 @@ const CATEGORY_DATA = {
             <li>Full assessment centre simulations, including group exercises and presentations.</li>
             <li>Industry mentoring - matched with <a href="https://www.linkedin.com/in/matthew-kingham-9059a081/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base%3BhbmdhNLhTima1YsNmyUtcQ%3D%3D" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-2">Matthew Kingham</a> (Johnson Matthey).</li>
           </ul>
-        </div>
-
-        <div class="modal-section">
-          <!-- Index 3 = the GEEP entry in CATEGORY_DATA.certifications above -
-               update this if that array's order ever changes. -->
-          <button onclick="showCategoryDetail('certifications', 3)" class="text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">View certification details ↗</button>
         </div>
         {{CAROUSEL}}
       `
@@ -3536,6 +3629,9 @@ function renderCategoryTOCView(categoryKey) {
   setModalLogo(null);
   document.getElementById('modalBody').innerHTML = renderCategoryTOC(categoryKey);
   document.getElementById('modalPanel').className = 'modal-panel modal-md';
+  // No divider under the header on this list/TOC view - it reads as one
+  // continuous panel rather than a header stacked on top of a boxed list.
+  document.getElementById('modalHead').style.borderBottom = 'none';
   lucide.createIcons();
 }
 
@@ -3580,6 +3676,7 @@ function renderCategoryModalItem() {
   document.getElementById('modalEyebrow').textContent = m.eyebrow;
   document.getElementById('modalTitle').innerHTML = m.title;
   setModalLogo(m.logo);
+  document.getElementById('modalHead').style.borderBottom = ''; // restore default (see renderCategoryTOCView)
 
   let bodyHTML = m.body;
   const carouselPrefix = 'modal-' + currentCategoryKey + '-' + currentCategoryIndex;
@@ -3643,6 +3740,7 @@ function openModal(id) {
   currentCategoryKey = null;
   document.getElementById('modalCategoryNav').classList.add('hidden');
   setModalLogo(null);
+  document.getElementById('modalHead').style.borderBottom = ''; // restore default (see renderCategoryTOCView)
 
   document.getElementById('modalEyebrow').textContent = m.eyebrow;
   document.getElementById('modalTitle').innerHTML = m.title;
