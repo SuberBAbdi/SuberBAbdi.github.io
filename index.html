@@ -553,32 +553,44 @@
 
 
 
-  /* ===== Responsive column order / mobile identity =====
-     Desktop keeps the original three-column layout: profile | feed | modules.
-     Smaller screens intentionally change the reading order so the main portfolio
-     content is reached first, while the Suber Abdi identity line remains visible. */
+  /* ===== Responsive CV layout / mobile sidebar controls =====
+     Desktop keeps the original three-column layout.
+     Smaller screens use a CV-style reading order: profile/identity -> projects -> supporting modules. */
   @media (max-width: 1023px){
-    #centerColumn{order:1; min-width:0; width:100%;}
-    #leftSidebar{order:2; min-width:0; width:100%; padding-top:0;}
+    #leftSidebar{order:1; min-width:0; width:100%; padding-top:0;}
+    #centerColumn{order:2; min-width:0; width:100%;}
     #rightSidebar{order:3; min-width:0; width:100%;}
-    #leftSidebar::before{
-      content:'SUBER ABDI  ·  SOFTWARE & ELECTRONICS';
-      display:block;
-      width:100%;
-      box-sizing:border-box;
-      margin:0 0 1.25rem;
-      padding:9px 10px;
-      border-top:1px solid #27272a;
-      border-bottom:1px solid #27272a;
-      background:#0f0f11;
-      color:#a3a3a8;
-      font-family:'JetBrains Mono', monospace;
-      font-size:10px;
-      line-height:1.4;
-      letter-spacing:.08em;
-      text-transform:uppercase;
+
+    /* Reuse the existing sidebar controls: toggle first, identity directly below. */
+    #leftToggleBtn{
+      position:relative !important;
+      top:auto !important;
+      right:auto !important;
+      margin:0 0 8px auto;
+      display:flex;
+      width:max-content;
     }
-    #leftCollapsedIndicator{display:none !important;}
+    #leftCollapsedIndicator{
+      position:relative !important;
+      inset:auto !important;
+      display:flex !important;
+      width:100%;
+      padding:0 !important;
+      margin:0 0 18px;
+      flex-direction:row !important;
+      justify-content:flex-end;
+      align-items:center;
+      gap:0 !important;
+    }
+    #leftCollapsedIndicator span{
+      writing-mode:horizontal-tb !important;
+      white-space:normal;
+      text-align:right;
+      font-size:10px;
+      line-height:1.35;
+      letter-spacing:.08em;
+    }
+    #leftProfileContent{margin-top:0 !important;}
   }
 
   @media (max-width: 639px){
@@ -596,8 +608,10 @@
     #leftSidebar{order:1;}
     #centerColumn{order:2;}
     #rightSidebar{order:3;}
-    #leftSidebar::before{content:none;}
+    #leftToggleBtn{position:absolute !important; top:1rem !important; right:0 !important; margin:0;}
+    #leftCollapsedIndicator{position:absolute !important; top:3.5rem !important; inset-inline:0 !important;}
   }
+
 </style>
 </head>
 <body class="text-[#e6e6e4] antialiased min-h-screen flex flex-col justify-between">
