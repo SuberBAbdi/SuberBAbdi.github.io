@@ -357,8 +357,9 @@
   .github-terminal-card{
     font-family:'JetBrains Mono', monospace;
     width:min(100%, 330px);
-    flex:0 0 330px;
-    position:relative;
+    position:absolute;
+    top:0; right:0;
+    z-index:20;
   }
   .github-terminal-card .gtc-head{
     display:flex; align-items:center; gap:8px; padding:9px 12px;
@@ -400,7 +401,7 @@
   .github-terminal-card .gtc-tooltip li a:hover{ color:#fff; }
   .github-terminal-card .gtc-error{ color:#68686d; font-style:italic; }
   @media (max-width:767px){
-    .github-terminal-card{ width:100%; flex-basis:100%; }
+    .github-terminal-card{ width:min(100%, 330px); top:0; right:0; }
   }
 
   /* ===== Boot / loading screen ===== */
@@ -2619,6 +2620,8 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     const field = (suffix) => root.querySelector('#' + CSS.escape(containerId + '-' + suffix));
     const apiBase = `https://api.github.com/repos/${repoSlug}`;
     const headers = { Accept: 'application/vnd.github+json' };
+    const cacheKey = `github-card:${repoSlug}`;
+    const cacheTTL = 10 * 60 * 1000;
 
     function relativeTime(iso) {
       const time = new Date(iso).getTime();
@@ -2637,17 +2640,44 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       return `${years} year${years === 1 ? '' : 's'} ago`;
     }
 
-    function markFailed(el, message = 'Rate limited') {
+    function escapeHtml(value) {
+      return String(value ?? '').replace(/[&<>"']/g, ch => ({
+        '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
+      }[ch]));
+    }
+
+    function setValue(el, value, isError = false) {
       if (!el) return;
-      el.textContent = message;
-      el.classList.add('gtc-error');
+      el.textContent = value;
+      el.classList.toggle('gtc-error', isError);
+    }
+
+    function errorText(error) {
+      if (error?.status === 403 || error?.status === 429) return 'Rate limited — cached data used when available';
+      if (error?.status === 404) return 'Repo not found';
+      return 'Unavailable';
+    }
+
+    function readCache() {
+      try {
+        const raw = localStorage.getItem(cacheKey);
+        if (!raw) return null;
+        const data = JSON.parse(raw);
+        if (!data || !data.savedAt || Date.now() - data.savedAt > cacheTTL) return null;
+        return data;
+      } catch (_) { return null; }
+    }
+
+    function writeCache(data) {
+      try { localStorage.setItem(cacheKey, JSON.stringify({ ...data, savedAt: Date.now() })); } catch (_) {}
     }
 
     async function githubFetch(url) {
-      const res = await fetch(url, { headers });
+      const res = await fetch(url, { headers, cache: 'no-store' });
       if (!res.ok) {
-        const err = new Error(res.status === 403 || res.status === 429 ? 'rate-limited' : `GitHub API ${res.status}`);
+        const err = new Error(`GitHub API ${res.status}`);
         err.status = res.status;
+        err.remaining = res.headers.get('x-ratelimit-remaining');
         throw err;
       }
       return res;
@@ -2659,77 +2689,104 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       return match ? Number(match[1]) : null;
     }
 
-    // Repository metadata -> pushed_at / updated_at.
-    try {
-      const repo = await (await githubFetch(apiBase)).json();
-      const el = field('updated');
-      if (el) el.textContent = relativeTime(repo.pushed_at || repo.updated_at);
-    } catch (e) {
-      markFailed(field('updated'));
+    const cached = readCache();
+    if (cached) {
+      if (cached.languages) setValue(field('languages'), cached.languages);
+      if (Number.isFinite(cached.commits)) setValue(field('commits'), cached.commits.toLocaleString());
+      if (cached.updated) setValue(field('updated'), relativeTime(cached.updated));
+      if (Number.isFinite(cached.contributors)) setValue(field('contributors'), cached.contributors.toLocaleString());
     }
 
-    // Languages.
-    try {
-      const languages = await (await githubFetch(`${apiBase}/languages`)).json();
-      const names = Object.keys(languages);
-      const el = field('languages');
-      if (el) el.textContent = names.length ? names.join(', ') : 'N/A';
-    } catch (e) {
-      markFailed(field('languages'));
+    // Fetch the three cheap/always-visible stats together. This avoids the old
+    // sequential request chain and keeps contributor pagination off the initial load.
+    const visibleRequests = await Promise.allSettled([
+      githubFetch(apiBase).then(r => r.json()),
+      githubFetch(`${apiBase}/languages`).then(r => r.json()),
+      githubFetch(`${apiBase}/commits?per_page=1`).then(async r => {
+        const lastPage = lastPageFromLink(r.headers.get('Link'));
+        if (lastPage !== null) return lastPage;
+        const commits = await r.json();
+        return Array.isArray(commits) ? commits.length : null;
+      })
+    ]);
+
+    const nextCache = cached ? { ...cached } : {};
+
+    if (visibleRequests[0].status === 'fulfilled') {
+      const repo = visibleRequests[0].value;
+      nextCache.updated = repo.pushed_at || repo.updated_at;
+      setValue(field('updated'), relativeTime(nextCache.updated));
+    } else if (!cached?.updated) {
+      setValue(field('updated'), errorText(visibleRequests[0].reason), true);
     }
 
-    // Commits: GitHub exposes pagination rather than a direct total count.
-    try {
-      const res = await githubFetch(`${apiBase}/commits?per_page=1`);
-      const lastPage = lastPageFromLink(res.headers.get('Link'));
-      let total = lastPage;
-      if (total === null) {
-        const commits = await res.json();
-        total = Array.isArray(commits) ? commits.length : null;
-      }
-      const el = field('commits');
-      if (el) el.textContent = total !== null ? total.toLocaleString() : 'N/A';
-    } catch (e) {
-      markFailed(field('commits'));
+    if (visibleRequests[1].status === 'fulfilled') {
+      const names = Object.keys(visibleRequests[1].value || {});
+      nextCache.languages = names.length ? names.join(', ') : 'N/A';
+      setValue(field('languages'), nextCache.languages);
+    } else if (!cached?.languages) {
+      setValue(field('languages'), errorText(visibleRequests[1].reason), true);
     }
 
-    // Contributors: paginate through the public list so the displayed count
-    // and hover usernames reflect the complete contributor list, not just the
-    // first 30/100 results returned by GitHub.
-    try {
-      const firstRes = await githubFetch(`${apiBase}/contributors?per_page=100&page=1`);
-      const firstPage = await firstRes.json();
-      if (!Array.isArray(firstPage)) throw new Error('unexpected response');
+    if (visibleRequests[2].status === 'fulfilled' && Number.isFinite(visibleRequests[2].value)) {
+      nextCache.commits = visibleRequests[2].value;
+      setValue(field('commits'), nextCache.commits.toLocaleString());
+    } else if (!Number.isFinite(cached?.commits)) {
+      setValue(field('commits'), errorText(visibleRequests[2].reason), true);
+    }
 
-      const lastPage = lastPageFromLink(firstRes.headers.get('Link')) || 1;
-      const contributors = [...firstPage];
-      const maxPages = Math.min(lastPage, 20);
+    writeCache(nextCache);
 
-      for (let page = 2; page <= maxPages; page++) {
-        const res = await githubFetch(`${apiBase}/contributors?per_page=100&page=${page}`);
-        const pageData = await res.json();
-        if (!Array.isArray(pageData)) break;
-        contributors.push(...pageData);
-      }
+    // Contributors are fetched only when the user first hovers/focuses the row.
+    // This saves an API request on every project open and makes rate limiting much less likely.
+    const contributorRow = root.querySelector('.gtc-hoverable');
+    let contributorPromise = null;
+    async function loadContributors() {
+      if (contributorPromise) return contributorPromise;
+      contributorPromise = (async () => {
+        const countEl = field('contributors');
+        const tooltipEl = field('tooltip');
+        try {
+          const firstRes = await githubFetch(`${apiBase}/contributors?per_page=100&page=1`);
+          const firstPage = await firstRes.json();
+          if (!Array.isArray(firstPage)) throw new Error('unexpected response');
 
-      const countEl = field('contributors');
-      const tooltipEl = field('tooltip');
-      if (countEl) {
-        countEl.textContent = lastPage > 20 ? `${(contributors.length).toLocaleString()}+` : contributors.length.toLocaleString();
-      }
-      if (tooltipEl) {
-        tooltipEl.innerHTML = contributors.length
-          ? `<ul>${contributors.map(c => {
-              const login = String(c.login || 'unknown').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
-              const href = c.html_url ? String(c.html_url).replace(/"/g, '&quot;') : '#';
-              return `<li><a href="${href}" target="_blank" rel="noopener">${login}</a></li>`;
-            }).join('')}</ul>`
-          : `<span class="gtc-error">No contributors found</span>`;
-      }
-    } catch (e) {
-      markFailed(field('contributors'));
-      const tooltipEl = field('tooltip');
-      if (tooltipEl) tooltipEl.innerHTML = `<span class="gtc-error">Unavailable</span>`;
+          const lastPage = lastPageFromLink(firstRes.headers.get('Link')) || 1;
+          const contributors = [...firstPage];
+          for (let page = 2; page <= lastPage; page++) {
+            const res = await githubFetch(`${apiBase}/contributors?per_page=100&page=${page}`);
+            const pageData = await res.json();
+            if (!Array.isArray(pageData)) break;
+            contributors.push(...pageData);
+          }
+
+          setValue(countEl, contributors.length.toLocaleString());
+          if (tooltipEl) {
+            tooltipEl.innerHTML = contributors.length
+              ? `<ul>${contributors.map(c => {
+                  const login = escapeHtml(c.login || 'unknown');
+                  const href = escapeHtml(c.html_url || '#');
+                  return `<li><a href="${href}" target="_blank" rel="noopener">${login}</a></li>`;
+                }).join('')}</ul>`
+              : `<span class="gtc-error">No contributors found</span>`;
+          }
+          writeCache({ ...nextCache, contributors: contributors.length });
+        } catch (e) {
+          if (Number.isFinite(cached?.contributors)) {
+            setValue(countEl, cached.contributors.toLocaleString());
+            if (tooltipEl) tooltipEl.innerHTML = `<span class="gtc-error">Contributor names unavailable right now</span>`;
+          } else {
+            setValue(countEl, errorText(e), true);
+            if (tooltipEl) tooltipEl.innerHTML = `<span class="gtc-error">${escapeHtml(errorText(e))}</span>`;
+          }
+        }
+      })();
+      return contributorPromise;
+    }
+
+    if (contributorRow) {
+      contributorRow.addEventListener('mouseenter', loadContributors, { once: true });
+      contributorRow.addEventListener('focusin', loadContributors, { once: true });
     }
   }
 
@@ -2974,10 +3031,11 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 
     detailContent.innerHTML = `
       <p class="font-mono text-xs text-faint uppercase tracking-wider">${p.status}</p>
-      <!-- Live GitHub repository card replaces the old plain GitHub button and
-           stays pinned to the top-right of the project detail header. -->
-      <div class="flex items-start justify-between gap-5 mt-2 flex-wrap">
-        <h3 class="font-display font-extrabold text-3xl sm:text-4xl text-white leading-[1.05] min-w-0 flex-1">${p.title}</h3>
+      <!-- Live GitHub repository card replaces the old plain GitHub button.
+           It is absolutely positioned so it never changes the vertical flow of
+           the project page or pushes the tags/overview/content downward. -->
+      <div class="relative mt-2">
+        <h3 class="font-display font-extrabold text-3xl sm:text-4xl text-white leading-[1.05] min-w-0 pr-0">${p.title}</h3>
         ${p.githubCard ? `
         <div class="github-terminal-card" id="ghCard-${p.id}" aria-label="Live GitHub repository statistics">
           <div class="gtc-head">
