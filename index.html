@@ -388,17 +388,63 @@
   .github-terminal-card .gtc-v{ color:#f1f1ef; text-align:right; overflow-wrap:anywhere; }
   .github-terminal-card .gtc-hoverable{ cursor:help; }
   .github-terminal-card .gtc-tooltip{
-    display:none; position:absolute; right:0; top:calc(100% + 5px);
-    background:#0f0f11; border:1px solid #27272a; border-radius:4px;
-    padding:8px 10px; min-width:170px; max-width:260px; max-height:190px;
-    overflow-y:auto; z-index:80; box-shadow:0 8px 24px rgba(0,0,0,.5);
+    display:none; position:absolute; right:0; top:calc(100% + 7px);
+    width:290px; max-width:min(290px, calc(100vw - 32px)); max-height:300px;
+    background:#0f0f11; border:1px solid #303035; border-radius:6px;
+    padding:10px; overflow-y:auto; z-index:80;
+    box-shadow:0 14px 38px rgba(0,0,0,.62);
   }
   .github-terminal-card .gtc-hoverable:hover .gtc-tooltip,
   .github-terminal-card .gtc-hoverable:focus-within .gtc-tooltip{ display:block; }
-  .github-terminal-card .gtc-tooltip ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px; }
-  .github-terminal-card .gtc-tooltip li{ font-size:10px; color:#a3a3a8; text-align:left; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
-  .github-terminal-card .gtc-tooltip li a{ color:#a3a3a8; text-decoration:none; }
-  .github-terminal-card .gtc-tooltip li a:hover{ color:#fff; }
+  .github-terminal-card .gtc-tooltip-head{
+    display:flex; align-items:center; justify-content:space-between; gap:10px;
+    padding:0 2px 8px; margin-bottom:7px; border-bottom:1px solid #222226;
+  }
+  .github-terminal-card .gtc-tooltip-title{
+    color:#f1f1ef; font-size:10px; font-weight:700; text-transform:uppercase;
+    letter-spacing:.07em;
+  }
+  .github-terminal-card .gtc-tooltip-count{ color:#68686d; font-size:9px; }
+  .github-terminal-card .gtc-tooltip ul{
+    list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:5px;
+  }
+  .github-terminal-card .gtc-tooltip li{ margin:0; padding:0; }
+  .github-terminal-card .gtc-contributor{
+    display:flex; align-items:center; gap:9px; padding:5px 6px; border-radius:4px;
+    text-decoration:none; transition:background .15s ease; min-width:0;
+  }
+  .github-terminal-card .gtc-contributor:hover{ background:#18181b; }
+  .github-terminal-card .gtc-avatar{
+    width:25px; height:25px; border-radius:50%; flex-shrink:0; border:1px solid #303035;
+    background:#18181b; object-fit:cover;
+  }
+  .github-terminal-card .gtc-contributor-main{
+    display:flex; align-items:center; justify-content:space-between; gap:10px; min-width:0; width:100%;
+  }
+  .github-terminal-card .gtc-login{
+    color:#d4d4d8; font-size:10px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .github-terminal-card .gtc-contributions{
+    color:#68686d; font-size:9px; flex-shrink:0;
+  }
+  .github-terminal-card .gtc-tooltip-note{
+    display:flex; justify-content:flex-end; padding:5px 1px 0;
+  }
+  .github-terminal-card .gtc-info{
+    display:inline-flex; align-items:center; justify-content:center; width:16px; height:16px;
+    border:1px solid #303035; border-radius:50%; color:#68686d; font-size:9px;
+    line-height:1; cursor:help; transition:all .15s ease;
+  }
+  .github-terminal-card .gtc-info:hover,
+  .github-terminal-card .gtc-info:focus{ color:#f1f1ef; border-color:#68686d; outline:none; }
+  .github-terminal-card .gtc-info::after{
+    content:attr(data-tooltip); position:absolute; right:8px; bottom:28px;
+    width:220px; padding:7px 9px; background:#18181b; border:1px solid #303035;
+    border-radius:4px; color:#a3a3a8; font-size:9px; line-height:1.4; text-align:left;
+    opacity:0; pointer-events:none; transform:translateY(3px); transition:opacity .15s ease, transform .15s ease;
+  }
+  .github-terminal-card .gtc-info:hover::after,
+  .github-terminal-card .gtc-info:focus::after{ opacity:1; transform:translateY(0); }
   .github-terminal-card .gtc-error{ color:#68686d; font-style:italic; }
   @media (max-width:767px){
     .github-terminal-card{ width:min(100%, 330px); top:0; right:0; }
@@ -1036,7 +1082,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       // showing languages, commit count, contributors, and last-updated
       // time pulled straight from the GitHub REST API. `github` itself is
       // left unset so the simple title-row button doesn't also render.
-      githubCard: 'SuberBAbdi/wireless_energy_harvester',
+      githubCard: 'SuberBAbdi/Wireless-Energy-Harvester',
 
       // Rendered as its own card near the bottom of the page (see the
       // `contribution` block in openProject) - update this if the project
@@ -1078,7 +1124,8 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       challenges: 'Coordinating a team codebase, tuning sensor thresholds for reliable wall-following, and iterating the maze-solving algorithm under time pressure.',
       outcome: 'Delivered a working autonomous robot as a team, from wiring through firmware to a live maze-run demo.',
       tags: ['C++', 'Mbed', '3D Printing'],
-      github: 'https://github.com/SuberBAbdi'
+      githubCard: 'SuberBAbdi/Micro-Mouse',
+      github: 'https://github.com/SuberBAbdi/Micro-Mouse'
     },
     {
       id: 'anpr',
@@ -2763,18 +2810,25 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
           setValue(countEl, contributors.length.toLocaleString());
           if (tooltipEl) {
             tooltipEl.innerHTML = contributors.length
-              ? `<ul>${contributors.map(c => {
+              ? `<div class="gtc-tooltip-head"><span class="gtc-tooltip-title">Collaborators</span><span class="gtc-tooltip-count">${contributors.length.toLocaleString()} found</span></div>
+                 <ul>${contributors.map(c => {
                   const login = escapeHtml(c.login || 'unknown');
                   const href = escapeHtml(c.html_url || '#');
-                  return `<li><a href="${href}" target="_blank" rel="noopener">${login}</a></li>`;
-                }).join('')}</ul>`
-              : `<span class="gtc-error">No contributors found</span>`;
+                  const avatar = escapeHtml(c.avatar_url || '');
+                  const contributions = Number.isFinite(c.contributions) ? c.contributions : 0;
+                  return `<li><a class="gtc-contributor" href="${href}" target="_blank" rel="noopener" title="Open ${login} on GitHub">
+                    ${avatar ? `<img class="gtc-avatar" src="${avatar}" alt="${login} avatar" loading="lazy">` : ''}
+                    <span class="gtc-contributor-main"><span class="gtc-login">@${login}</span><span class="gtc-contributions">${contributions.toLocaleString()} commit${contributions === 1 ? '' : 's'}</span></span>
+                  </a></li>`;
+                }).join('')}</ul>
+                 <div class="gtc-tooltip-note"><span class="gtc-info" tabindex="0" role="img" aria-label="Click a collaborator to open their GitHub profile" data-tooltip="Click a collaborator to open their GitHub profile.">i</span></div>`
+              : `<span class="gtc-error">No collaborators found</span>`;
           }
           writeCache({ ...nextCache, contributors: contributors.length });
         } catch (e) {
           if (Number.isFinite(cached?.contributors)) {
             setValue(countEl, cached.contributors.toLocaleString());
-            if (tooltipEl) tooltipEl.innerHTML = `<span class="gtc-error">Contributor names unavailable right now</span>`;
+            if (tooltipEl) tooltipEl.innerHTML = `<span class="gtc-error">Collaborator names unavailable right now</span>`;
           } else {
             setValue(countEl, errorText(e), true);
             if (tooltipEl) tooltipEl.innerHTML = `<span class="gtc-error">${escapeHtml(errorText(e))}</span>`;
@@ -3047,9 +3101,9 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
             <div class="gtc-row"><span class="gtc-k">Languages</span><span class="gtc-v" id="ghCard-${p.id}-languages">Loading…</span></div>
             <div class="gtc-row"><span class="gtc-k">Commits</span><span class="gtc-v" id="ghCard-${p.id}-commits">Loading…</span></div>
             <div class="gtc-row gtc-hoverable" tabindex="0" aria-describedby="ghCard-${p.id}-tooltip">
-              <span class="gtc-k">Contributors</span>
+              <span class="gtc-k">Collaborators</span>
               <span class="gtc-v" id="ghCard-${p.id}-contributors">Loading…</span>
-              <div class="gtc-tooltip" id="ghCard-${p.id}-tooltip" role="tooltip"><span class="gtc-error">Loading…</span></div>
+              <div class="gtc-tooltip" id="ghCard-${p.id}-tooltip" role="tooltip"><span class="gtc-error">Loading collaborators…</span></div>
             </div>
             <div class="gtc-row"><span class="gtc-k">Last Updated</span><span class="gtc-v" id="ghCard-${p.id}-updated">Loading…</span></div>
           </div>
