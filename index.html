@@ -3082,7 +3082,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     const apiBase = `https://api.github.com/repos/${repoSlug}`;
     const headers = { Accept: 'application/vnd.github+json' };
     const cacheKey = `github-card:${repoSlug}`;
-    const cacheTTL = 10 * 60 * 1000;
+    const cacheTTL = 24 * 60 * 60 * 1000;
 
     function relativeTime(iso) {
       const time = new Date(iso).getTime();
@@ -3113,8 +3113,10 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       el.classList.toggle('gtc-error', isError);
     }
 
-    function errorText(error) {
-      if (error?.status === 403 || error?.status === 429) return 'Rate limited — cached data used when available';
+    function errorText(error, cachedValue) {
+      if (error?.status === 403 || error?.status === 429) {
+        return cachedValue != null ? String(cachedValue) : 'Temporarily unavailable';
+      }
       if (error?.status === 404) return 'Repo not found';
       return 'Unavailable';
     }
@@ -3124,9 +3126,15 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         const raw = localStorage.getItem(cacheKey);
         if (!raw) return null;
         const data = JSON.parse(raw);
-        if (!data || !data.savedAt || Date.now() - data.savedAt > cacheTTL) return null;
+        if (!data || !data.savedAt) return null;
+        // Keep stale data available as a fallback. This prevents GitHub rate
+        // limits from replacing a previously working card with an error.
         return data;
       } catch (_) { return null; }
+    }
+
+    function isFresh(cache) {
+      return !!cache?.savedAt && Date.now() - cache.savedAt <= cacheTTL;
     }
 
     function writeCache(data) {
@@ -3158,6 +3166,11 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       if (Number.isFinite(cached.contributors)) setValue(field('contributors'), cached.contributors.toLocaleString());
     }
 
+    // A fresh cache means this project needs zero GitHub API calls. This is
+    // important because opening several projects in one session can otherwise
+    // consume GitHub's unauthenticated request quota very quickly.
+    if (isFresh(cached)) return;
+
     // Fetch the three cheap/always-visible stats together. This avoids the old
     // sequential request chain and keeps contributor pagination off the initial load.
     const visibleRequests = await Promise.allSettled([
@@ -3178,7 +3191,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       nextCache.updated = repo.pushed_at || repo.updated_at;
       setValue(field('updated'), relativeTime(nextCache.updated));
     } else if (!cached?.updated) {
-      setValue(field('updated'), errorText(visibleRequests[0].reason), true);
+      setValue(field('updated'), errorText(visibleRequests[0].reason, cached?.updated ? relativeTime(cached.updated) : null), !!cached?.updated === false);
     }
 
     if (visibleRequests[1].status === 'fulfilled') {
@@ -3186,14 +3199,14 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       nextCache.languages = names.length ? names.join(', ') : 'N/A';
       setValue(field('languages'), nextCache.languages);
     } else if (!cached?.languages) {
-      setValue(field('languages'), errorText(visibleRequests[1].reason), true);
+      setValue(field('languages'), errorText(visibleRequests[1].reason, cached?.languages), !!cached?.languages === false);
     }
 
     if (visibleRequests[2].status === 'fulfilled' && Number.isFinite(visibleRequests[2].value)) {
       nextCache.commits = visibleRequests[2].value;
       setValue(field('commits'), nextCache.commits.toLocaleString());
     } else if (!Number.isFinite(cached?.commits)) {
-      setValue(field('commits'), errorText(visibleRequests[2].reason), true);
+      setValue(field('commits'), errorText(visibleRequests[2].reason, Number.isFinite(cached?.commits) ? cached.commits.toLocaleString() : null), !Number.isFinite(cached?.commits));
     }
 
     writeCache(nextCache);
