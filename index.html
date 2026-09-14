@@ -351,6 +351,48 @@
      overlay disappears and stops intercepting events entirely. */
   .click-to-interact-overlay.ctio-active{ opacity:0; pointer-events:none; }
 
+  /* ===== GitHub "terminal card" widget (see initGithubTerminalCard) =====
+     Fully scoped under .github-terminal-card - no global element resets,
+     so this can't bleed into the rest of the site's styling. Matches the
+     site's existing terminal/monospace aesthetic (see #hwTerm etc.). */
+  .github-terminal-card{ font-family:'JetBrains Mono', monospace; }
+  .github-terminal-card .gtc-head{
+    display:flex; align-items:center; gap:8px; padding:10px 14px;
+    border-bottom:1px solid #1a1a1c; background:#0f0f11;
+  }
+  .github-terminal-card .gtc-dot{
+    width:8px; height:8px; border-radius:50%; background:#22c55e;
+    box-shadow:0 0 6px rgba(34,197,94,.7); flex-shrink:0;
+  }
+  .github-terminal-card .gtc-title{
+    font-size:11px; color:#a3a3a8; letter-spacing:.02em; flex:1; min-width:0;
+    overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+  }
+  .github-terminal-card .gtc-open-link{
+    font-size:10px; text-transform:uppercase; letter-spacing:.06em; color:#68686d;
+    text-decoration:none; border:1px solid #27272a; padding:3px 8px;
+    border-radius:3px; transition:all .15s ease; flex-shrink:0;
+  }
+  .github-terminal-card .gtc-open-link:hover{ color:#f1f1ef; border-color:#6b6b70; }
+  .github-terminal-card .gtc-body{ padding:12px 14px; display:flex; flex-direction:column; gap:9px; }
+  .github-terminal-card .gtc-row{
+    display:flex; justify-content:space-between; align-items:center;
+    gap:12px; position:relative; font-size:12.5px;
+  }
+  .github-terminal-card .gtc-k{ color:#68686d; text-transform:uppercase; letter-spacing:.04em; font-size:11px; }
+  .github-terminal-card .gtc-v{ color:#f1f1ef; text-align:right; }
+  .github-terminal-card .gtc-hoverable{ cursor:help; }
+  .github-terminal-card .gtc-tooltip{
+    display:none; position:absolute; right:0; top:100%; margin-top:6px;
+    background:#0f0f11; border:1px solid #27272a; border-radius:4px;
+    padding:8px 10px; min-width:170px; max-width:240px; max-height:180px;
+    overflow-y:auto; z-index:30; box-shadow:0 8px 24px rgba(0,0,0,.5);
+  }
+  .github-terminal-card .gtc-hoverable:hover .gtc-tooltip{ display:block; }
+  .github-terminal-card .gtc-tooltip ul{ list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:4px; }
+  .github-terminal-card .gtc-tooltip li{ font-size:11px; color:#a3a3a8; text-align:left; }
+  .github-terminal-card .gtc-error{ color:#68686d; font-style:italic; }
+
   /* ===== Boot / loading screen ===== */
   html.is-loading, html.is-loading body{ overflow:hidden; height:100%; }
   #loadScreen{
@@ -978,8 +1020,12 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       // block in openProject(). Placeholder ID below - swap once recorded.
       presentationVideoId: '1rsLRHpR1H8',
 
-      // Shown inline on the tags row, right-aligned, in openProject's title block.
-      github: 'https://github.com/SuberBAbdi/Wireless-Energy-Harvester-for-IoT',
+      // Replaces the plain GitHub link/button with a richer live-data card
+      // (see the `githubCard` block in openProject + initGithubTerminalCard)
+      // showing languages, commit count, contributors, and last-updated
+      // time pulled straight from the GitHub REST API. `github` itself is
+      // left unset so the simple title-row button doesn't also render.
+      githubCard: 'SuberBAbdi/wireless_energy_harvester',
 
       // Rendered as its own card near the bottom of the page (see the
       // `contribution` block in openProject) - update this if the project
@@ -1879,6 +1925,11 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     let dotsHTML = '';
     slides.forEach((s, i) => {
       let mediaHTML = '';
+      // alt text must be plain text - a caption can contain rich HTML (e.g.
+      // an inline button/link, see the GEEP course's first slide), and
+      // dropping that directly into an alt="..." attribute breaks the tag
+      // outright, so strip any markup down to plain text just for alt.
+      const altText = (s.cap || '').replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
       if (s.src.toLowerCase().endsWith('.pdf')) {
         // PDFs are left as-is (iframes are already lazy by nature - they only
         // fetch once their container is actually rendered/visible).
@@ -1889,9 +1940,9 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         // when the user actually navigates to them - previously all slides'
         // images fetched at once when a carousel opened, which is what made
         // multi-image sections (e.g. the GEEP course modal) feel slow to load.
-        mediaHTML = `<img src="${s.src}" alt="${s.cap || ''}" loading="eager" decoding="async">`;
+        mediaHTML = `<img src="${s.src}" alt="${altText}" loading="eager" decoding="async">`;
       } else {
-        mediaHTML = `<img data-src="${s.src}" alt="${s.cap || ''}" loading="lazy" decoding="async">`;
+        mediaHTML = `<img data-src="${s.src}" alt="${altText}" loading="lazy" decoding="async">`;
       }
       
       trackHTML += `
@@ -2529,7 +2580,10 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 
   // Clicking outside whichever viewer is currently active deactivates it -
   // re-shows its "click to interact" shield and stops it capturing further
-  // drag/wheel input until clicked again.
+  // drag/wheel input until clicked again. Deliberately click-only: an
+  // active viewer stays active indefinitely with no auto-timeout - it does
+  // NOT re-lock itself after some period of inactivity (e.g. 10s). Only an
+  // explicit click outside it should ever bring the shield back.
   document.addEventListener('click', (e) => {
     if (!activeInteractiveOverlay) return;
     const container = activeInteractiveOverlay.parentElement;
@@ -2538,6 +2592,111 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       activeInteractiveOverlay = null;
     }
   });
+
+  // ===== GitHub "terminal card" widget =====
+  // Reusable/modular: call initGithubTerminalCard(containerId, 'owner/repo')
+  // for any project that sets a `githubCard` field (see openProject) - it
+  // fills in whichever of the #<containerId>-* elements exist, so the same
+  // function works for every project's card without any per-project code.
+  // Fetches straight from the public GitHub REST API (no auth token, so
+  // subject to that API's normal unauthenticated rate limits) and degrades
+  // each stat independently to "Rate limited" if its own request fails,
+  // rather than the whole card breaking if any one call is throttled.
+  async function initGithubTerminalCard(containerId, repoSlug) {
+    const root = document.getElementById(containerId);
+    if (!root) return;
+    const field = (suffix) => document.getElementById(containerId + '-' + suffix);
+    const apiBase = `https://api.github.com/repos/${repoSlug}`;
+
+    function relativeTime(iso) {
+      const diffMs = Date.now() - new Date(iso).getTime();
+      const mins = Math.floor(diffMs / 60000);
+      if (mins < 1) return 'just now';
+      if (mins < 60) return `${mins}m ago`;
+      const hours = Math.floor(mins / 60);
+      if (hours < 24) return `${hours}h ago`;
+      const days = Math.floor(hours / 24);
+      if (days < 30) return `${days} day${days === 1 ? '' : 's'} ago`;
+      const months = Math.floor(days / 30);
+      if (months < 12) return `${months} month${months === 1 ? '' : 's'} ago`;
+      const years = Math.floor(months / 12);
+      return `${years} year${years === 1 ? '' : 's'} ago`;
+    }
+
+    function markFailed(el) {
+      if (!el) return;
+      el.textContent = 'Rate limited';
+      el.classList.add('gtc-error');
+    }
+
+    // Repo info - gives pushed_at directly, so "Last Updated" needs no
+    // separate request.
+    try {
+      const res = await fetch(apiBase);
+      if (!res.ok) throw new Error('rate-limited');
+      const repo = await res.json();
+      const el = field('updated');
+      if (el) el.textContent = relativeTime(repo.pushed_at || repo.updated_at);
+    } catch (e) {
+      markFailed(field('updated'));
+    }
+
+    // Languages.
+    try {
+      const res = await fetch(`${apiBase}/languages`);
+      if (!res.ok) throw new Error('rate-limited');
+      const langs = await res.json();
+      const names = Object.keys(langs);
+      const el = field('languages');
+      if (el) el.textContent = names.length ? names.join(', ') : 'N/A';
+    } catch (e) {
+      markFailed(field('languages'));
+    }
+
+    // Contributors - also populates the hover tooltip's username list.
+    try {
+      const res = await fetch(`${apiBase}/contributors?per_page=100`);
+      if (!res.ok) throw new Error('rate-limited');
+      const contributors = await res.json();
+      if (!Array.isArray(contributors)) throw new Error('unexpected response');
+      const countEl = field('contributors');
+      if (countEl) countEl.textContent = contributors.length;
+      const tooltipEl = field('tooltip');
+      if (tooltipEl) {
+        tooltipEl.innerHTML = contributors.length
+          ? `<ul>${contributors.map(c => `<li>${c.login}</li>`).join('')}</ul>`
+          : `<span class="gtc-error">No contributors found</span>`;
+      }
+    } catch (e) {
+      markFailed(field('contributors'));
+      const tooltipEl = field('tooltip');
+      if (tooltipEl) tooltipEl.innerHTML = `<span class="gtc-error">Unavailable</span>`;
+    }
+
+    // Commit count - the REST API has no direct "total commits" field, so
+    // this reads the last-page number out of the paginated commits
+    // endpoint's Link header (1 commit per page => last page number is the
+    // total count). Falls back to counting the single page of results if
+    // there's no Link header (i.e. the whole history fits on one page).
+    try {
+      const res = await fetch(`${apiBase}/commits?per_page=1`);
+      if (!res.ok) throw new Error('rate-limited');
+      const link = res.headers.get('Link');
+      let total = null;
+      if (link) {
+        const match = link.match(/[?&]page=(\d+)>;\s*rel="last"/);
+        if (match) total = parseInt(match[1], 10);
+      }
+      if (total === null) {
+        const commits = await res.json();
+        total = Array.isArray(commits) ? commits.length : null;
+      }
+      const el = field('commits');
+      if (el) el.textContent = total !== null ? total : 'N/A';
+    } catch (e) {
+      markFailed(field('commits'));
+    }
+  }
 
   function openProject(id) {
     const p = projects.find(x => x.id === id);
@@ -2557,6 +2716,32 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     activeInteractiveOverlay = null;
 
     let extraAssets = '';
+
+    // ---- GitHub "terminal card" (see initGithubTerminalCard) - rendered
+    // first, above the 3D model/schematics, since it's a headline stat
+    // block. Any project can opt in by setting `githubCard: 'owner/repo'`. ----
+    if (p.githubCard) {
+      const ghId = 'ghCard-' + p.id;
+      extraAssets += `
+        <div class="mt-6 border border-line bg-panel rounded-sm overflow-hidden github-terminal-card" id="${ghId}">
+          <div class="gtc-head">
+            <span class="gtc-dot"></span>
+            <span class="gtc-title">github.com/${p.githubCard}</span>
+            <a href="https://github.com/${p.githubCard}" target="_blank" rel="noopener" class="gtc-open-link">Open ↗</a>
+          </div>
+          <div class="gtc-body">
+            <div class="gtc-row"><span class="gtc-k">Languages</span><span class="gtc-v" id="${ghId}-languages">Loading…</span></div>
+            <div class="gtc-row"><span class="gtc-k">Commits</span><span class="gtc-v" id="${ghId}-commits">Loading…</span></div>
+            <div class="gtc-row gtc-hoverable">
+              <span class="gtc-k">Contributors</span>
+              <span class="gtc-v" id="${ghId}-contributors">Loading…</span>
+              <div class="gtc-tooltip" id="${ghId}-tooltip"><span class="gtc-error">Loading…</span></div>
+            </div>
+            <div class="gtc-row"><span class="gtc-k">Last Updated</span><span class="gtc-v" id="${ghId}-updated">Loading…</span></div>
+          </div>
+        </div>
+      `;
+    }
 
     if (p.has3DModel) {
       extraAssets += `
@@ -2847,6 +3032,10 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     detailView.classList.add('open');
     lucide.createIcons();
 
+    if (p.githubCard) {
+      initGithubTerminalCard('ghCard-' + p.id, p.githubCard);
+    }
+
     if (p.has3DModel) {
       setTimeout(() => {
         init3DViewer('stlViewerContainer', p.stlBodies || []);
@@ -3110,18 +3299,18 @@ const FOLLOWING_COMPANIES = [
   { group: 'Defence & Aerospace', name: 'Thales UK', url: 'https://www.linkedin.com/company/thales/', logo: 'Logos/thales_logo.jpg' },
   { group: 'Defence & Aerospace', name: 'MBDA UK', url: 'https://www.linkedin.com/company/mbda/', logo: 'Logos/mbda_logo.jpg' },
   { group: 'Defence & Aerospace', name: 'QinetiQ', url: 'https://www.linkedin.com/company/qinetiq/', logo: 'Logos/qinetiq_logo.jpg' },
-  { group: 'Defence & Aerospace', name: 'Raytheon UK', url: 'https://www.linkedin.com/company/raytheon-uk/', logo: 'Logos/raytheon_uk_logo.jpg' },
-  { group: 'Defence & Aerospace', name: 'Chemring Group', url: 'https://www.linkedin.com/company/chemring-group/', logo: 'Logos/chemring_group_logo.jpg' },
+  { group: 'Defence & Aerospace', name: 'Raytheon UK', url: 'https://www.linkedin.com/company/raytheon-uk/', logo: 'Logos/raytheon_logo.jpg' },
+  { group: 'Defence & Aerospace', name: 'Chemring Group', url: 'https://www.linkedin.com/company/chemring-group/', logo: 'Logos/chemring_group_plc_logo.jpg' },
   // Added by me - same sector/culture fit as the rest of this group.
-  { group: 'Defence & Aerospace', name: 'Elbit Systems UK', url: 'https://www.linkedin.com/company/elbit-systems-uk/', logo: 'Logos/elbit_systems_uk_logo.jpg' },
-  { group: 'Defence & Aerospace', name: 'General Dynamics UK', url: 'https://www.linkedin.com/company/general-dynamics-uk-limited/', logo: 'Logos/general_dynamics_uk_logo.jpg' },
+  { group: 'Defence & Aerospace', name: 'Elbit Systems UK', url: 'https://www.linkedin.com/company/elbit-systems-uk/', logo: 'Logos/elbitsystems_logo.jpg' },
+  { group: 'Defence & Aerospace', name: 'General Dynamics UK', url: 'https://www.linkedin.com/company/general-dynamics-uk-limited/', logo: 'Logos/general_dynamics_logo.jpg' },
 
   { group: 'Semiconductor & CPU/GPU IP', name: 'Arm', url: 'https://www.linkedin.com/company/arm/posts/?feedView=all', logo: 'Logos/arm_logo.jpg' },
-  { group: 'Semiconductor & CPU/GPU IP', name: 'Imagination Technologies', url: 'https://www.linkedin.com/company/imagination-technologies/', logo: 'Logos/imagination_technologies_logo.jpg' },
+  { group: 'Semiconductor & CPU/GPU IP', name: 'Imagination Technologies', url: 'https://www.linkedin.com/company/imagination-technologies/', logo: 'Logos/imaginationtech_logo.jpg' },
   { group: 'Semiconductor & CPU/GPU IP', name: 'AMD', url: 'https://www.linkedin.com/company/amd/', logo: 'Logos/amd_logo.jpg' },
   { group: 'Semiconductor & CPU/GPU IP', name: 'Nvidia', url: 'https://www.linkedin.com/company/nvidia/', logo: 'Logos/nvidia_logo.jpg' },
   { group: 'Semiconductor & CPU/GPU IP', name: 'Synopsys', url: 'https://www.linkedin.com/company/synopsys/', logo: 'Logos/synopsys_logo.jpg' },
-  { group: 'Semiconductor & CPU/GPU IP', name: 'Cadence Design Systems', url: 'https://www.linkedin.com/company/cadence-design-systems/', logo: 'Logos/cadence_design_systems_logo.jpg' },
+  { group: 'Semiconductor & CPU/GPU IP', name: 'Cadence Design Systems', url: 'https://www.linkedin.com/company/cadence-design-systems/', logo: 'Logos/cadence_logo.jpg' },
   { group: 'Semiconductor & CPU/GPU IP', name: 'Nordic Semiconductor', url: 'https://www.linkedin.com/company/nordic-semiconductor/', logo: 'Logos/nordic_semiconductor_logo.jpg' },
   { group: 'Semiconductor & CPU/GPU IP', name: 'STMicroelectronics', url: 'https://www.linkedin.com/company/stmicroelectronics/', logo: 'Logos/stmicroelectronics_logo.jpg' },
   // Added by me - both are directly relevant to CPU/GPU IP and mobile/edge silicon.
@@ -3129,13 +3318,13 @@ const FOLLOWING_COMPANIES = [
   { group: 'Semiconductor & CPU/GPU IP', name: 'Broadcom', url: 'https://www.linkedin.com/company/broadcom/', logo: 'Logos/broadcom_logo.jpg' },
 
   { group: 'FPGA-Focused & Consultancy', name: 'Sondrel', url: 'https://www.linkedin.com/company/sondrel/', logo: 'Logos/sondrel_logo.jpg' },
-  { group: 'FPGA-Focused & Consultancy', name: 'Roke', url: 'https://www.linkedin.com/company/roke-manor-research/', logo: 'Logos/roke_logo.jpg' },
+  { group: 'FPGA-Focused & Consultancy', name: 'Roke', url: 'https://www.linkedin.com/company/roke-manor-research/', logo: 'Logos/roke_manor_research_logo.jpg' },
   { group: 'FPGA-Focused & Consultancy', name: 'Sundance Multiprocessor Technology', url: 'https://www.linkedin.com/company/sundance-multiprocessor-technology-ltd-/', logo: 'Logos/sundance_logo.jpg' },
   { group: 'FPGA-Focused & Consultancy', name: 'Enclustra', url: 'https://www.linkedin.com/company/enclustra-gmbh/', logo: 'Logos/enclustra_logo.jpg' },
   // Added by me - both are established FPGA silicon vendors, same space as
   // the consultancies above.
   { group: 'FPGA-Focused & Consultancy', name: 'Lattice Semiconductor', url: 'https://www.linkedin.com/company/lattice-semiconductor/', logo: 'Logos/lattice_semiconductor_logo.jpg' },
-  { group: 'FPGA-Focused & Consultancy', name: 'Achronix', url: 'https://www.linkedin.com/company/achronix-semiconductor-corporation/', logo: 'Logos/achronix_logo.jpg' }
+  { group: 'FPGA-Focused & Consultancy', name: 'Achronix', url: 'https://www.linkedin.com/company/achronix-semiconductor-corporation/', logo: 'Logos/achronix_semiconductor_logo.jpg' }
 ];
 
 // Renders FOLLOWING_COMPANIES as sector-grouped, COLLAPSIBLE lists (each a
