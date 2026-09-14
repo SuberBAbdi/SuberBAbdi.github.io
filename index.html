@@ -3074,234 +3074,31 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
   // subject to that API's normal unauthenticated rate limits) and degrades
   // each stat independently to "Rate limited" if its own request fails,
   // rather than the whole card breaking if any one call is throttled.
-  async function initGithubTerminalCard(containerId, repoSlug) {
+  function initGithubTerminalCard(containerId, repoSlug) {
     const root = document.getElementById(containerId);
     if (!root) return;
 
+    // GitHub cards are deliberately non-blocking and API-free on project load.
+    // The repository title/link is always available, while the card keeps a
+    // stable layout even when GitHub is rate-limited, offline, or unreachable.
     const field = (suffix) => root.querySelector('#' + CSS.escape(containerId + '-' + suffix));
-    const apiBase = `https://api.github.com/repos/${repoSlug}`;
-    const headers = { Accept: 'application/vnd.github+json' };
-    const cacheKey = `github-card:${repoSlug}`;
-    const cacheTTL = 24 * 60 * 60 * 1000;
+    const setValue = (suffix, value) => {
+      const el = field(suffix);
+      if (el) el.textContent = value;
+    };
 
-    function relativeTime(iso) {
-      const time = new Date(iso).getTime();
-      if (!Number.isFinite(time)) return 'N/A';
-      const diffMs = Math.max(0, Date.now() - time);
-      const mins = Math.floor(diffMs / 60000);
-      if (mins < 1) return 'just now';
-      if (mins < 60) return `${mins}m ago`;
-      const hours = Math.floor(mins / 60);
-      if (hours < 24) return `${hours}h ago`;
-      const days = Math.floor(hours / 24);
-      if (days < 30) return `${days} day${days === 1 ? '' : 's'} ago`;
-      const months = Math.floor(days / 30);
-      if (months < 12) return `${months} month${months === 1 ? '' : 's'} ago`;
-      const years = Math.floor(months / 12);
-      return `${years} year${years === 1 ? '' : 's'} ago`;
-    }
+    setValue('languages', 'View repository');
+    setValue('commits', 'View repository');
+    setValue('contributors', 'View repository');
+    setValue('updated', 'View repository');
 
-    function escapeHtml(value) {
-      return String(value ?? '').replace(/[&<>"']/g, ch => ({
-        '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;'
-      }[ch]));
-    }
-
-    function setValue(el, value, isError = false) {
-      if (!el) return;
-      el.textContent = value;
-      el.classList.toggle('gtc-error', isError);
-    }
-
-    function errorText(error, cachedValue) {
-      // Never let a GitHub/API problem break the project modal. Prefer an
-      // existing cached value; otherwise show a short, stable fallback.
-      if (cachedValue != null && cachedValue !== '') return String(cachedValue);
-      const status = Number(error?.status);
-      if (status === 401) return 'Auth unavailable';
-      if (status === 403 || status === 429) return 'Temporarily unavailable';
-      if (status === 404) return 'Repo not found';
-      if (status === 408) return 'Request timed out';
-      if (status === 409) return 'GitHub conflict';
-      if (status === 410) return 'Repo unavailable';
-      if (status === 422) return 'GitHub request invalid';
-      if (status === 451) return 'Unavailable by GitHub policy';
-      if (status >= 500 && status <= 599) return 'GitHub temporarily unavailable';
-      if (error?.name === 'AbortError') return 'Request timed out';
-      if (error instanceof TypeError) return 'Connection unavailable';
-      return 'Data unavailable';
-    }
-
-    function readCache() {
-      try {
-        const raw = localStorage.getItem(cacheKey);
-        if (!raw) return null;
-        const data = JSON.parse(raw);
-        if (!data || !data.savedAt) return null;
-        // Keep stale data available as a fallback. This prevents GitHub rate
-        // limits from replacing a previously working card with an error.
-        return data;
-      } catch (_) { return null; }
-    }
-
-    function isFresh(cache) {
-      return !!cache?.savedAt && Date.now() - cache.savedAt <= cacheTTL;
-    }
-
-    function writeCache(data) {
-      try { localStorage.setItem(cacheKey, JSON.stringify({ ...data, savedAt: Date.now() })); } catch (_) {}
-    }
-
-    async function githubFetch(url) {
-      const controller = new AbortController();
-      const timeout = setTimeout(() => controller.abort(), 7000);
-      try {
-        const res = await fetch(url, { headers, cache: 'no-store', signal: controller.signal });
-        if (!res.ok) {
-          const err = new Error(`GitHub API ${res.status}`);
-          err.status = res.status;
-          err.remaining = res.headers.get('x-ratelimit-remaining');
-          throw err;
-        }
-        return res;
-      } catch (e) {
-        if (e?.name === 'AbortError') {
-          const err = new Error('GitHub request timed out');
-          err.name = 'AbortError';
-          err.status = 408;
-          throw err;
-        }
-        throw e;
-      } finally {
-        clearTimeout(timeout);
-      }
-    }
-
-    function lastPageFromLink(link) {
-      if (!link) return null;
-      const match = link.match(/[?&]page=(\d+)>;\s*rel="last"/);
-      return match ? Number(match[1]) : null;
-    }
-
-    const cached = readCache();
-    if (cached) {
-      if (cached.languages) setValue(field('languages'), cached.languages);
-      if (Number.isFinite(cached.commits)) setValue(field('commits'), cached.commits.toLocaleString());
-      if (cached.updated) setValue(field('updated'), relativeTime(cached.updated));
-      if (Number.isFinite(cached.contributors)) setValue(field('contributors'), cached.contributors.toLocaleString());
-    }
-
-    // A fresh cache means this project needs zero GitHub API calls. This is
-    // important because opening several projects in one session can otherwise
-    // consume GitHub's unauthenticated request quota very quickly.
-    if (isFresh(cached)) return;
-
-    // If the browser is offline, keep the project fully usable and preserve
-    // whatever cached values were already rendered above.
-    if (navigator.onLine === false) {
-      if (!cached?.updated) setValue(field('updated'), 'Offline', true);
-      if (!cached?.languages) setValue(field('languages'), 'Offline', true);
-      if (!Number.isFinite(cached?.commits)) setValue(field('commits'), 'Offline', true);
-      return;
-    }
-
-    // Fetch the three cheap/always-visible stats together. This avoids the old
-    // sequential request chain and keeps contributor pagination off the initial load.
-    const visibleRequests = await Promise.allSettled([
-      githubFetch(apiBase).then(r => r.json()),
-      githubFetch(`${apiBase}/languages`).then(r => r.json()),
-      githubFetch(`${apiBase}/commits?per_page=1`).then(async r => {
-        const lastPage = lastPageFromLink(r.headers.get('Link'));
-        if (lastPage !== null) return lastPage;
-        const commits = await r.json();
-        return Array.isArray(commits) ? commits.length : null;
-      })
-    ]);
-
-    const nextCache = cached ? { ...cached } : {};
-
-    if (visibleRequests[0].status === 'fulfilled') {
-      const repo = visibleRequests[0].value;
-      nextCache.updated = repo.pushed_at || repo.updated_at;
-      setValue(field('updated'), relativeTime(nextCache.updated));
-    } else if (!cached?.updated) {
-      setValue(field('updated'), errorText(visibleRequests[0].reason, cached?.updated ? relativeTime(cached.updated) : null), !!cached?.updated === false);
-    }
-
-    if (visibleRequests[1].status === 'fulfilled') {
-      const names = Object.keys(visibleRequests[1].value || {});
-      nextCache.languages = names.length ? names.join(', ') : 'N/A';
-      setValue(field('languages'), nextCache.languages);
-    } else if (!cached?.languages) {
-      setValue(field('languages'), errorText(visibleRequests[1].reason, cached?.languages), !!cached?.languages === false);
-    }
-
-    if (visibleRequests[2].status === 'fulfilled' && Number.isFinite(visibleRequests[2].value)) {
-      nextCache.commits = visibleRequests[2].value;
-      setValue(field('commits'), nextCache.commits.toLocaleString());
-    } else if (!Number.isFinite(cached?.commits)) {
-      setValue(field('commits'), errorText(visibleRequests[2].reason, Number.isFinite(cached?.commits) ? cached.commits.toLocaleString() : null), !Number.isFinite(cached?.commits));
-    }
-
-    writeCache(nextCache);
-
-    // Contributors are fetched only when the user first hovers/focuses the row.
-    // This saves an API request on every project open and makes rate limiting much less likely.
     const contributorRow = root.querySelector('.gtc-hoverable');
-    let contributorPromise = null;
-    async function loadContributors() {
-      if (contributorPromise) return contributorPromise;
-      contributorPromise = (async () => {
-        const countEl = field('contributors');
-        const tooltipEl = field('tooltip');
-        try {
-          const firstRes = await githubFetch(`${apiBase}/contributors?per_page=100&page=1`);
-          const firstPage = await firstRes.json();
-          if (!Array.isArray(firstPage)) throw new Error('unexpected response');
-
-          const lastPage = lastPageFromLink(firstRes.headers.get('Link')) || 1;
-          const contributors = [...firstPage];
-          for (let page = 2; page <= lastPage; page++) {
-            const res = await githubFetch(`${apiBase}/contributors?per_page=100&page=${page}`);
-            const pageData = await res.json();
-            if (!Array.isArray(pageData)) break;
-            contributors.push(...pageData);
-          }
-
-          setValue(countEl, contributors.length.toLocaleString());
-          if (tooltipEl) {
-            tooltipEl.innerHTML = contributors.length
-              ? `<div class="gtc-tooltip-head"><span class="gtc-tooltip-title">Collaborators</span><span class="gtc-tooltip-count">${contributors.length.toLocaleString()} found</span></div>
-                 <ul>${contributors.map(c => {
-                  const login = escapeHtml(c.login || 'unknown');
-                  const href = escapeHtml(c.html_url || '#');
-                  const avatar = escapeHtml(c.avatar_url || '');
-                  const contributions = Number.isFinite(c.contributions) ? c.contributions : 0;
-                  return `<li><a class="gtc-contributor" href="${href}" target="_blank" rel="noopener" title="Open ${login} on GitHub">
-                    ${avatar ? `<img class="gtc-avatar" src="${avatar}" alt="${login} avatar" loading="lazy">` : ''}
-                    <span class="gtc-contributor-main"><span class="gtc-login">@${login}</span><span class="gtc-contributions">${contributions.toLocaleString()} commit${contributions === 1 ? '' : 's'}</span></span>
-                  </a></li>`;
-                }).join('')}</ul>
-                 <div class="gtc-tooltip-note"><span class="gtc-info" tabindex="0" role="img" aria-label="Click a collaborator to open their GitHub profile" data-tooltip="Click a collaborator to open their GitHub profile.">i</span></div>`
-              : `<span class="gtc-error">No collaborators found</span>`;
-          }
-          writeCache({ ...nextCache, contributors: contributors.length });
-        } catch (e) {
-          if (Number.isFinite(cached?.contributors)) {
-            setValue(countEl, cached.contributors.toLocaleString());
-            if (tooltipEl) tooltipEl.innerHTML = `<span class="gtc-error">Collaborator names unavailable right now</span>`;
-          } else {
-            setValue(countEl, errorText(e), true);
-            if (tooltipEl) tooltipEl.innerHTML = `<span class="gtc-error">${escapeHtml(errorText(e))}</span>`;
-          }
-        }
-      })();
-      return contributorPromise;
-    }
-
     if (contributorRow) {
-      contributorRow.addEventListener('mouseenter', loadContributors, { once: true });
-      contributorRow.addEventListener('focusin', loadContributors, { once: true });
+      contributorRow.removeAttribute('tabindex');
+      contributorRow.removeAttribute('aria-describedby');
+      contributorRow.style.cursor = 'default';
+      const tooltip = contributorRow.querySelector('.gtc-tooltip');
+      if (tooltip) tooltip.remove();
     }
   }
 
@@ -3609,21 +3406,20 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     const githubSlot = document.getElementById('projectGithubCardSlot');
     if (githubSlot) {
       githubSlot.innerHTML = p.githubCard ? `
-        <div class="github-terminal-card" id="ghCard-${p.id}" aria-label="Live GitHub repository statistics">
+        <div class="github-terminal-card" id="ghCard-${p.id}" aria-label="GitHub repository">
           <div class="gtc-head">
             <span class="gtc-dot" aria-hidden="true"></span>
             <img src="Logos/github_logo.jpg" alt="GitHub" class="gtc-github-logo">
             <a class="gtc-title gtc-repo-link" href="https://github.com/${p.githubCard}" target="_blank" rel="noopener noreferrer" title="Open ${p.githubCard} on GitHub">${p.githubCard.split('/').pop()} <span class="gtc-external-arrow" aria-hidden="true">↗</span></a>
           </div>
           <div class="gtc-body">
-            <div class="gtc-row"><span class="gtc-k">Languages</span><span class="gtc-v" id="ghCard-${p.id}-languages">Loading…</span></div>
-            <div class="gtc-row"><span class="gtc-k">Commits</span><span class="gtc-v" id="ghCard-${p.id}-commits">Loading…</span></div>
+            <div class="gtc-row"><span class="gtc-k">Languages</span><span class="gtc-v" id="ghCard-${p.id}-languages">View repository</span></div>
+            <div class="gtc-row"><span class="gtc-k">Commits</span><span class="gtc-v" id="ghCard-${p.id}-commits">View repository</span></div>
             <div class="gtc-row gtc-hoverable" tabindex="0" aria-describedby="ghCard-${p.id}-tooltip">
               <span class="gtc-k">Collaborators</span>
-              <span class="gtc-v" id="ghCard-${p.id}-contributors">Loading…</span>
-              <div class="gtc-tooltip" id="ghCard-${p.id}-tooltip" role="tooltip"><span class="gtc-error">Loading collaborators…</span></div>
+              <span class="gtc-v" id="ghCard-${p.id}-contributors">View repository</span>
             </div>
-            <div class="gtc-row"><span class="gtc-k">Last Updated</span><span class="gtc-v" id="ghCard-${p.id}-updated">Loading…</span></div>
+            <div class="gtc-row"><span class="gtc-k">Last Updated</span><span class="gtc-v" id="ghCard-${p.id}-updated">View repository</span></div>
           </div>
         </div>` : '';
     }
