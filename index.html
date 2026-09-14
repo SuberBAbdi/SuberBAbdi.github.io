@@ -3114,11 +3114,22 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     }
 
     function errorText(error, cachedValue) {
-      if (error?.status === 403 || error?.status === 429) {
-        return cachedValue != null ? String(cachedValue) : 'Temporarily unavailable';
-      }
-      if (error?.status === 404) return 'Repo not found';
-      return 'Unavailable';
+      // Never let a GitHub/API problem break the project modal. Prefer an
+      // existing cached value; otherwise show a short, stable fallback.
+      if (cachedValue != null && cachedValue !== '') return String(cachedValue);
+      const status = Number(error?.status);
+      if (status === 401) return 'Auth unavailable';
+      if (status === 403 || status === 429) return 'Temporarily unavailable';
+      if (status === 404) return 'Repo not found';
+      if (status === 408) return 'Request timed out';
+      if (status === 409) return 'GitHub conflict';
+      if (status === 410) return 'Repo unavailable';
+      if (status === 422) return 'GitHub request invalid';
+      if (status === 451) return 'Unavailable by GitHub policy';
+      if (status >= 500 && status <= 599) return 'GitHub temporarily unavailable';
+      if (error?.name === 'AbortError') return 'Request timed out';
+      if (error instanceof TypeError) return 'Connection unavailable';
+      return 'Data unavailable';
     }
 
     function readCache() {
@@ -3142,14 +3153,28 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     }
 
     async function githubFetch(url) {
-      const res = await fetch(url, { headers, cache: 'no-store' });
-      if (!res.ok) {
-        const err = new Error(`GitHub API ${res.status}`);
-        err.status = res.status;
-        err.remaining = res.headers.get('x-ratelimit-remaining');
-        throw err;
+      const controller = new AbortController();
+      const timeout = setTimeout(() => controller.abort(), 7000);
+      try {
+        const res = await fetch(url, { headers, cache: 'no-store', signal: controller.signal });
+        if (!res.ok) {
+          const err = new Error(`GitHub API ${res.status}`);
+          err.status = res.status;
+          err.remaining = res.headers.get('x-ratelimit-remaining');
+          throw err;
+        }
+        return res;
+      } catch (e) {
+        if (e?.name === 'AbortError') {
+          const err = new Error('GitHub request timed out');
+          err.name = 'AbortError';
+          err.status = 408;
+          throw err;
+        }
+        throw e;
+      } finally {
+        clearTimeout(timeout);
       }
-      return res;
     }
 
     function lastPageFromLink(link) {
@@ -3170,6 +3195,15 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     // important because opening several projects in one session can otherwise
     // consume GitHub's unauthenticated request quota very quickly.
     if (isFresh(cached)) return;
+
+    // If the browser is offline, keep the project fully usable and preserve
+    // whatever cached values were already rendered above.
+    if (navigator.onLine === false) {
+      if (!cached?.updated) setValue(field('updated'), 'Offline', true);
+      if (!cached?.languages) setValue(field('languages'), 'Offline', true);
+      if (!Number.isFinite(cached?.commits)) setValue(field('commits'), 'Offline', true);
+      return;
+    }
 
     // Fetch the three cheap/always-visible stats together. This avoids the old
     // sequential request chain and keeps contributor pagination off the initial load.
