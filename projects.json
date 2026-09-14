@@ -1,14 +1,201 @@
 {
-  "generatedAt": null,
+  "generatedAt": "2026-09-14T21:51:52.872Z",
   "source": "GitHub REST API via GitHub Actions",
   "projects": {
-    "SuberBAbdi/SCC-Robotic-Arm": { "repo": "SuberBAbdi/SCC-Robotic-Arm", "name": "SCC-Robotic-Arm", "languages": [], "commits": null, "contributors": [], "contributorCount": null, "updated": null, "description": "", "stars": 0, "forks": 0, "watchers": 0, "openIssues": 0 },
-    "SuberBAbdi/Number-Plate-Recognition-System": { "repo": "SuberBAbdi/Number-Plate-Recognition-System", "name": "Number-Plate-Recognition-System", "languages": [], "commits": null, "contributors": [], "contributorCount": null, "updated": null, "description": "", "stars": 0, "forks": 0, "watchers": 0, "openIssues": 0 },
-    "SuberBAbdi/Micro-Mouse": { "repo": "SuberBAbdi/Micro-Mouse", "name": "Micro-Mouse", "languages": [], "commits": null, "contributors": [], "contributorCount": null, "updated": null, "description": "", "stars": 0, "forks": 0, "watchers": 0, "openIssues": 0 },
-    "SuberBAbdi/FPGA-RISC-V-Safety-Control-Processor": { "repo": "SuberBAbdi/FPGA-RISC-V-Safety-Control-Processor", "name": "FPGA-RISC-V-Safety-Control-Processor", "languages": [], "commits": null, "contributors": [], "contributorCount": null, "updated": null, "description": "", "stars": 0, "forks": 0, "watchers": 0, "openIssues": 0 },
-    "SuberBAbdi/Wireless-Energy-Harvester": { "repo": "SuberBAbdi/Wireless-Energy-Harvester", "name": "Wireless-Energy-Harvester", "languages": [], "commits": null, "contributors": [], "contributorCount": null, "updated": null, "description": "", "stars": 0, "forks": 0, "watchers": 0, "openIssues": 0 },
-    "SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner": { "repo": "SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner", "name": "DAC-using-PIC16F877A-Temperature-Scanner", "languages": [], "commits": null, "contributors": [], "contributorCount": null, "updated": null, "description": "", "stars": 0, "forks": 0, "watchers": 0, "openIssues": 0 },
-    "SuberBAbdi/Arduino-Radar-System": { "repo": "SuberBAbdi/Arduino-Radar-System", "name": "Arduino-Radar-System", "languages": [], "commits": null, "contributors": [], "contributorCount": null, "updated": null, "description": "", "stars": 0, "forks": 0, "watchers": 0, "openIssues": 0 },
-    "SuberBAbdi/DFMiniPlayer-Voltage-Triggered-Audio-System": { "repo": "SuberBAbdi/DFMiniPlayer-Voltage-Triggered-Audio-System", "name": "DFMiniPlayer-Voltage-Triggered-Audio-System", "languages": [], "commits": null, "contributors": [], "contributorCount": null, "updated": null, "description": "", "stars": 0, "forks": 0, "watchers": 0, "openIssues": 0 }
+    "SuberBAbdi/SCC-Robotic-Arm": {
+      "repo": "SuberBAbdi/SCC-Robotic-Arm",
+      "name": "SCC-Robotic-Arm",
+      "fullName": "SuberBAbdi/SCC-Robotic-Arm",
+      "description": "",
+      "stars": 0,
+      "forks": 0,
+      "watchers": 0,
+      "openIssues": 0,
+      "defaultBranch": "main",
+      "updated": "2026-09-14T11:35:24Z",
+      "languages": [
+        "Python",
+        "C++"
+      ],
+      "commits": 41,
+      "contributorCount": 1,
+      "contributors": [
+        {
+          "login": "SuberBAbdi",
+          "html_url": "https://github.com/SuberBAbdi",
+          "avatar_url": "https://avatars.githubusercontent.com/u/117910802?v=4",
+          "contributions": 41
+        }
+      ]
+    },
+    "SuberBAbdi/Number-Plate-Recognition-System": {
+      "repo": "SuberBAbdi/Number-Plate-Recognition-System",
+      "name": "Number-Plate-Recognition-System",
+      "fullName": "SuberBAbdi/Number-Plate-Recognition-System",
+      "description": "A MATLAB-based computer vision tool with a custom GUI that processes vehicle images from a dataset to isolate and identify licence plates, improving image quality before extraction.",
+      "stars": 0,
+      "forks": 0,
+      "watchers": 0,
+      "openIssues": 0,
+      "defaultBranch": "main",
+      "updated": "2026-09-14T11:41:23Z",
+      "languages": [
+        "MATLAB"
+      ],
+      "commits": 18,
+      "contributorCount": 1,
+      "contributors": [
+        {
+          "login": "SuberBAbdi",
+          "html_url": "https://github.com/SuberBAbdi",
+          "avatar_url": "https://avatars.githubusercontent.com/u/117910802?v=4",
+          "contributions": 18
+        }
+      ]
+    },
+    "SuberBAbdi/Micro-Mouse": {
+      "repo": "SuberBAbdi/Micro-Mouse",
+      "name": "Micro-Mouse",
+      "fullName": "SuberBAbdi/Micro-Mouse",
+      "description": "WIP",
+      "stars": 0,
+      "forks": 1,
+      "watchers": 0,
+      "openIssues": 0,
+      "defaultBranch": "main",
+      "updated": "2026-09-14T13:40:35Z",
+      "languages": [],
+      "commits": 11,
+      "contributorCount": 2,
+      "contributors": [
+        {
+          "login": "SuberBAbdi",
+          "html_url": "https://github.com/SuberBAbdi",
+          "avatar_url": "https://avatars.githubusercontent.com/u/117910802?v=4",
+          "contributions": 9
+        },
+        {
+          "login": "Suleauduc",
+          "html_url": "https://github.com/Suleauduc",
+          "avatar_url": "https://avatars.githubusercontent.com/u/169659347?v=4",
+          "contributions": 2
+        }
+      ]
+    },
+    "SuberBAbdi/FPGA-RISC-V-Safety-Control-Processor": {
+      "repo": "SuberBAbdi/FPGA-RISC-V-Safety-Control-Processor",
+      "name": "FPGA-RISC-V-Safety-Control-Processor",
+      "fullName": "SuberBAbdi/FPGA-RISC-V-Safety-Control-Processor",
+      "description": "",
+      "stars": 0,
+      "forks": 0,
+      "watchers": 0,
+      "openIssues": 0,
+      "defaultBranch": "main",
+      "updated": "2026-09-10T22:26:49Z",
+      "languages": [],
+      "commits": 3,
+      "contributorCount": 1,
+      "contributors": [
+        {
+          "login": "SuberBAbdi",
+          "html_url": "https://github.com/SuberBAbdi",
+          "avatar_url": "https://avatars.githubusercontent.com/u/117910802?v=4",
+          "contributions": 3
+        }
+      ]
+    },
+    "SuberBAbdi/Wireless-Energy-Harvester": {
+      "repo": "SuberBAbdi/Wireless-Energy-Harvester",
+      "name": "Wireless-Energy-Harvester",
+      "fullName": "SuberBAbdi/Wireless-Energy-Harvester",
+      "description": "",
+      "stars": 0,
+      "forks": 0,
+      "watchers": 0,
+      "openIssues": 0,
+      "defaultBranch": "main",
+      "updated": "2026-09-14T11:55:10Z",
+      "languages": [],
+      "commits": 2,
+      "contributorCount": 1,
+      "contributors": [
+        {
+          "login": "SuberBAbdi",
+          "html_url": "https://github.com/SuberBAbdi",
+          "avatar_url": "https://avatars.githubusercontent.com/u/117910802?v=4",
+          "contributions": 2
+        }
+      ]
+    },
+    "SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner": {
+      "repo": "SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner",
+      "name": "DAC-using-PIC16F877A-Temperature-Scanner",
+      "fullName": "SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner",
+      "description": "",
+      "stars": 0,
+      "forks": 0,
+      "watchers": 0,
+      "openIssues": 0,
+      "defaultBranch": "main",
+      "updated": "2026-09-14T13:39:49Z",
+      "languages": [],
+      "commits": 1,
+      "contributorCount": 1,
+      "contributors": [
+        {
+          "login": "SuberBAbdi",
+          "html_url": "https://github.com/SuberBAbdi",
+          "avatar_url": "https://avatars.githubusercontent.com/u/117910802?v=4",
+          "contributions": 1
+        }
+      ]
+    },
+    "SuberBAbdi/Arduino-Radar-System": {
+      "repo": "SuberBAbdi/Arduino-Radar-System",
+      "name": "Arduino-Radar-System",
+      "fullName": "SuberBAbdi/Arduino-Radar-System",
+      "description": "",
+      "stars": 0,
+      "forks": 0,
+      "watchers": 0,
+      "openIssues": 0,
+      "defaultBranch": "main",
+      "updated": "2026-09-14T11:11:49Z",
+      "languages": [],
+      "commits": 1,
+      "contributorCount": 1,
+      "contributors": [
+        {
+          "login": "SuberBAbdi",
+          "html_url": "https://github.com/SuberBAbdi",
+          "avatar_url": "https://avatars.githubusercontent.com/u/117910802?v=4",
+          "contributions": 1
+        }
+      ]
+    },
+    "SuberBAbdi/DFMiniPlayer-Voltage-Triggered-Audio-System": {
+      "repo": "SuberBAbdi/DFMiniPlayer-Voltage-Triggered-Audio-System",
+      "name": "DFMiniPlayer-Voltage-Triggered-Audio-System",
+      "fullName": "SuberBAbdi/DFMiniPlayer-Voltage-Triggered-Audio-System",
+      "description": "A small embedded audio project used to build confidence with voltage-triggered logic and serial audio modules ahead of the Arduino Radar System build.",
+      "stars": 0,
+      "forks": 0,
+      "watchers": 0,
+      "openIssues": 0,
+      "defaultBranch": "main",
+      "updated": "2026-09-14T21:51:26Z",
+      "languages": [],
+      "commits": 1,
+      "contributorCount": 1,
+      "contributors": [
+        {
+          "login": "SuberBAbdi",
+          "html_url": "https://github.com/SuberBAbdi",
+          "avatar_url": "https://avatars.githubusercontent.com/u/117910802?v=4",
+          "contributions": 1
+        }
+      ]
+    }
   }
 }
