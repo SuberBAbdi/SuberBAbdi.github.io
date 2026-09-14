@@ -1,0 +1,157 @@
+name: Fetch GitHub Project Data
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: '00 6 * * *' # Daily at 06:00 UTC
+
+permissions:
+  contents: write
+
+concurrency:
+  group: fetch-github-project-data
+  cancel-in-progress: false
+
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out portfolio
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - name: Fetch repository data
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          node <<'NODE'
+          import { readFile, writeFile } from 'node:fs/promises';
+
+          const token = process.env.GITHUB_TOKEN;
+          if (!token) throw new Error('GITHUB_TOKEN is required.');
+
+          const repositories = [
+            'SuberBAbdi/SCC-Robotic-Arm',
+            'SuberBAbdi/Number-Plate-Recognition-System',
+            'SuberBAbdi/Micro-Mouse',
+            'SuberBAbdi/FPGA-RISC-V-Safety-Control-Processor',
+            'SuberBAbdi/Wireless-Energy-Harvester',
+            'SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner',
+            'SuberBAbdi/Arduino-Radar-System',
+            'SuberBAbdi/DFMiniPlayer-Voltage-Triggered-Audio-System'
+          ];
+
+          const headers = {
+            Accept: 'application/vnd.github+json',
+            Authorization: `Bearer ${token}`,
+            'X-GitHub-Api-Version': '2022-11-28',
+            'User-Agent': 'SuberAbdi-Portfolio-GitHub-Data-Builder'
+          };
+
+          async function github(path) {
+            const response = await fetch(`https://api.github.com${path}`, { headers });
+            if (!response.ok) {
+              const body = await response.text().catch(() => '');
+              throw new Error(`GitHub ${response.status} for ${path}${body ? `: ${body.slice(0, 200)}` : ''}`);
+            }
+            return response;
+          }
+
+          function lastPage(linkHeader) {
+            const match = linkHeader?.match(/<[^>]+[?&]page=(\d+)>;\s*rel="last"/);
+            return match ? Number(match[1]) : null;
+          }
+
+          async function getAllContributors(repo) {
+            const contributors = [];
+            let page = 1;
+            while (page <= 20) {
+              const response = await github(`/repos/${repo}/contributors?per_page=100&page=${page}`);
+              const batch = await response.json();
+              if (!Array.isArray(batch) || batch.length === 0) break;
+              contributors.push(...batch.map(item => ({
+                login: item.login,
+                html_url: item.html_url,
+                avatar_url: item.avatar_url,
+                contributions: Number.isFinite(item.contributions) ? item.contributions : 0
+              })));
+              const totalPages = lastPage(response.headers.get('link'));
+              if (!totalPages || page >= totalPages) break;
+              page += 1;
+            }
+            return contributors;
+          }
+
+          async function getCommitCount(repo) {
+            const response = await github(`/repos/${repo}/commits?per_page=1`);
+            const totalPages = lastPage(response.headers.get('link'));
+            if (totalPages) return totalPages;
+            const commits = await response.json();
+            return Array.isArray(commits) ? commits.length : 0;
+          }
+
+          let previous = {};
+          try {
+            const existing = JSON.parse(await readFile('projects.json', 'utf8'));
+            previous = existing?.projects || {};
+          } catch (_) {}
+
+          const projects = {};
+          let failed = false;
+
+          for (const repo of repositories) {
+            console.log(`Fetching ${repo}...`);
+            try {
+              const repoResponse = await github(`/repos/${repo}`);
+              const repository = await repoResponse.json();
+              const languagesResponse = await github(`/repos/${repo}/languages`);
+              const languagesObject = await languagesResponse.json();
+              const commits = await getCommitCount(repo);
+              const contributors = await getAllContributors(repo);
+
+              projects[repo] = {
+                repo,
+                name: repository.name,
+                fullName: repository.full_name,
+                description: repository.description || '',
+                stars: repository.stargazers_count ?? 0,
+                forks: repository.forks_count ?? 0,
+                watchers: repository.watchers_count ?? 0,
+                openIssues: repository.open_issues_count ?? 0,
+                defaultBranch: repository.default_branch || 'main',
+                updated: repository.pushed_at || repository.updated_at || null,
+                languages: Object.keys(languagesObject || {}),
+                commits,
+                contributorCount: contributors.length,
+                contributors
+              };
+              console.log(`  ✓ ${repo}`);
+            } catch (error) {
+              failed = true;
+              console.error(`  ✗ ${repo}: ${error.message}`);
+              if (previous[repo]) projects[repo] = previous[repo];
+            }
+          }
+
+          await writeFile('projects.json', `${JSON.stringify({
+            generatedAt: new Date().toISOString(),
+            source: 'GitHub REST API via GitHub Actions',
+            projects
+          }, null, 2)}\n`);
+
+          if (failed) process.exitCode = 1;
+          console.log('Wrote projects.json');
+          NODE
+
+      - name: Commit updated static data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add projects.json
+          if git diff --cached --quiet; then
+            echo "No GitHub project data changes."
+            exit 0
+          fi
+          git commit -m "chore: update static GitHub project data"
+          git push
