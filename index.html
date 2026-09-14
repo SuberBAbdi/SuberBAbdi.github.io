@@ -369,16 +369,31 @@
     width:7px; height:7px; border-radius:50%; background:#22c55e;
     box-shadow:0 0 6px rgba(34,197,94,.7); flex-shrink:0;
   }
+  .github-terminal-card .gtc-github-logo{
+    width:15px; height:15px; border-radius:3px; object-fit:cover; flex-shrink:0; opacity:.9;
+  }
   .github-terminal-card .gtc-title{
     font-size:10px; color:#a3a3a8; letter-spacing:.02em; flex:1; min-width:0;
     overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
   }
-  .github-terminal-card .gtc-open-link{
-    font-size:9px; text-transform:uppercase; letter-spacing:.06em; color:#68686d;
-    text-decoration:none; border:1px solid #27272a; padding:3px 7px;
-    border-radius:3px; transition:all .15s ease; flex-shrink:0;
+  .github-terminal-card .gtc-repo-link{
+    color:inherit;
+    text-decoration:none;
+    cursor:pointer;
+    display:inline-flex;
+    align-items:center;
+    gap:.22rem;
   }
-  .github-terminal-card .gtc-open-link:hover{ color:#f1f1ef; border-color:#6b6b70; }
+  .github-terminal-card .gtc-repo-link:hover{
+    text-decoration:underline;
+    text-underline-offset:2px;
+  }
+  .github-terminal-card .gtc-external-arrow{
+    display:inline-block;
+    font-size:1em;
+    line-height:1;
+    transform:translateY(-.08em);
+  }
   .github-terminal-card .gtc-body{ padding:9px 12px; display:flex; flex-direction:column; gap:7px; }
   .github-terminal-card .gtc-row{
     display:flex; justify-content:space-between; align-items:center;
@@ -448,6 +463,18 @@
   .github-terminal-card .gtc-error{ color:#68686d; font-style:italic; }
   @media (max-width:767px){
     .github-terminal-card{ width:min(100%, 330px); top:0; right:0; }
+  }
+
+  /* Project-detail GitHub card is anchored to the same header row as the
+     navigation buttons, so it never pushes the project content downward. */
+  .project-detail-shell{ position:relative; }
+  .project-detail-gh-slot{
+    margin-left:auto; flex:0 1 330px; width:min(100%, 330px);
+    min-width:260px;
+  }
+  .project-detail-gh-slot .github-terminal-card{ position:relative; top:auto; right:auto; width:100%; }
+  @media (max-width:767px){
+    .project-detail-gh-slot{ flex:1 1 100%; width:100%; min-width:0; margin-left:0; }
   }
 
   /* ===== Boot / loading screen ===== */
@@ -671,21 +698,28 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         <div class="mt-8 pt-6 border-t border-line">
           <p class="font-mono text-xs uppercase tracking-widest text-faint mb-2">Contact Me</p>
           <div class="spec-row">
-            <span class="k">Email</span>
-            <!-- Copies the address to the clipboard instead of opening a mail
-                 client - see copyEmail() below. The icon briefly swaps from
-                 "copy" to a checkmark as quiet confirmation, then reverts on
-                 its own; deliberately no popup/toast so it stays low-key. -->
-            <button type="button" onclick="copyEmail(this)" title="Click to copy email address"
-                    class="v hover:text-white transition-colors inline-flex items-center gap-1.5 cursor-pointer bg-transparent border-none p-0" style="font:inherit;">
+            <span class="k inline-flex items-center gap-2"><i data-lucide="mail" class="w-3 h-3 text-faint"></i>Email</span>
+            <button type="button" onclick="copyEmail(this)" title="Click to copy email address" class="v hover:text-white transition-colors inline-flex items-center gap-1.5 cursor-pointer bg-transparent border-none p-0" style="font:inherit;">
               <span>suberabdi54@gmail.com</span>
               <i data-lucide="copy" class="email-copy-icon w-3 h-3 text-faint shrink-0"></i>
             </button>
           </div>
-          <div class="spec-row"><span class="k">GitHub</span><a href="https://github.com/SuberBAbdi" target="_blank" rel="noopener" class="v hover:text-white transition-colors">SuberBAbdi ↗</a></div>
-          <div class="spec-row"><span class="k">LinkedIn</span><a href="https://www.linkedin.com/in/suber-abdi-889182331/" target="_blank" rel="noopener" class="v hover:text-white transition-colors">Profile ↗</a></div>
-          <div class="spec-row"><span class="k">Location</span><span class="v">London, UK</span></div>
-          <div class="spec-row"><span class="k">Right to Work</span><span class="v">United Kingdom</span></div>
+          <div class="spec-row">
+            <span class="k inline-flex items-center gap-2"><img src="Logos/github_logo.jpg" alt="GitHub" class="w-3.5 h-3.5 rounded-sm object-cover opacity-80">GitHub</span>
+            <a href="https://github.com/SuberBAbdi" target="_blank" rel="noopener" class="v hover:text-white transition-colors inline-flex items-center gap-1.5">SuberBAbdi <span aria-hidden="true">↗</span></a>
+          </div>
+          <div class="spec-row">
+            <span class="k inline-flex items-center gap-2"><img src="Logos/linkedin_logo.jpg" alt="LinkedIn" class="w-3.5 h-3.5 rounded-sm object-cover opacity-80">LinkedIn</span>
+            <a href="https://www.linkedin.com/in/suber-abdi-889182331/" target="_blank" rel="noopener" class="v hover:text-white transition-colors inline-flex items-center gap-1.5">Profile <span aria-hidden="true">↗</span></a>
+          </div>
+          <div class="spec-row">
+            <span class="k inline-flex items-center gap-2"><i data-lucide="map-pin" class="w-3 h-3 text-faint"></i>Location</span>
+            <span class="v">London, UK</span>
+          </div>
+          <div class="spec-row">
+            <span class="k inline-flex items-center gap-2"><i data-lucide="briefcase-business" class="w-3 h-3 text-faint"></i>Right to Work</span>
+            <span class="v">United Kingdom</span>
+          </div>
         </div>
 
         <div class="mt-8 pt-6 border-t border-line">
@@ -773,18 +807,21 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 
       </div>
 
-      <div id="projectDetailView">
-        <div class="flex items-center gap-4 flex-wrap mb-6">
-          <button onclick="closeProject()" class="focus-ring inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white transition-colors">
-            <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Portfolio
-          </button>
-          <!-- Opens the same "All Projects" popup used by the homepage's
-               "View All Projects" button (see openAllProjectsModal) - lets
-               someone jump to a different project without returning to the
-               full portfolio page first. -->
-          <button onclick="openAllProjectsModal()" class="focus-ring inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white transition-colors">
-            <i data-lucide="list" class="w-3.5 h-3.5"></i> Back to Project List
-          </button>
+      <div id="projectDetailView" class="project-detail-shell">
+        <div class="flex items-start gap-4 flex-wrap mb-6">
+          <div class="flex items-center gap-4 flex-wrap">
+            <button onclick="closeProject()" class="focus-ring inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white transition-colors">
+              <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Portfolio
+            </button>
+            <!-- Opens the same "All Projects" popup used by the homepage's
+                 "View All Projects" button (see openAllProjectsModal) - lets
+                 someone jump to a different project without returning to the
+                 full portfolio page first. -->
+            <button onclick="openAllProjectsModal()" class="focus-ring inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white transition-colors">
+              <i data-lucide="list" class="w-3.5 h-3.5"></i> Back to Project List
+            </button>
+          </div>
+          <div id="projectGithubCardSlot" class="project-detail-gh-slot" aria-live="polite"></div>
         </div>
         <div id="projectDetailContent"></div>
       </div>
@@ -1003,6 +1040,42 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
           span2: true
         }
       ],
+
+      has3DModel: true,
+      stlBodies: [
+        { id: 'enclosure', name: 'Antenna Enclosure', path: 'Controller_Model.stl', visible: true },
+        { id: 'pcb', path: 'PCB.stl', visible: true }
+      ],
+      kicadSchematic: { path: 'Wireless_Energy_Harvester_Schematic.png' },
+      pcbLayoutImage: {
+        layers: [
+          { id: 'f-cu', name: 'Front Copper (F.Cu)', path: 'temp/PIC16F877A_Fixed-F_Cu.svg', visible: true },
+          { id: 'b-cu', name: 'Back Copper (B.Cu)', path: 'temp/PIC16F877A_Fixed-B_Cu.svg', visible: true },
+          { id: 'f-silkscreen', name: 'Front Silkscreen (F.Silkscreen)', path: 'temp/PIC16F877A_Fixed-F_Silkscreen.svg', visible: true },
+          { id: 'b-silkscreen', name: 'Back Silkscreen (B.Silkscreen)', path: 'temp/PIC16F877A_Fixed-B_Silkscreen.svg', visible: false },
+          { id: 'f-mask', name: 'Front Mask (F.Mask)', path: 'temp/PIC16F877A_Fixed-F_Mask.svg', visible: false },
+          { id: 'b-mask', name: 'Back Mask (B.Mask)', path: 'temp/PIC16F877A_Fixed-B_Mask.svg', visible: false },
+          { id: 'f-fab', name: 'Front Fabrication (F.Fab)', path: 'temp/PIC16F877A_Fixed-F_Fab.svg', visible: false },
+          { id: 'b-fab', name: 'Back Fabrication (B.Fab)', path: 'temp/PIC16F877A_Fixed-B_Fab.svg', visible: false },
+          { id: 'edge-cuts', name: 'Board Outline (Edge.Cuts)', path: 'temp/PIC16F877A_Fixed-Edge_Cuts.svg', visible: true }
+        ]
+      },
+      pcbModel: { path: 'PCB.stl', label: 'PCB' },
+      presentation: 'Wireless_Energy_Harvester_Presentation.pptx',
+      presentationEmbed: true,
+      report: 'Wireless_Energy_Harvester_Report.pdf',
+      demoVideoId: '1rsLRHpR1H8',
+      presentationVideoId: '1rsLRHpR1H8',
+      contribution: 'This project is an individual final-year dissertation. All research, analysis, RF/antenna design, simulation, PCB layout, and testing were carried out independently, under academic supervision from the University of Westminster.',
+      timeline: [
+        { date: 'Sep 2026', title: 'Project proposal approved', description: 'Scope agreed with the supervisor: antenna filter design at 3.6 GHz feeding an RF-to-DC conversion path for IoT power delivery.' },
+        { date: 'Oct 2026', title: 'Literature review & requirements', description: 'Reviewed existing energy-harvesting and antenna filter approaches to set the design requirements and constraints.' },
+        { date: 'Dec 2026', title: 'Antenna & filter design, simulation', description: 'Modelled the antenna filter and RF-to-DC path, iterating on gain vs selectivity trade-offs at 3.6 GHz.' },
+        { date: 'Feb 2027', title: 'PCB layout & fabrication', description: 'Translated the simulated design into a PCB layout, including the enclosure and controller board, ready for fabrication.' },
+        { date: 'Apr 2027', title: 'Prototype assembly & testing', description: 'Assembled the physical prototype and began lab testing against the simulated performance figures.' },
+        { date: 'Jun 2027', title: 'Final report & submission', description: 'Write-up of the full design, simulation and testing process for final dissertation submission.' }
+      ],
+      githubCard: 'SuberBAbdi/FPGA-RISC-V-Safety-Control-Processor',
       tags: ['RISC-V', 'FPGA', 'Verilog/VHDL'],
       github: null
     },
@@ -1132,6 +1205,42 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       stack: 'Prototype arm builds, wiring loom design, instructional guide, voluntary student questionnaire for evaluation.',
       challenges: 'Testing prototype arms for assembly difficulty, mechanical reliability, wiring layout and responsiveness, then refining both hardware and documentation from that feedback.',
       outcome: 'Public toolkit released to CS/Engineering students, with findings feeding back into an accessible, reliable beginner robotics resource.',
+
+      has3DModel: true,
+      stlBodies: [
+        { id: 'enclosure', name: 'Antenna Enclosure', path: 'Controller_Model.stl', visible: true },
+        { id: 'pcb', path: 'PCB.stl', visible: true }
+      ],
+      kicadSchematic: { path: 'Wireless_Energy_Harvester_Schematic.png' },
+      pcbLayoutImage: {
+        layers: [
+          { id: 'f-cu', name: 'Front Copper (F.Cu)', path: 'temp/PIC16F877A_Fixed-F_Cu.svg', visible: true },
+          { id: 'b-cu', name: 'Back Copper (B.Cu)', path: 'temp/PIC16F877A_Fixed-B_Cu.svg', visible: true },
+          { id: 'f-silkscreen', name: 'Front Silkscreen (F.Silkscreen)', path: 'temp/PIC16F877A_Fixed-F_Silkscreen.svg', visible: true },
+          { id: 'b-silkscreen', name: 'Back Silkscreen (B.Silkscreen)', path: 'temp/PIC16F877A_Fixed-B_Silkscreen.svg', visible: false },
+          { id: 'f-mask', name: 'Front Mask (F.Mask)', path: 'temp/PIC16F877A_Fixed-F_Mask.svg', visible: false },
+          { id: 'b-mask', name: 'Back Mask (B.Mask)', path: 'temp/PIC16F877A_Fixed-B_Mask.svg', visible: false },
+          { id: 'f-fab', name: 'Front Fabrication (F.Fab)', path: 'temp/PIC16F877A_Fixed-F_Fab.svg', visible: false },
+          { id: 'b-fab', name: 'Back Fabrication (B.Fab)', path: 'temp/PIC16F877A_Fixed-B_Fab.svg', visible: false },
+          { id: 'edge-cuts', name: 'Board Outline (Edge.Cuts)', path: 'temp/PIC16F877A_Fixed-Edge_Cuts.svg', visible: true }
+        ]
+      },
+      pcbModel: { path: 'PCB.stl', label: 'PCB' },
+      presentation: 'Wireless_Energy_Harvester_Presentation.pptx',
+      presentationEmbed: true,
+      report: 'Wireless_Energy_Harvester_Report.pdf',
+      demoVideoId: '1rsLRHpR1H8',
+      presentationVideoId: '1rsLRHpR1H8',
+      contribution: 'This project is an individual final-year dissertation. All research, analysis, RF/antenna design, simulation, PCB layout, and testing were carried out independently, under academic supervision from the University of Westminster.',
+      timeline: [
+        { date: 'Sep 2026', title: 'Project proposal approved', description: 'Scope agreed with the supervisor: antenna filter design at 3.6 GHz feeding an RF-to-DC conversion path for IoT power delivery.' },
+        { date: 'Oct 2026', title: 'Literature review & requirements', description: 'Reviewed existing energy-harvesting and antenna filter approaches to set the design requirements and constraints.' },
+        { date: 'Dec 2026', title: 'Antenna & filter design, simulation', description: 'Modelled the antenna filter and RF-to-DC path, iterating on gain vs selectivity trade-offs at 3.6 GHz.' },
+        { date: 'Feb 2027', title: 'PCB layout & fabrication', description: 'Translated the simulated design into a PCB layout, including the enclosure and controller board, ready for fabrication.' },
+        { date: 'Apr 2027', title: 'Prototype assembly & testing', description: 'Assembled the physical prototype and began lab testing against the simulated performance figures.' },
+        { date: 'Jun 2027', title: 'Final report & submission', description: 'Write-up of the full design, simulation and testing process for final dissertation submission.' }
+      ],
+      githubCard: 'SuberBAbdi/SCC-Robotic-Arm',
       tags: ['Embedded', 'Robotics', 'Documentation'],
       github: 'https://github.com/SuberBAbdi/SCC-Robotic-Arm'
     },
@@ -1143,6 +1252,41 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       stack: 'C++ on Mbed via Keil Studio, ultrasonic/IR sensor fusion for wall-following, 3D-printed chassis, GitHub for version control.',
       challenges: 'Coordinating a team codebase, tuning sensor thresholds for reliable wall-following, and iterating the maze-solving algorithm under time pressure.',
       outcome: 'Delivered a working autonomous robot as a team, from wiring through firmware to a live maze-run demo.',
+
+      has3DModel: true,
+      stlBodies: [
+        { id: 'enclosure', name: 'Antenna Enclosure', path: 'Controller_Model.stl', visible: true },
+        { id: 'pcb', path: 'PCB.stl', visible: true }
+      ],
+      kicadSchematic: { path: 'Wireless_Energy_Harvester_Schematic.png' },
+      pcbLayoutImage: {
+        layers: [
+          { id: 'f-cu', name: 'Front Copper (F.Cu)', path: 'temp/PIC16F877A_Fixed-F_Cu.svg', visible: true },
+          { id: 'b-cu', name: 'Back Copper (B.Cu)', path: 'temp/PIC16F877A_Fixed-B_Cu.svg', visible: true },
+          { id: 'f-silkscreen', name: 'Front Silkscreen (F.Silkscreen)', path: 'temp/PIC16F877A_Fixed-F_Silkscreen.svg', visible: true },
+          { id: 'b-silkscreen', name: 'Back Silkscreen (B.Silkscreen)', path: 'temp/PIC16F877A_Fixed-B_Silkscreen.svg', visible: false },
+          { id: 'f-mask', name: 'Front Mask (F.Mask)', path: 'temp/PIC16F877A_Fixed-F_Mask.svg', visible: false },
+          { id: 'b-mask', name: 'Back Mask (B.Mask)', path: 'temp/PIC16F877A_Fixed-B_Mask.svg', visible: false },
+          { id: 'f-fab', name: 'Front Fabrication (F.Fab)', path: 'temp/PIC16F877A_Fixed-F_Fab.svg', visible: false },
+          { id: 'b-fab', name: 'Back Fabrication (B.Fab)', path: 'temp/PIC16F877A_Fixed-B_Fab.svg', visible: false },
+          { id: 'edge-cuts', name: 'Board Outline (Edge.Cuts)', path: 'temp/PIC16F877A_Fixed-Edge_Cuts.svg', visible: true }
+        ]
+      },
+      pcbModel: { path: 'PCB.stl', label: 'PCB' },
+      presentation: 'Wireless_Energy_Harvester_Presentation.pptx',
+      presentationEmbed: true,
+      report: 'Wireless_Energy_Harvester_Report.pdf',
+      demoVideoId: '1rsLRHpR1H8',
+      presentationVideoId: '1rsLRHpR1H8',
+      contribution: 'This project is an individual final-year dissertation. All research, analysis, RF/antenna design, simulation, PCB layout, and testing were carried out independently, under academic supervision from the University of Westminster.',
+      timeline: [
+        { date: 'Sep 2026', title: 'Project proposal approved', description: 'Scope agreed with the supervisor: antenna filter design at 3.6 GHz feeding an RF-to-DC conversion path for IoT power delivery.' },
+        { date: 'Oct 2026', title: 'Literature review & requirements', description: 'Reviewed existing energy-harvesting and antenna filter approaches to set the design requirements and constraints.' },
+        { date: 'Dec 2026', title: 'Antenna & filter design, simulation', description: 'Modelled the antenna filter and RF-to-DC path, iterating on gain vs selectivity trade-offs at 3.6 GHz.' },
+        { date: 'Feb 2027', title: 'PCB layout & fabrication', description: 'Translated the simulated design into a PCB layout, including the enclosure and controller board, ready for fabrication.' },
+        { date: 'Apr 2027', title: 'Prototype assembly & testing', description: 'Assembled the physical prototype and began lab testing against the simulated performance figures.' },
+        { date: 'Jun 2027', title: 'Final report & submission', description: 'Write-up of the full design, simulation and testing process for final dissertation submission.' }
+      ],
       tags: ['C++', 'Mbed', '3D Printing'],
       githubCard: 'SuberBAbdi/Micro-Mouse',
       github: 'https://github.com/SuberBAbdi/Micro-Mouse'
@@ -1155,6 +1299,39 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       stack: 'Greyscale conversion → thresholding → noise removal → morphological operations → binarisation, wrapped in a custom MATLAB GUI.',
       challenges: 'Handling inconsistent lighting and image noise across the input set while keeping the pipeline fast enough for a responsive GUI.',
       outcome: 'Working end-to-end plate isolation and identification with a usable GUI front-end.',
+
+      has3DModel: true,
+      stlBodies: [
+        { id: 'enclosure', name: 'Antenna Enclosure', path: 'Controller_Model.stl', visible: true },
+        { id: 'pcb', path: 'PCB.stl', visible: true }
+      ],
+      kicadSchematic: { path: 'Wireless_Energy_Harvester_Schematic.png' },
+      pcbLayoutImage: {
+        layers: [
+          { id: 'f-cu', name: 'Front Copper (F.Cu)', path: 'temp/PIC16F877A_Fixed-F_Cu.svg', visible: true },
+          { id: 'b-cu', name: 'Back Copper (B.Cu)', path: 'temp/PIC16F877A_Fixed-B_Cu.svg', visible: true },
+          { id: 'f-silkscreen', name: 'Front Silkscreen (F.Silkscreen)', path: 'temp/PIC16F877A_Fixed-F_Silkscreen.svg', visible: true },
+          { id: 'b-silkscreen', name: 'Back Silkscreen (B.Silkscreen)', path: 'temp/PIC16F877A_Fixed-B_Silkscreen.svg', visible: false },
+          { id: 'f-mask', name: 'Front Mask (F.Mask)', path: 'temp/PIC16F877A_Fixed-F_Mask.svg', visible: false },
+          { id: 'b-mask', name: 'Back Mask (B.Mask)', path: 'temp/PIC16F877A_Fixed-B_Mask.svg', visible: false },
+          { id: 'f-fab', name: 'Front Fabrication (F.Fab)', path: 'temp/PIC16F877A_Fixed-F_Fab.svg', visible: false },
+          { id: 'b-fab', name: 'Back Fabrication (B.Fab)', path: 'temp/PIC16F877A_Fixed-B_Fab.svg', visible: false },
+          { id: 'edge-cuts', name: 'Board Outline (Edge.Cuts)', path: 'temp/PIC16F877A_Fixed-Edge_Cuts.svg', visible: true }
+        ]
+      },
+      pcbModel: { path: 'PCB.stl', label: 'PCB' },
+      demoVideoId: '1rsLRHpR1H8',
+      presentationVideoId: '1rsLRHpR1H8',
+      contribution: 'This project is an individual final-year dissertation. All research, analysis, RF/antenna design, simulation, PCB layout, and testing were carried out independently, under academic supervision from the University of Westminster.',
+      timeline: [
+        { date: 'Sep 2026', title: 'Project proposal approved', description: 'Scope agreed with the supervisor: antenna filter design at 3.6 GHz feeding an RF-to-DC conversion path for IoT power delivery.' },
+        { date: 'Oct 2026', title: 'Literature review & requirements', description: 'Reviewed existing energy-harvesting and antenna filter approaches to set the design requirements and constraints.' },
+        { date: 'Dec 2026', title: 'Antenna & filter design, simulation', description: 'Modelled the antenna filter and RF-to-DC path, iterating on gain vs selectivity trade-offs at 3.6 GHz.' },
+        { date: 'Feb 2027', title: 'PCB layout & fabrication', description: 'Translated the simulated design into a PCB layout, including the enclosure and controller board, ready for fabrication.' },
+        { date: 'Apr 2027', title: 'Prototype assembly & testing', description: 'Assembled the physical prototype and began lab testing against the simulated performance figures.' },
+        { date: 'Jun 2027', title: 'Final report & submission', description: 'Write-up of the full design, simulation and testing process for final dissertation submission.' }
+      ],
+      githubCard: 'SuberBAbdi/Number-Plate-Recognition-System',
       tags: ['MATLAB', 'Image Processing'],
       github: null,
       report: 'https://SuberBAbdi.github.io/Number Plate Recognition System/Number_Plate_Recognition_System_Report.pdf',
@@ -1173,6 +1350,42 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       stack: 'Breadboard, jumper wires, Arduino Nano, HC-SR04 ultrasonic sensor, SG90 servo motor, live visualisation in Processing.',
       challenges: 'Synchronising servo sweep angle with ultrasonic distance readings to plot an accurate, smooth radar sweep in real time.',
       outcome: 'A fully functional radar demo with live on-screen visualisation.',
+
+      has3DModel: true,
+      stlBodies: [
+        { id: 'enclosure', name: 'Antenna Enclosure', path: 'Controller_Model.stl', visible: true },
+        { id: 'pcb', path: 'PCB.stl', visible: true }
+      ],
+      kicadSchematic: { path: 'Wireless_Energy_Harvester_Schematic.png' },
+      pcbLayoutImage: {
+        layers: [
+          { id: 'f-cu', name: 'Front Copper (F.Cu)', path: 'temp/PIC16F877A_Fixed-F_Cu.svg', visible: true },
+          { id: 'b-cu', name: 'Back Copper (B.Cu)', path: 'temp/PIC16F877A_Fixed-B_Cu.svg', visible: true },
+          { id: 'f-silkscreen', name: 'Front Silkscreen (F.Silkscreen)', path: 'temp/PIC16F877A_Fixed-F_Silkscreen.svg', visible: true },
+          { id: 'b-silkscreen', name: 'Back Silkscreen (B.Silkscreen)', path: 'temp/PIC16F877A_Fixed-B_Silkscreen.svg', visible: false },
+          { id: 'f-mask', name: 'Front Mask (F.Mask)', path: 'temp/PIC16F877A_Fixed-F_Mask.svg', visible: false },
+          { id: 'b-mask', name: 'Back Mask (B.Mask)', path: 'temp/PIC16F877A_Fixed-B_Mask.svg', visible: false },
+          { id: 'f-fab', name: 'Front Fabrication (F.Fab)', path: 'temp/PIC16F877A_Fixed-F_Fab.svg', visible: false },
+          { id: 'b-fab', name: 'Back Fabrication (B.Fab)', path: 'temp/PIC16F877A_Fixed-B_Fab.svg', visible: false },
+          { id: 'edge-cuts', name: 'Board Outline (Edge.Cuts)', path: 'temp/PIC16F877A_Fixed-Edge_Cuts.svg', visible: true }
+        ]
+      },
+      pcbModel: { path: 'PCB.stl', label: 'PCB' },
+      presentation: 'Wireless_Energy_Harvester_Presentation.pptx',
+      presentationEmbed: true,
+      report: 'Wireless_Energy_Harvester_Report.pdf',
+      demoVideoId: '1rsLRHpR1H8',
+      presentationVideoId: '1rsLRHpR1H8',
+      contribution: 'This project is an individual final-year dissertation. All research, analysis, RF/antenna design, simulation, PCB layout, and testing were carried out independently, under academic supervision from the University of Westminster.',
+      timeline: [
+        { date: 'Sep 2026', title: 'Project proposal approved', description: 'Scope agreed with the supervisor: antenna filter design at 3.6 GHz feeding an RF-to-DC conversion path for IoT power delivery.' },
+        { date: 'Oct 2026', title: 'Literature review & requirements', description: 'Reviewed existing energy-harvesting and antenna filter approaches to set the design requirements and constraints.' },
+        { date: 'Dec 2026', title: 'Antenna & filter design, simulation', description: 'Modelled the antenna filter and RF-to-DC path, iterating on gain vs selectivity trade-offs at 3.6 GHz.' },
+        { date: 'Feb 2027', title: 'PCB layout & fabrication', description: 'Translated the simulated design into a PCB layout, including the enclosure and controller board, ready for fabrication.' },
+        { date: 'Apr 2027', title: 'Prototype assembly & testing', description: 'Assembled the physical prototype and began lab testing against the simulated performance figures.' },
+        { date: 'Jun 2027', title: 'Final report & submission', description: 'Write-up of the full design, simulation and testing process for final dissertation submission.' }
+      ],
+      githubCard: 'SuberBAbdi/Arduino-Radar-System',
       tags: ['Arduino', 'Ultrasonic Sensing', 'Processing'],
       github: null
     },
@@ -1185,6 +1398,42 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       stack: 'DFMiniPlayer module, speaker output, C++ firmware, voltage-range triggering logic.',
       challenges: 'Mapping analogue voltage ranges reliably to distinct playback triggers without false positives.',
       outcome: 'Working voltage-triggered playback system, used directly as preparation for the radar project.',
+
+      has3DModel: true,
+      stlBodies: [
+        { id: 'enclosure', name: 'Antenna Enclosure', path: 'Controller_Model.stl', visible: true },
+        { id: 'pcb', path: 'PCB.stl', visible: true }
+      ],
+      kicadSchematic: { path: 'Wireless_Energy_Harvester_Schematic.png' },
+      pcbLayoutImage: {
+        layers: [
+          { id: 'f-cu', name: 'Front Copper (F.Cu)', path: 'temp/PIC16F877A_Fixed-F_Cu.svg', visible: true },
+          { id: 'b-cu', name: 'Back Copper (B.Cu)', path: 'temp/PIC16F877A_Fixed-B_Cu.svg', visible: true },
+          { id: 'f-silkscreen', name: 'Front Silkscreen (F.Silkscreen)', path: 'temp/PIC16F877A_Fixed-F_Silkscreen.svg', visible: true },
+          { id: 'b-silkscreen', name: 'Back Silkscreen (B.Silkscreen)', path: 'temp/PIC16F877A_Fixed-B_Silkscreen.svg', visible: false },
+          { id: 'f-mask', name: 'Front Mask (F.Mask)', path: 'temp/PIC16F877A_Fixed-F_Mask.svg', visible: false },
+          { id: 'b-mask', name: 'Back Mask (B.Mask)', path: 'temp/PIC16F877A_Fixed-B_Mask.svg', visible: false },
+          { id: 'f-fab', name: 'Front Fabrication (F.Fab)', path: 'temp/PIC16F877A_Fixed-F_Fab.svg', visible: false },
+          { id: 'b-fab', name: 'Back Fabrication (B.Fab)', path: 'temp/PIC16F877A_Fixed-B_Fab.svg', visible: false },
+          { id: 'edge-cuts', name: 'Board Outline (Edge.Cuts)', path: 'temp/PIC16F877A_Fixed-Edge_Cuts.svg', visible: true }
+        ]
+      },
+      pcbModel: { path: 'PCB.stl', label: 'PCB' },
+      presentation: 'Wireless_Energy_Harvester_Presentation.pptx',
+      presentationEmbed: true,
+      report: 'Wireless_Energy_Harvester_Report.pdf',
+      demoVideoId: '1rsLRHpR1H8',
+      presentationVideoId: '1rsLRHpR1H8',
+      contribution: 'This project is an individual final-year dissertation. All research, analysis, RF/antenna design, simulation, PCB layout, and testing were carried out independently, under academic supervision from the University of Westminster.',
+      timeline: [
+        { date: 'Sep 2026', title: 'Project proposal approved', description: 'Scope agreed with the supervisor: antenna filter design at 3.6 GHz feeding an RF-to-DC conversion path for IoT power delivery.' },
+        { date: 'Oct 2026', title: 'Literature review & requirements', description: 'Reviewed existing energy-harvesting and antenna filter approaches to set the design requirements and constraints.' },
+        { date: 'Dec 2026', title: 'Antenna & filter design, simulation', description: 'Modelled the antenna filter and RF-to-DC path, iterating on gain vs selectivity trade-offs at 3.6 GHz.' },
+        { date: 'Feb 2027', title: 'PCB layout & fabrication', description: 'Translated the simulated design into a PCB layout, including the enclosure and controller board, ready for fabrication.' },
+        { date: 'Apr 2027', title: 'Prototype assembly & testing', description: 'Assembled the physical prototype and began lab testing against the simulated performance figures.' },
+        { date: 'Jun 2027', title: 'Final report & submission', description: 'Write-up of the full design, simulation and testing process for final dissertation submission.' }
+      ],
+      githubCard: 'SuberBAbdi/DFMiniPlayer-Voltage-Triggered-Audio-System',
       tags: ['C++', 'Arduino', 'Audio'],
       github: null
     },
@@ -1221,6 +1470,42 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
           span2: true
         }
       ],
+
+      has3DModel: true,
+      stlBodies: [
+        { id: 'enclosure', name: 'Antenna Enclosure', path: 'Controller_Model.stl', visible: true },
+        { id: 'pcb', path: 'PCB.stl', visible: true }
+      ],
+      kicadSchematic: { path: 'Wireless_Energy_Harvester_Schematic.png' },
+      pcbLayoutImage: {
+        layers: [
+          { id: 'f-cu', name: 'Front Copper (F.Cu)', path: 'temp/PIC16F877A_Fixed-F_Cu.svg', visible: true },
+          { id: 'b-cu', name: 'Back Copper (B.Cu)', path: 'temp/PIC16F877A_Fixed-B_Cu.svg', visible: true },
+          { id: 'f-silkscreen', name: 'Front Silkscreen (F.Silkscreen)', path: 'temp/PIC16F877A_Fixed-F_Silkscreen.svg', visible: true },
+          { id: 'b-silkscreen', name: 'Back Silkscreen (B.Silkscreen)', path: 'temp/PIC16F877A_Fixed-B_Silkscreen.svg', visible: false },
+          { id: 'f-mask', name: 'Front Mask (F.Mask)', path: 'temp/PIC16F877A_Fixed-F_Mask.svg', visible: false },
+          { id: 'b-mask', name: 'Back Mask (B.Mask)', path: 'temp/PIC16F877A_Fixed-B_Mask.svg', visible: false },
+          { id: 'f-fab', name: 'Front Fabrication (F.Fab)', path: 'temp/PIC16F877A_Fixed-F_Fab.svg', visible: false },
+          { id: 'b-fab', name: 'Back Fabrication (B.Fab)', path: 'temp/PIC16F877A_Fixed-B_Fab.svg', visible: false },
+          { id: 'edge-cuts', name: 'Board Outline (Edge.Cuts)', path: 'temp/PIC16F877A_Fixed-Edge_Cuts.svg', visible: true }
+        ]
+      },
+      pcbModel: { path: 'PCB.stl', label: 'PCB' },
+      presentation: 'Wireless_Energy_Harvester_Presentation.pptx',
+      presentationEmbed: true,
+      report: 'Wireless_Energy_Harvester_Report.pdf',
+      demoVideoId: '1rsLRHpR1H8',
+      presentationVideoId: '1rsLRHpR1H8',
+      contribution: 'This project is an individual final-year dissertation. All research, analysis, RF/antenna design, simulation, PCB layout, and testing were carried out independently, under academic supervision from the University of Westminster.',
+      timeline: [
+        { date: 'Sep 2026', title: 'Project proposal approved', description: 'Scope agreed with the supervisor: antenna filter design at 3.6 GHz feeding an RF-to-DC conversion path for IoT power delivery.' },
+        { date: 'Oct 2026', title: 'Literature review & requirements', description: 'Reviewed existing energy-harvesting and antenna filter approaches to set the design requirements and constraints.' },
+        { date: 'Dec 2026', title: 'Antenna & filter design, simulation', description: 'Modelled the antenna filter and RF-to-DC path, iterating on gain vs selectivity trade-offs at 3.6 GHz.' },
+        { date: 'Feb 2027', title: 'PCB layout & fabrication', description: 'Translated the simulated design into a PCB layout, including the enclosure and controller board, ready for fabrication.' },
+        { date: 'Apr 2027', title: 'Prototype assembly & testing', description: 'Assembled the physical prototype and began lab testing against the simulated performance figures.' },
+        { date: 'Jun 2027', title: 'Final report & submission', description: 'Write-up of the full design, simulation and testing process for final dissertation submission.' }
+      ],
+      githubCard: 'SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner',
       tags: ['Assembly', 'PIC16F877A', 'MPLAB X'],
       github: null
     }
@@ -2947,6 +3232,65 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 
     let extraAssets = '';
 
+    // ---- Contribution note - rendered near the bottom of the page (see the
+    // `contribution` field on a project). ----
+    if (p.contribution) {
+      extraAssets += `
+        <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
+          <p class="font-mono text-xs text-dim uppercase tracking-wider mb-1.5">Contribution</p>
+          <p class="text-sm text-dim leading-relaxed">${p.contribution}</p>
+        </div>
+      `;
+    }
+
+    // ---- Timeline - rendered last, directly below Contribution, as a
+    // vertical list of dated milestones (see the `timeline` field: an array
+    // of { date, title, description } objects, in chronological order). ----
+    if (p.timeline && p.timeline.length > 0) {
+      extraAssets += `
+        <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
+          <p class="font-mono text-xs text-dim uppercase tracking-wider mb-4">${p.title} - Timeline</p>
+          <div class="flex flex-col">
+            ${p.timeline.map((ev, i) => `
+            <div class="flex gap-4">
+              <div class="flex flex-col items-center">
+                <span class="w-2.5 h-2.5 rounded-full bg-ink shrink-0 mt-1"></span>
+                ${i !== p.timeline.length - 1 ? '<span class="w-px flex-1 bg-line mt-1"></span>' : ''}
+              </div>
+              <div class="${i !== p.timeline.length - 1 ? 'pb-5' : ''}">
+                <p class="font-mono text-[10px] uppercase tracking-widest text-faint">${ev.date}</p>
+                <p class="text-sm text-white font-medium mt-0.5">${ev.title}</p>
+                ${ev.description ? `<p class="text-sm text-dim mt-1 leading-relaxed">${ev.description}</p>` : ''}
+              </div>
+            </div>`).join('')}
+          </div>
+        </div>
+      `;
+    }
+
+    // ---- Standalone PCB 3D model (same STL viewer + view cube as the main
+    // combined model above, scoped to a single body) ----
+    if (p.pcbModel) {
+      extraAssets += `
+        <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
+          <div class="flex items-center justify-between mb-3">
+            <p class="font-mono text-xs text-dim uppercase tracking-wider">${p.title} - PCB 3D Model</p>
+            <div class="flex items-center gap-2">
+              <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">3D STL View</span>
+              <div class="relative">
+                <button id="layerToggleBtn-pcbViewerContainer" onclick="toggleLayerDropdown(event,'pcbViewerContainer')" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Toggle model layers" aria-label="Toggle model layers">
+                  <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                </button>
+                <div id="layerDropdown-pcbViewerContainer" class="hidden absolute right-0 top-full mt-1.5 w-52 bg-[#0f0f11] border border-line z-20 p-2"></div>
+              </div>
+            </div>
+          </div>
+          <div id="pcbViewerContainer" class="relative w-full h-[28rem] border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing" style="background:#f3f3f2;"></div>
+          <p class="font-mono text-[10px] text-faint mt-2">Click and drag to rotate model · Scroll to zoom · Click the view cube to snap views</p>
+        </div>
+      `;
+    }
+
     if (p.has3DModel) {
       extraAssets += `
         <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
@@ -2968,26 +3312,6 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
                site's dark styling is untouched. -->
           <div id="stlViewerContainer" class="relative w-full h-[36rem] border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing" style="background:#f3f3f2;"></div>
           <p class="font-mono text-[10px] text-faint mt-2">Click and drag to rotate model · Scroll to zoom · Click the view cube to snap views</p>
-        </div>
-      `;
-    }
-
-    // ---- KiCad schematic (2D pan/zoom, see init2DViewer) ----
-    if (p.kicadSchematic) {
-      extraAssets += `
-        <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
-          <div class="flex items-center justify-between mb-3">
-            <p class="font-mono text-xs text-dim uppercase tracking-wider">${p.title} - KiCad Schematic</p>
-            <div class="flex items-center gap-2">
-              <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">2D Schematic</span>
-              <button onclick="reset2DViewer('kicadViewerContainer')" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Reset view" aria-label="Reset view">
-                <i data-lucide="refresh-ccw" class="w-3.5 h-3.5"></i>
-              </button>
-            </div>
-          </div>
-          <!-- Flat 2D export, not a 3D scene - no view cube here on purpose. -->
-          <div id="kicadViewerContainer" class="relative w-full h-[28rem] border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing" style="background:#f3f3f2;"></div>
-          <p class="font-mono text-[10px] text-faint mt-2">Click and drag to pan · Scroll to zoom</p>
         </div>
       `;
     }
@@ -3024,25 +3348,22 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       `;
     }
 
-    // ---- Standalone PCB 3D model (same STL viewer + view cube as the main
-    // combined model above, scoped to a single body) ----
-    if (p.pcbModel) {
+    // ---- KiCad schematic (2D pan/zoom, see init2DViewer) ----
+    if (p.kicadSchematic) {
       extraAssets += `
         <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
           <div class="flex items-center justify-between mb-3">
-            <p class="font-mono text-xs text-dim uppercase tracking-wider">${p.title} - PCB 3D Model</p>
+            <p class="font-mono text-xs text-dim uppercase tracking-wider">${p.title} - KiCad Schematic</p>
             <div class="flex items-center gap-2">
-              <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">3D STL View</span>
-              <div class="relative">
-                <button id="layerToggleBtn-pcbViewerContainer" onclick="toggleLayerDropdown(event,'pcbViewerContainer')" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Toggle model layers" aria-label="Toggle model layers">
-                  <i data-lucide="layers" class="w-3.5 h-3.5"></i>
-                </button>
-                <div id="layerDropdown-pcbViewerContainer" class="hidden absolute right-0 top-full mt-1.5 w-52 bg-[#0f0f11] border border-line z-20 p-2"></div>
-              </div>
+              <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">2D Schematic</span>
+              <button onclick="reset2DViewer('kicadViewerContainer')" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Reset view" aria-label="Reset view">
+                <i data-lucide="refresh-ccw" class="w-3.5 h-3.5"></i>
+              </button>
             </div>
           </div>
-          <div id="pcbViewerContainer" class="relative w-full h-[28rem] border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing" style="background:#f3f3f2;"></div>
-          <p class="font-mono text-[10px] text-faint mt-2">Click and drag to rotate model · Scroll to zoom · Click the view cube to snap views</p>
+          <!-- Flat 2D export, not a 3D scene - no view cube here on purpose. -->
+          <div id="kicadViewerContainer" class="relative w-full h-[28rem] border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing" style="background:#f3f3f2;"></div>
+          <p class="font-mono text-[10px] text-faint mt-2">Click and drag to pan · Scroll to zoom</p>
         </div>
       `;
     }
@@ -3054,6 +3375,19 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
           <p class="font-mono text-xs text-dim uppercase tracking-wider mb-3">${p.title} - Demo Video</p>
           <div class="relative w-full rounded-sm overflow-hidden border border-line" style="aspect-ratio:16/9;">
             <iframe class="absolute inset-0 w-full h-full" src="https://www.youtube.com/embed/${p.demoVideoId}" title="${p.title} demo video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
+          </div>
+        </div>
+      `;
+    }
+
+    // ---- YouTube presentation video embed - rendered last, at the very
+    // bottom of the page's media, below the report/presentation/code links. ----
+    if (p.presentationVideoId) {
+      extraAssets += `
+        <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
+          <p class="font-mono text-xs text-dim uppercase tracking-wider mb-3">${p.title} - Presentation Video</p>
+          <div class="relative w-full rounded-sm overflow-hidden border border-line" style="aspect-ratio:16/9;">
+            <iframe class="absolute inset-0 w-full h-full" src="https://www.youtube.com/embed/${p.presentationVideoId}" title="${p.title} presentation video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
           </div>
         </div>
       `;
@@ -3131,84 +3465,10 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       }
     }
 
-    // ---- YouTube presentation video embed - rendered last, at the very
-    // bottom of the page's media, below the report/presentation/code links. ----
-    if (p.presentationVideoId) {
-      extraAssets += `
-        <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
-          <p class="font-mono text-xs text-dim uppercase tracking-wider mb-3">${p.title} - Presentation Video</p>
-          <div class="relative w-full rounded-sm overflow-hidden border border-line" style="aspect-ratio:16/9;">
-            <iframe class="absolute inset-0 w-full h-full" src="https://www.youtube.com/embed/${p.presentationVideoId}" title="${p.title} presentation video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" allowfullscreen></iframe>
-          </div>
-        </div>
-      `;
-    }
-
-    // ---- Contribution note - rendered near the bottom of the page (see the
-    // `contribution` field on a project). ----
-    if (p.contribution) {
-      extraAssets += `
-        <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
-          <p class="font-mono text-xs text-dim uppercase tracking-wider mb-1.5">Contribution</p>
-          <p class="text-sm text-dim leading-relaxed">${p.contribution}</p>
-        </div>
-      `;
-    }
-
-    // ---- Timeline - rendered last, directly below Contribution, as a
-    // vertical list of dated milestones (see the `timeline` field: an array
-    // of { date, title, description } objects, in chronological order). ----
-    if (p.timeline && p.timeline.length > 0) {
-      extraAssets += `
-        <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
-          <p class="font-mono text-xs text-dim uppercase tracking-wider mb-4">${p.title} - Timeline</p>
-          <div class="flex flex-col">
-            ${p.timeline.map((ev, i) => `
-            <div class="flex gap-4">
-              <div class="flex flex-col items-center">
-                <span class="w-2.5 h-2.5 rounded-full bg-ink shrink-0 mt-1"></span>
-                ${i !== p.timeline.length - 1 ? '<span class="w-px flex-1 bg-line mt-1"></span>' : ''}
-              </div>
-              <div class="${i !== p.timeline.length - 1 ? 'pb-5' : ''}">
-                <p class="font-mono text-[10px] uppercase tracking-widest text-faint">${ev.date}</p>
-                <p class="text-sm text-white font-medium mt-0.5">${ev.title}</p>
-                ${ev.description ? `<p class="text-sm text-dim mt-1 leading-relaxed">${ev.description}</p>` : ''}
-              </div>
-            </div>`).join('')}
-          </div>
-        </div>
-      `;
-    }
-
     detailContent.innerHTML = `
       <p class="font-mono text-xs text-faint uppercase tracking-wider">${p.status}</p>
-      <!-- Live GitHub repository card replaces the old plain GitHub button.
-           It is absolutely positioned so it never changes the vertical flow of
-           the project page or pushes the tags/overview/content downward. -->
-      <div class="relative mt-2">
-        <h3 class="font-display font-extrabold text-3xl sm:text-4xl text-white leading-[1.05] min-w-0 pr-0">${p.title}</h3>
-        ${p.githubCard ? `
-        <div class="github-terminal-card" id="ghCard-${p.id}" aria-label="Live GitHub repository statistics">
-          <div class="gtc-head">
-            <span class="gtc-dot" aria-hidden="true"></span>
-            <span class="gtc-title">github.com/${p.githubCard}</span>
-            <a href="https://github.com/${p.githubCard}" target="_blank" rel="noopener" class="gtc-open-link">Open ↗</a>
-          </div>
-          <div class="gtc-body">
-            <div class="gtc-row"><span class="gtc-k">Languages</span><span class="gtc-v" id="ghCard-${p.id}-languages">Loading…</span></div>
-            <div class="gtc-row"><span class="gtc-k">Commits</span><span class="gtc-v" id="ghCard-${p.id}-commits">Loading…</span></div>
-            <div class="gtc-row gtc-hoverable" tabindex="0" aria-describedby="ghCard-${p.id}-tooltip">
-              <span class="gtc-k">Collaborators</span>
-              <span class="gtc-v" id="ghCard-${p.id}-contributors">Loading…</span>
-              <div class="gtc-tooltip" id="ghCard-${p.id}-tooltip" role="tooltip"><span class="gtc-error">Loading collaborators…</span></div>
-            </div>
-            <div class="gtc-row"><span class="gtc-k">Last Updated</span><span class="gtc-v" id="ghCard-${p.id}-updated">Loading…</span></div>
-          </div>
-        </div>` : (p.github ? `
-        <a href="${p.github}" target="_blank" rel="noopener" title="View repository on GitHub"
-           class="focus-ring shrink-0 inline-flex items-center gap-2 bg-ink text-base px-3.5 py-2 rounded-sm text-xs font-mono font-bold uppercase tracking-wider hover:bg-white transition-colors">
-          <i data-lucide="github" class="w-4 h-4"></i> GitHub ↗
-        </a>` : '')}
+      <div class="mt-2">
+        <h3 class="font-display font-extrabold text-3xl sm:text-4xl text-white leading-[1.05] min-w-0">${p.title}</h3>
       </div>
 
       <!-- Tags render right under the title so they're immediately visible on open. -->
@@ -3250,6 +3510,30 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       
       ${extraAssets}
     `;
+
+    // Mount the live GitHub card into the header slot so its top edge aligns
+    // exactly with the Back to Portfolio / Back to Project List row.
+    const githubSlot = document.getElementById('projectGithubCardSlot');
+    if (githubSlot) {
+      githubSlot.innerHTML = p.githubCard ? `
+        <div class="github-terminal-card" id="ghCard-${p.id}" aria-label="Live GitHub repository statistics">
+          <div class="gtc-head">
+            <span class="gtc-dot" aria-hidden="true"></span>
+            <img src="Logos/github_logo.jpg" alt="GitHub" class="gtc-github-logo">
+            <a class="gtc-title gtc-repo-link" href="https://github.com/${p.githubCard}" target="_blank" rel="noopener noreferrer" title="Open ${p.githubCard} on GitHub">${p.githubCard.split('/').pop()} <span class="gtc-external-arrow" aria-hidden="true">↗</span></a>
+          </div>
+          <div class="gtc-body">
+            <div class="gtc-row"><span class="gtc-k">Languages</span><span class="gtc-v" id="ghCard-${p.id}-languages">Loading…</span></div>
+            <div class="gtc-row"><span class="gtc-k">Commits</span><span class="gtc-v" id="ghCard-${p.id}-commits">Loading…</span></div>
+            <div class="gtc-row gtc-hoverable" tabindex="0" aria-describedby="ghCard-${p.id}-tooltip">
+              <span class="gtc-k">Collaborators</span>
+              <span class="gtc-v" id="ghCard-${p.id}-contributors">Loading…</span>
+              <div class="gtc-tooltip" id="ghCard-${p.id}-tooltip" role="tooltip"><span class="gtc-error">Loading collaborators…</span></div>
+            </div>
+            <div class="gtc-row"><span class="gtc-k">Last Updated</span><span class="gtc-v" id="ghCard-${p.id}-updated">Loading…</span></div>
+          </div>
+        </div>` : '';
+    }
 
     const rightSidebarEl = document.getElementById('rightSidebar');
     rightSidebarEl.classList.add('opacity-0', 'pointer-events-none', 'translate-x-3');
@@ -3552,7 +3836,6 @@ const FOLLOWING_COMPANIES = [
   { group: 'Semiconductor & CPU/GPU IP', name: 'Qualcomm', url: 'https://www.linkedin.com/company/qualcomm/', logo: 'Logos/qualcomm_logo.jpg' },
   { group: 'Semiconductor & CPU/GPU IP', name: 'Broadcom', url: 'https://www.linkedin.com/company/broadcom/', logo: 'Logos/broadcom_logo.jpg' },
 
-  { group: 'FPGA-Focused & Consultancy', name: 'Sondrel', url: 'https://www.linkedin.com/company/sondrel/', logo: 'Logos/sondrel_logo.jpg' },
   { group: 'FPGA-Focused & Consultancy', name: 'Roke', url: 'https://www.linkedin.com/company/roke-manor-research/', logo: 'Logos/roke_manor_research_logo.jpg' },
   { group: 'FPGA-Focused & Consultancy', name: 'Sundance Multiprocessor Technology', url: 'https://www.linkedin.com/company/sundance-multiprocessor-technology-ltd-/', logo: 'Logos/sundance_multiprocessor_tech_logo.jpg' },
   { group: 'FPGA-Focused & Consultancy', name: 'Enclustra', url: 'https://www.linkedin.com/company/enclustra-gmbh/', logo: 'Logos/enclustra_logo.jpg' },
@@ -3656,25 +3939,6 @@ const CATEGORY_DATA = {
     },
     {
       size: 'modal-md',
-      group: 'University of Westminster',
-      logo: 'Logos/university_of_westminster_logo.jpg',
-      eyebrow: 'Licence & Certifications',
-      title: 'Westminster Award: Bronze',
-      body: `
-        <div class="modal-section">
-          <img src="Licenses%20%26%20Certifications%20Images/Westminster_Award_Bronze.png" alt="Westminster Award: Bronze certificate" class="w-full max-w-xs rounded-sm border border-line mb-4" onerror="handleCertImageError(this, 'Add image: Licenses &amp; Certifications Images/Westminster_Award_Bronze.png')">
-          <p class="text-sm text-dim leading-relaxed">University of Westminster's extracurricular recognition scheme for students who complete a set number of hours in volunteering, employability and skills-building activities.</p>
-          <div class="mt-4">
-            <div class="spec-row"><span class="k">Issuer</span><span class="v">University of Westminster</span></div>
-            <div class="spec-row"><span class="k">Issued</span><span class="v">Jun 2025</span></div>
-            <div class="spec-row"><span class="k">Credential ID</span><span class="v">16162373</span></div>
-          </div>
-          <a href="https://www.linkedin.com/safety/go/?url=https%3A%2F%2Fcertificate%2Ewestminster%2Eac%2Euk%2F01a5da4e-b1d9-4722-adba-2de64498db94&urlhash=GisA&mt=IwWplZyjUEOByglgEHJAVa2hgiQBaeHUmbvfuEDqCRQX7ZqWKendMmPLBuIU0YEgkDz9p6MWewGDTWL159vdCa7R-vMO&isSdui=true" target="_blank" rel="noopener" class="inline-block mt-4 text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credentials ↗</a>
-        </div>
-      `
-    },
-    {
-      size: 'modal-md',
       group: 'Royal Academy of Engineering',
       logo: 'Logos/the_royal_academy_of_engineering_logo.jpeg',
       eyebrow: 'Licence & Certifications',
@@ -3697,7 +3961,27 @@ const CATEGORY_DATA = {
           </div>
         </div>
       `
-    }
+    },
+    {
+      size: 'modal-md',
+      group: 'University of Westminster',
+      logo: 'Logos/university_of_westminster_logo.jpg',
+      eyebrow: 'Licence & Certifications',
+      title: 'Westminster Award: Bronze',
+      body: `
+        <div class="modal-section">
+          <img src="Licenses%20%26%20Certifications%20Images/Westminster_Award_Bronze.png" alt="Westminster Award: Bronze certificate" class="w-full max-w-xs rounded-sm border border-line mb-4" onerror="handleCertImageError(this, 'Add image: Licenses &amp; Certifications Images/Westminster_Award_Bronze.png')">
+          <p class="text-sm text-dim leading-relaxed">University of Westminster's extracurricular recognition scheme for students who complete a set number of hours in volunteering, employability and skills-building activities.</p>
+          <div class="mt-4">
+            <div class="spec-row"><span class="k">Issuer</span><span class="v">University of Westminster</span></div>
+            <div class="spec-row"><span class="k">Issued</span><span class="v">Jun 2025</span></div>
+            <div class="spec-row"><span class="k">Credential ID</span><span class="v">16162373</span></div>
+          </div>
+          <a href="https://www.linkedin.com/safety/go/?url=https%3A%2F%2Fcertificate%2Ewestminster%2Eac%2Euk%2F01a5da4e-b1d9-4722-adba-2de64498db94&urlhash=GisA&mt=IwWplZyjUEOByglgEHJAVa2hgiQBaeHUmbvfuEDqCRQX7ZqWKendMmPLBuIU0YEgkDz9p6MWewGDTWL159vdCa7R-vMO&isSdui=true" target="_blank" rel="noopener" class="inline-block mt-4 text-sm hover:text-white transition-colors underline decoration-faint underline-offset-4">Show credentials ↗</a>
+        </div>
+      `
+    },
+
   ],
   courses: [
     {
@@ -3830,58 +4114,26 @@ const SINGLE_MODALS = {
     title: 'Key Modules',
     body: `
       <div class="modal-section">
-        <p class="text-sm text-dim mb-4">Select a module below to view its details.</p>
         <div class="space-y-2">
           <details class="group border border-line p-3 rounded bg-panel open:bg-[#161618] transition-colors cursor-pointer [&_summary::-webkit-details-marker]:hidden">
-            <summary class="font-display font-semibold text-sm text-white outline-none list-none flex justify-between items-center">
-              Sensors & Signals
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-dim group-open:rotate-180 transition-transform"><path d="m6 9 6 6 6-6"/></svg>
-            </summary>
-            <p class="text-sm text-dim mt-2 pt-2 border-t border-lineSoft">In-depth study of analogue and digital sensors, signal conditioning, filtering, and data acquisition techniques for embedded systems applications.</p>
+            <summary class="font-display font-semibold text-sm text-white outline-none list-none flex justify-between items-center">Software Engineering with Electronics Final Project<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-dim group-open:rotate-180 transition-transform"><path d="m6 9 6 6 6-6"/></svg></summary>
+            <div class="text-sm text-dim mt-2 pt-2 border-t border-lineSoft leading-relaxed"><p>This year-long capstone module requires students to integrate their accumulated engineering knowledge to independently research, design, implement, and evaluate a substantial technical solution, such as a complex software application, embedded system, or experimental study. Guided by an academic supervisor, students manage the entire project lifecycle, converting an initial concept into a fully functional technical artifact supported by rigorous testing, formal documentation, and a viva voce defense. Ethical considerations, sustainable development goals (SDGs), and professional engineering standards are embedded throughout every stage of the development process.</p><p class="mt-3">Serving as the definitive bridge between academic study and professional practice, this final project is paramount for graduate employability. It provides students with a tangible, portfolio-ready engineering product that demonstrates end-to-end technical proficiency, autonomous problem-solving, and system-level project management capabilities. By defending their design choices under scrutiny and reflecting on real-world constraints, students gain and showcase the exact technical, analytical, and communication skills sought by industry employers during technical interviews.</p><button type="button" onclick="closeModal(); setTimeout(() => openProject('harvester'), 210);" class="mt-3 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-dim hover:text-white transition-colors focus-ring"><i data-lucide="radio-tower" class="w-3.5 h-3.5"></i> Related Project: Wireless Energy Harvester for IoT ↗</button></div>
           </details>
-
           <details class="group border border-line p-3 rounded bg-panel open:bg-[#161618] transition-colors cursor-pointer [&_summary::-webkit-details-marker]:hidden">
-            <summary class="font-display font-semibold text-sm text-white outline-none list-none flex justify-between items-center">
-              Embedded System Project (WBL)
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-dim group-open:rotate-180 transition-transform"><path d="m6 9 6 6 6-6"/></svg>
-            </summary>
-            <p class="text-sm text-dim mt-2 pt-2 border-t border-lineSoft">A core work-based learning module focusing on a complete embedded product lifecycle. Included end-to-end prototyping, schematic design, and firmware development.</p>
+            <summary class="font-display font-semibold text-sm text-white outline-none list-none flex justify-between items-center">Field Programmable Gate Array (FPGA) Design Project<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-dim group-open:rotate-180 transition-transform"><path d="m6 9 6 6 6-6"/></svg></summary>
+            <div class="text-sm text-dim mt-2 pt-2 border-t border-lineSoft leading-relaxed"><p>This module explores the theory and practical application of designing custom digital processing systems and hardware interfaces on FPGAs using hardware description languages, primarily VHDL. Students learn digital logic implementation, CMOS design concepts, arithmetic logic unit (ALU) datapath design, and high-level digital signal processing (DSP) structures. Through hands-on project work, learners use professional development tools for VHDL design capture, logic simulation, synthesis, and verification to build and integrate both custom and core-based hardware solutions.</p><p class="mt-3">Gaining direct experience with FPGA platforms and VHDL provides a critical foundation for specialized careers in digital logic, firmware development, and hardware engineering. The project-driven structure equips students with job-ready skills in custom hardware design, system-on-chip integration, and timing analysis, while fostering essential professional capabilities in technical communication, research, and collaborative problem-solving.</p></div>
           </details>
-
           <details class="group border border-line p-3 rounded bg-panel open:bg-[#161618] transition-colors cursor-pointer [&_summary::-webkit-details-marker]:hidden">
-            <summary class="font-display font-semibold text-sm text-white outline-none list-none flex justify-between items-center">
-              Operating Systems and System Programming
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-dim group-open:rotate-180 transition-transform"><path d="m6 9 6 6 6-6"/></svg>
-            </summary>
-            <p class="text-sm text-dim mt-2 pt-2 border-t border-lineSoft">Operating Systems & Systems Programming
-Level 6 Module | University of Westminster
-Developed deep technical expertise in modern operating system architectures and low-level software development by programming directly within the Linux kernel environment using C.
-
-Core Technical Skills
-Process & Thread Management: Mastered process creation via fork()/exec() and multi-threading with pthreads.
-Concurrency Control: Engineered race-condition fixes using POSIX/System V semaphores and synchronisation algorithms.
-Inter-Process Communication (IPC): Implemented data pipelines using shared memory, signals, and pipes.
-Network & Memory Programming: Built network applications via TCP/UDP sockets and simulated low-level memory allocation.
-
-💻 Key Portfolio Projects
-System-Level C Application: Architected an independent Linux service integrating multi-processing, signals, and thread synchronisation.
-Performance Evaluation: Produced a critical technical report assessing code optimisation, resource efficiency, and structural limitations.</p>
+            <summary class="font-display font-semibold text-sm text-white outline-none list-none flex justify-between items-center">Real-Time Embedded Systems<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-dim group-open:rotate-180 transition-transform"><path d="m6 9 6 6 6-6"/></svg></summary>
+            <div class="text-sm text-dim mt-2 pt-2 border-t border-lineSoft leading-relaxed"><p>This module covers the architectural principles and programming of deep-embedded microcontroller devices engineered for low-power, low-cost, and low-latency applications. Students examine how microcontroller core architecture, bus infrastructure, and cache memory impact system performance. The course compares critical I/O strategies, including polling, interrupt-driven I/O, and Direct Memory Access (DMA), and evaluates software optimization techniques, concurrency, scheduling algorithms, and Real-Time Operating Systems (RTOS) to satisfy strict real-time operational constraints.</p><p class="mt-3">As real-time processing underpins modern automation and smart devices, the expertise gained in this module is directly aligned with high-demand engineering roles. By building proficiency in hardware-aware software design, power optimization, and multi-task scheduling using industry-standard tools, students prepare for technical careers across the automotive, robotics, IoT, manufacturing, and consumer electronics sectors.</p></div>
           </details>
-
           <details class="group border border-line p-3 rounded bg-panel open:bg-[#161618] transition-colors cursor-pointer [&_summary::-webkit-details-marker]:hidden">
-            <summary class="font-display font-semibold text-sm text-white outline-none list-none flex justify-between items-center">
-              Real-Time Embedded Systems
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-dim group-open:rotate-180 transition-transform"><path d="m6 9 6 6 6-6"/></svg>
-            </summary>
-            <p class="text-sm text-dim mt-2 pt-2 border-t border-lineSoft">Applying RTOS principles to microcontrollers. Scheduling algorithms, deterministic task execution, and handling hard real-time constraints in critical systems.</p>
+            <summary class="font-display font-semibold text-sm text-white outline-none list-none flex justify-between items-center">Embedded Systems Project (WBL)<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-dim group-open:rotate-180 transition-transform"><path d="m6 9 6 6 6-6"/></svg></summary>
+            <div class="text-sm text-dim mt-2 pt-2 border-t border-lineSoft leading-relaxed"><p>Designed as a mandatory Work-Based Learning (WBL) experience, this module requires students to work in teams to take an electro-mechanical embedded system, such as an autonomous robot, from an initial client brief through to final prototyping, testing, and demonstration. The curriculum combines firmware development, circuit design, motor control, and sensor integration with core project management principles. Throughout the design process, teams must actively navigate health and safety, risk mitigation, commercial viability, sustainable design, and Equality, Diversity, and Inclusion (EDI) practices.</p><p class="mt-3">By simulating authentic industry practice with scenario-based client briefs, this module delivers immense professional value and significantly enhances graduate employability. Students build critical engineering capabilities in fault finding, rapid prototyping, finite state machine coding, and hardware-software integration. Simultaneously, the group project structure cultivates essential workplace competencies, enabling students to demonstrate leadership, technical reporting, and client-facing presentation skills directly applicable to software and embedded systems engineering careers.</p><button type="button" onclick="closeModal(); setTimeout(() => openProject('micromouse'), 210);" class="mt-3 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-dim hover:text-white transition-colors focus-ring"><i data-lucide="bot" class="w-3.5 h-3.5"></i> Related Project: Micro Mouse ↗</button></div>
           </details>
-
           <details class="group border border-line p-3 rounded bg-panel open:bg-[#161618] transition-colors cursor-pointer [&_summary::-webkit-details-marker]:hidden">
-            <summary class="font-display font-semibold text-sm text-white outline-none list-none flex justify-between items-center">
-              FPGA Design Project
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-dim group-open:rotate-180 transition-transform"><path d="m6 9 6 6 6-6"/></svg>
-            </summary>
-            <p class="text-sm text-dim mt-2 pt-2 border-t border-lineSoft">Digital logic design using hardware description languages (Verilog/VHDL), implementing custom IP cores and testing on FPGA development boards.</p>
+            <summary class="font-display font-semibold text-sm text-white outline-none list-none flex justify-between items-center">Sensors and Signals<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-dim group-open:rotate-180 transition-transform"><path d="m6 9 6 6 6-6"/></svg></summary>
+            <div class="text-sm text-dim mt-2 pt-2 border-t border-lineSoft leading-relaxed"><p>This module provides a foundational understanding of sensing systems and signal processing, emphasizing the integration of smart sensors and microelectromechanical systems (MEMS) with digital computer systems. Students explore the operational principles of standard transducers, including temperature, pressure, light, and motion sensors, alongside key signal processing concepts such as sampling, aliasing, Fourier transforms, filtering, and image analysis. Crucially, the course introduces analog-to-digital and digital-to-analog conversion principles alongside the ethical, legal, and environmental implications of capturing personal or sensitive sensory data.</p><p class="mt-3">Mastery of sensor technologies and signal conditioning is vital for bridging physical phenomena with software execution in modern engineering. By equipping students with both mathematical tools for frequency-domain analysis and practical image processing capabilities, this module serves as a mandatory precursor to advanced embedded design. It directly prepares students for industrial roles in IoT, robotics, and computer vision by developing the capability to select, interface, and process complex sensor data responsibly.</p><button type="button" onclick="closeModal(); setTimeout(() => openProject('anpr'), 210);" class="mt-3 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-dim hover:text-white transition-colors focus-ring"><i data-lucide="scan-line" class="w-3.5 h-3.5"></i> Related Project: Number Plate Recognition System ↗</button></div>
           </details>
         </div>
       </div>
@@ -4178,6 +4430,14 @@ function openModal(id) {
   document.body.classList.add('modal-open');
   setTimeout(() => overlay.classList.add('shown'), 10);
 }
+
+// Clicking the backdrop outside the modal panel closes any open popup.
+document.addEventListener('click', (e) => {
+  const overlay = document.getElementById('modalOverlay');
+  const panel = document.getElementById('modalPanel');
+  if (!overlay || !overlay.classList.contains('open') || !panel) return;
+  if (e.target === overlay) closeModal();
+});
 
 function closeModal() {
   const overlay = document.getElementById('modalOverlay');
