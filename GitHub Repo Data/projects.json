@@ -1,0 +1,14 @@
+{
+  "generatedAt": null,
+  "source": "GitHub REST API via GitHub Actions",
+  "projects": {
+    "SuberBAbdi/SCC-Robotic-Arm": { "repo": "SuberBAbdi/SCC-Robotic-Arm", "name": "SCC-Robotic-Arm", "languages": [], "commits": null, "contributors": [], "contributorCount": null, "updated": null, "description": "", "stars": 0, "forks": 0, "watchers": 0, "openIssues": 0 },
+    "SuberBAbdi/Number-Plate-Recognition-System": { "repo": "SuberBAbdi/Number-Plate-Recognition-System", "name": "Number-Plate-Recognition-System", "languages": [], "commits": null, "contributors": [], "contributorCount": null, "updated": null, "description": "", "stars": 0, "forks": 0, "watchers": 0, "openIssues": 0 },
+    "SuberBAbdi/Micro-Mouse": { "repo": "SuberBAbdi/Micro-Mouse", "name": "Micro-Mouse", "languages": [], "commits": null, "contributors": [], "contributorCount": null, "updated": null, "description": "", "stars": 0, "forks": 0, "watchers": 0, "openIssues": 0 },
+    "SuberBAbdi/FPGA-RISC-V-Safety-Control-Processor": { "repo": "SuberBAbdi/FPGA-RISC-V-Safety-Control-Processor", "name": "FPGA-RISC-V-Safety-Control-Processor", "languages": [], "commits": null, "contributors": [], "contributorCount": null, "updated": null, "description": "", "stars": 0, "forks": 0, "watchers": 0, "openIssues": 0 },
+    "SuberBAbdi/Wireless-Energy-Harvester": { "repo": "SuberBAbdi/Wireless-Energy-Harvester", "name": "Wireless-Energy-Harvester", "languages": [], "commits": null, "contributors": [], "contributorCount": null, "updated": null, "description": "", "stars": 0, "forks": 0, "watchers": 0, "openIssues": 0 },
+    "SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner": { "repo": "SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner", "name": "DAC-using-PIC16F877A-Temperature-Scanner", "languages": [], "commits": null, "contributors": [], "contributorCount": null, "updated": null, "description": "", "stars": 0, "forks": 0, "watchers": 0, "openIssues": 0 },
+    "SuberBAbdi/Arduino-Radar-System": { "repo": "SuberBAbdi/Arduino-Radar-System", "name": "Arduino-Radar-System", "languages": [], "commits": null, "contributors": [], "contributorCount": null, "updated": null, "description": "", "stars": 0, "forks": 0, "watchers": 0, "openIssues": 0 },
+    "SuberBAbdi/DFMiniPlayer-Voltage-Triggered-Audio-System": { "repo": "SuberBAbdi/DFMiniPlayer-Voltage-Triggered-Audio-System", "name": "DFMiniPlayer-Voltage-Triggered-Audio-System", "languages": [], "commits": null, "contributors": [], "contributorCount": null, "updated": null, "description": "", "stars": 0, "forks": 0, "watchers": 0, "openIssues": 0 }
+  }
+}
