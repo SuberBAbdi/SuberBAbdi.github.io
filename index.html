@@ -1044,10 +1044,23 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       // root and update `path` to match its filename.
       kicadSchematic: { path: 'Wireless_Energy_Harvester_Schematic.png' },
 
-      // Same 2D pan/zoom viewer as above, for the PCB layout export.
-      // TODO: upload the real KiCad PCB layout export (PNG/SVG) to the repo
-      // root and update `path` to match its filename.
-      pcbLayoutImage: { path: 'PIC16F877A_Fixed-F_Cu.svg' },
+      // Same 2D pan/zoom viewer as the schematic, but with multiple aligned
+      // KiCad layer plots stacked on top of each other - `layers` gives a
+      // toggle checklist (see renderLayer2DDropdown/toggle2DLayer) so each
+      // copper/mask/silkscreen/outline layer can be shown or hidden
+      // independently, same idea as the 3D viewer's body-layer dropdown.
+      // Files live in the repo's `temp./` folder.
+      pcbLayoutImage: {
+        layers: [
+          { id: 'f-cu', name: 'Front Copper (F.Cu)', path: 'temp./PIC16F877A_Fixed-F_Cu.svg', visible: true },
+          { id: 'b-cu', name: 'Back Copper (B.Cu)', path: 'temp./PIC16F877A_Fixed-B_Cu.svg', visible: true },
+          { id: 'f-mask', name: 'Front Mask (F.Mask)', path: 'temp./PIC16F877A_Fixed-F_Mask.svg', visible: false },
+          { id: 'b-mask', name: 'Back Mask (B.Mask)', path: 'temp./PIC16F877A_Fixed-B_Mask.svg', visible: false },
+          { id: 'f-silkscreen', name: 'Front Silkscreen (F.Silkscreen)', path: 'temp./PIC16F877A_Fixed-F_Silkscreen.svg', visible: true },
+          { id: 'b-silkscreen', name: 'Back Silkscreen (B.Silkscreen)', path: 'temp./PIC16F877A_Fixed-B_Silkscreen.svg', visible: false },
+          { id: 'edge-cuts', name: 'Board Outline (Edge.Cuts)', path: 'temp./PIC16F877A_Fixed-Edge_Cuts.svg', visible: true }
+        ]
+      },
 
       // Standalone, orbitable 3D view of just the PCB body - same STL
       // viewer + view cube as the combined model above (see init3DViewer),
@@ -2519,20 +2532,32 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
   // this does is let the user drag to pan and scroll to zoom a plain <img>
   // inside a clipped container. Add a new project field pointing at an
   // image path and give it its own container id to reuse this elsewhere.
-  function init2DViewer(containerId, imagePath) {
+  // Tracks the layer list + rendered <img> elements for any 2D viewer that
+  // was given multiple stacked layers (see init2DViewer below) - keyed by
+  // containerId, same pattern as viewer3DInstances for the 3D viewer.
+  let view2DLayerInstances = {};
+
+  // Generic 2D pan/zoom viewer (schematics, PCB layout images, etc.).
+  // `imageOrLayers` is either a single image path (string) - the original,
+  // simple case - or an array of layer objects
+  // [{ id, name, path, visible }] to stack several aligned exports (e.g.
+  // KiCad's per-layer plots: F.Cu, B.Cu, silkscreen, outline...) on top of
+  // each other, each independently toggleable via the layer dropdown that
+  // appears automatically whenever more than one layer is given.
+  function init2DViewer(containerId, imageOrLayers) {
     const container = document.getElementById(containerId);
     if (!container) return;
     container.innerHTML = '';
 
+    const layers = Array.isArray(imageOrLayers)
+      ? imageOrLayers.map(l => ({ ...l, visible: l.visible !== false }))
+      : [{ id: 'image', name: '', path: imageOrLayers, visible: true }];
+    view2DLayerInstances[containerId] = { layers, images: {} };
+
     let scale = 1, originX = 0, originY = 0;
     let dragging = false, lastX = 0, lastY = 0;
-
-    const img = document.createElement('img');
-    img.src = imagePath;
-    img.draggable = false;
-    img.alt = '';
-    img.style.cssText = 'position:absolute; top:0; left:0; max-width:none; transform-origin:0 0; user-select:none;';
-    container.appendChild(img);
+    let loadedCount = 0;
+    let referenceImg = null; // first successfully-loaded image, used to size/fit the view
 
     const overlay = document.createElement('div');
     overlay.className = 'img2d-loading absolute inset-0 flex items-center justify-center font-mono text-[11px] text-center px-6 pointer-events-none uppercase tracking-wider';
@@ -2541,22 +2566,44 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     container.appendChild(overlay);
 
     function applyTransform() {
-      img.style.transform = `translate(${originX}px, ${originY}px) scale(${scale})`;
+      const t = `translate(${originX}px, ${originY}px) scale(${scale})`;
+      Object.values(view2DLayerInstances[containerId].images).forEach(img => { img.style.transform = t; });
     }
 
-    // Fits and centres the image in the container - called on first load
-    // and by the "Reset View" button (see reset2DViewer) below.
+    // Fits and centres the (reference) image in the container - called on
+    // first load and by the "Reset View" button (see reset2DViewer) below.
     function fitToView() {
       const cw = container.clientWidth, ch = container.clientHeight;
-      if (!img.naturalWidth || !img.naturalHeight) return;
-      scale = Math.min(cw / img.naturalWidth, ch / img.naturalHeight, 1) * 0.92;
-      originX = (cw - img.naturalWidth * scale) / 2;
-      originY = (ch - img.naturalHeight * scale) / 2;
+      if (!referenceImg || !referenceImg.naturalWidth) return;
+      scale = Math.min(cw / referenceImg.naturalWidth, ch / referenceImg.naturalHeight, 1) * 0.92;
+      originX = (cw - referenceImg.naturalWidth * scale) / 2;
+      originY = (ch - referenceImg.naturalHeight * scale) / 2;
       applyTransform();
     }
 
-    img.onload = () => { fitToView(); overlay.remove(); };
-    img.onerror = () => { overlay.textContent = 'Image not yet uploaded to the repo - see TODO in the project data.'; };
+    layers.forEach((layer) => {
+      const img = document.createElement('img');
+      img.src = layer.path;
+      img.draggable = false;
+      img.alt = layer.name || '';
+      img.style.cssText = 'position:absolute; top:0; left:0; max-width:none; transform-origin:0 0; user-select:none;';
+      img.style.display = layer.visible ? 'block' : 'none';
+      container.appendChild(img);
+      view2DLayerInstances[containerId].images[layer.id] = img;
+
+      img.onload = () => {
+        if (!referenceImg) referenceImg = img;
+        loadedCount++;
+        if (loadedCount >= layers.length) { fitToView(); overlay.remove(); }
+      };
+      img.onerror = () => {
+        loadedCount++;
+        if (loadedCount >= layers.length) {
+          if (referenceImg) overlay.remove();
+          else overlay.textContent = 'Image(s) not yet uploaded to the repo - see TODO in the project data.';
+        }
+      };
+    });
 
     container.addEventListener('mousedown', (e) => { dragging = true; lastX = e.clientX; lastY = e.clientY; });
     window.addEventListener('mousemove', (e) => {
@@ -2581,6 +2628,35 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     }, { passive: false });
 
     view2DResets[containerId] = fitToView;
+    // The layer dropdown button only appears in the markup for multi-layer
+    // viewers (see the PCB Layout card in openProject) - only populate it
+    // when there's actually more than one layer to toggle.
+    if (layers.length > 1) renderLayer2DDropdown(containerId);
+  }
+
+  // Populates a 2D viewer's layer-toggle dropdown - reuses the exact same
+  // toggleLayerDropdown()/outside-click-to-close logic as the 3D viewer's
+  // layer dropdown (see toggleLayerDropdown above), since that's already
+  // generic by containerId and not 3D-specific.
+  function renderLayer2DDropdown(containerId) {
+    const dd = document.getElementById('layerDropdown-' + containerId);
+    const inst = view2DLayerInstances[containerId];
+    if (!dd || !inst) return;
+    dd.innerHTML = inst.layers.map(l => `
+      <label class="flex items-center gap-2 px-2 py-1.5 text-xs text-dim hover:text-white cursor-pointer transition-colors">
+        <input type="checkbox" ${l.visible ? 'checked' : ''} onchange="toggle2DLayer('${containerId}', '${l.id}', this.checked)" class="accent-white">
+        <span class="font-mono">${l.name}</span>
+      </label>
+    `).join('');
+  }
+
+  function toggle2DLayer(containerId, layerId, visible) {
+    const inst = view2DLayerInstances[containerId];
+    if (!inst) return;
+    const layer = inst.layers.find(l => l.id === layerId);
+    if (layer) layer.visible = visible;
+    const img = inst.images[layerId];
+    if (img) img.style.display = visible ? 'block' : 'none';
   }
 
   // Called by each 2D viewer's "Reset View" button (see openProject markup).
@@ -2857,6 +2933,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     });
     viewer3DInstances = {};
     view2DResets = {};
+    view2DLayerInstances = {};
     // The old viewer containers are about to be rebuilt/replaced, so any
     // reference to a previous project's active overlay would be stale.
     activeInteractiveOverlay = null;
@@ -2908,21 +2985,31 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       `;
     }
 
-    // ---- PCB layout (same 2D pan/zoom viewer as the schematic above) ----
+    // ---- PCB layout (same 2D pan/zoom viewer as the schematic above, but
+    // supports multiple stacked/toggleable layers - see init2DViewer) ----
     if (p.pcbLayoutImage) {
+      const pcbLayers = p.pcbLayoutImage.layers;
+      const hasLayerToggle = Array.isArray(pcbLayers) && pcbLayers.length > 1;
       extraAssets += `
         <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
           <div class="flex items-center justify-between mb-3">
             <p class="font-mono text-xs text-dim uppercase tracking-wider">${p.title} - PCB Layout</p>
             <div class="flex items-center gap-2">
               <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">2D Layout</span>
+              ${hasLayerToggle ? `
+              <div class="relative">
+                <button id="layerToggleBtn-pcbLayoutViewerContainer" onclick="toggleLayerDropdown(event,'pcbLayoutViewerContainer')" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Toggle PCB layers" aria-label="Toggle PCB layers">
+                  <i data-lucide="layers" class="w-3.5 h-3.5"></i>
+                </button>
+                <div id="layerDropdown-pcbLayoutViewerContainer" class="hidden absolute right-0 top-full mt-1.5 w-56 bg-[#0f0f11] border border-line z-20 p-2"></div>
+              </div>` : ''}
               <button onclick="reset2DViewer('pcbLayoutViewerContainer')" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Reset view" aria-label="Reset view">
                 <i data-lucide="refresh-ccw" class="w-3.5 h-3.5"></i>
               </button>
             </div>
           </div>
           <div id="pcbLayoutViewerContainer" class="relative w-full h-[28rem] border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing" style="background:#f3f3f2;"></div>
-          <p class="font-mono text-[10px] text-faint mt-2">Click and drag to pan · Scroll to zoom</p>
+          <p class="font-mono text-[10px] text-faint mt-2">Click and drag to pan · Scroll to zoom${hasLayerToggle ? ' · Toggle layers with the layers icon above' : ''}</p>
         </div>
       `;
     }
@@ -3187,7 +3274,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     }
     if (p.pcbLayoutImage) {
       setTimeout(() => {
-        init2DViewer('pcbLayoutViewerContainer', p.pcbLayoutImage.path);
+        init2DViewer('pcbLayoutViewerContainer', p.pcbLayoutImage.layers || p.pcbLayoutImage.path);
         addClickToInteractOverlay('pcbLayoutViewerContainer', 'Click to Pan / Zoom');
       }, 50);
     }
@@ -3212,6 +3299,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     });
     viewer3DInstances = {};
     view2DResets = {};
+    view2DLayerInstances = {};
 
     // Play a quick fade+slide-out (see .closing / @keyframes fadeOut) before
     // actually swapping back to the feed view, instead of vanishing instantly.
