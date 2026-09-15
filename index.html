@@ -35,13 +35,10 @@
     }
   }
 </script>
-<link rel="preconnect" href="https://fonts.googleapis.com/">
-<link rel="preconnect" href="https://fonts.gstatic.com/" crossorigin="">
-<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@500;600;700;800&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <style>
-  body{ font-family:'Inter', ui-sans-serif, system-ui; background:#0c0c0d; font-size:16px; }
-  .font-display{ font-family:'Outfit', ui-sans-serif, system-ui; }
-  .font-mono{ font-family:'JetBrains Mono', ui-monospace, monospace; }
+  body{ font-family:Arial, Helvetica, sans-serif; background:#0c0c0d; font-size:16px; }
+  *{ font-family:Arial, Helvetica, sans-serif !important; }
+  .font-display,.font-mono{ font-family:Arial, Helvetica, sans-serif !important; }
   ::selection{ background:#f1f1ef; color:#0c0c0d; }
 
   .tag{
@@ -129,86 +126,12 @@
     writing-mode: vertical-rl;
     transform: rotate(180deg);
   }
-
-  /* Responsive electronics background: a denser technical frame that stays in
-     the empty outer gutters. It is shared by the feed and every project-detail
-     page because the background is global, while breakpoint rules keep symbols
-     away from the readable CV/project columns. */
-  .bg-electronics{opacity:.15;}
-  .bg-electronics > svg{position:absolute;color:#a3a3a8;opacity:.68;pointer-events:none;transform-origin:center;}
-
-  @media (min-width:1280px){
-    .bg-electronics > svg{width:22px !important;height:22px !important;}
-    .bg-electronics > svg:nth-child(odd){left:calc(1px + (var(--n, 0) * 0px)) !important;}
-    .bg-electronics > svg:nth-child(1){top:3% !important;left:1.2% !important}.bg-electronics > svg:nth-child(2){top:8% !important;left:4.2% !important}
-    .bg-electronics > svg:nth-child(3){top:14% !important;left:1.8% !important}.bg-electronics > svg:nth-child(4){top:20% !important;left:4.8% !important}
-    .bg-electronics > svg:nth-child(5){top:26% !important;left:1.1% !important}.bg-electronics > svg:nth-child(6){top:32% !important;left:4.1% !important}
-    .bg-electronics > svg:nth-child(7){top:38% !important;left:1.7% !important}.bg-electronics > svg:nth-child(8){top:44% !important;left:4.6% !important}
-    .bg-electronics > svg:nth-child(9){top:50% !important;left:1.1% !important}.bg-electronics > svg:nth-child(10){top:56% !important;left:4.3% !important}
-    .bg-electronics > svg:nth-child(11){top:62% !important;left:1.8% !important}.bg-electronics > svg:nth-child(12){top:68% !important;left:4.8% !important}
-    .bg-electronics > svg:nth-child(13){top:74% !important;left:1.2% !important}.bg-electronics > svg:nth-child(14){top:80% !important;left:4.2% !important}
-    .bg-electronics > svg:nth-child(15){top:86% !important;left:1.7% !important}.bg-electronics > svg:nth-child(16){top:92% !important;left:4.7% !important}
-    .bg-electronics > svg:nth-child(17){top:97% !important;left:1.2% !important}
-    .bg-electronics > svg:nth-child(18){top:4% !important;right:1.2% !important;left:auto !important}.bg-electronics > svg:nth-child(19){top:10% !important;right:4.4% !important;left:auto !important}
-    .bg-electronics > svg:nth-child(20){top:16% !important;right:1.7% !important;left:auto !important}.bg-electronics > svg:nth-child(21){top:22% !important;right:4.8% !important;left:auto !important}
-    .bg-electronics > svg:nth-child(22){top:28% !important;right:1.1% !important;left:auto !important}.bg-electronics > svg:nth-child(23){top:34% !important;right:4.2% !important;left:auto !important}
-    .bg-electronics > svg:nth-child(24){top:40% !important;right:1.8% !important;left:auto !important}.bg-electronics > svg:nth-child(25){top:46% !important;right:4.7% !important;left:auto !important}
-    .bg-electronics > svg:nth-child(26){top:52% !important;right:1.2% !important;left:auto !important}.bg-electronics > svg:nth-child(27){top:58% !important;right:4.4% !important;left:auto !important}
-    .bg-electronics > svg:nth-child(28){top:64% !important;right:1.7% !important;left:auto !important}.bg-electronics > svg:nth-child(29){top:70% !important;right:4.8% !important;left:auto !important}
-    .bg-electronics > svg:nth-child(30){top:76% !important;right:1.1% !important;left:auto !important}.bg-electronics > svg:nth-child(31){top:82% !important;right:4.2% !important;left:auto !important}
-    .bg-electronics > svg:nth-child(32){top:88% !important;right:1.8% !important;left:auto !important}.bg-electronics > svg:nth-child(33){top:94% !important;right:4.7% !important;left:auto !important}
-    .bg-electronics > svg:nth-child(34){top:98% !important;right:1.3% !important;left:auto !important}.bg-electronics > svg:nth-child(35){top:13% !important;left:7.2% !important}
-    .bg-electronics > svg:nth-child(36){top:83% !important;right:7.2% !important;left:auto !important}
-  }
-
-  @media (min-width:640px) and (max-width:1279px){
-    .bg-electronics{opacity:.12;}
-    .bg-electronics > svg{display:none;width:15px !important;height:15px !important;}
-    .bg-electronics > svg:nth-child(1),.bg-electronics > svg:nth-child(3),.bg-electronics > svg:nth-child(5),.bg-electronics > svg:nth-child(7),.bg-electronics > svg:nth-child(9),.bg-electronics > svg:nth-child(11),.bg-electronics > svg:nth-child(13),.bg-electronics > svg:nth-child(15),.bg-electronics > svg:nth-child(17),.bg-electronics > svg:nth-child(18),.bg-electronics > svg:nth-child(20),.bg-electronics > svg:nth-child(22),.bg-electronics > svg:nth-child(24),.bg-electronics > svg:nth-child(26),.bg-electronics > svg:nth-child(28),.bg-electronics > svg:nth-child(30),.bg-electronics > svg:nth-child(32),.bg-electronics > svg:nth-child(34){display:block;}
-    .bg-electronics > svg:nth-child(1){top:3%;left:2px !important}.bg-electronics > svg:nth-child(3){top:11%;left:5px !important}.bg-electronics > svg:nth-child(5){top:20%;left:2px !important}.bg-electronics > svg:nth-child(7){top:29%;left:5px !important}.bg-electronics > svg:nth-child(9){top:38%;left:2px !important}.bg-electronics > svg:nth-child(11){top:47%;left:5px !important}.bg-electronics > svg:nth-child(13){top:56%;left:2px !important}.bg-electronics > svg:nth-child(15){top:65%;left:5px !important}.bg-electronics > svg:nth-child(17){top:74%;left:2px !important}
-    .bg-electronics > svg:nth-child(18){top:6%;right:2px !important;left:auto !important}.bg-electronics > svg:nth-child(20){top:15%;right:5px !important;left:auto !important}.bg-electronics > svg:nth-child(22){top:24%;right:2px !important;left:auto !important}.bg-electronics > svg:nth-child(24){top:33%;right:5px !important;left:auto !important}.bg-electronics > svg:nth-child(26){top:42%;right:2px !important;left:auto !important}.bg-electronics > svg:nth-child(28){top:51%;right:5px !important;left:auto !important}.bg-electronics > svg:nth-child(30){top:60%;right:2px !important;left:auto !important}.bg-electronics > svg:nth-child(32){top:69%;right:5px !important;left:auto !important}.bg-electronics > svg:nth-child(34){top:78%;right:2px !important;left:auto !important}
-  }
-
-  @media (max-width:639px){
-    .bg-electronics{opacity:.08;}
-    .bg-electronics > svg{display:none;width:7px !important;height:7px !important;}
-    .bg-electronics > svg:nth-child(1),.bg-electronics > svg:nth-child(5),.bg-electronics > svg:nth-child(9),.bg-electronics > svg:nth-child(13),.bg-electronics > svg:nth-child(17),.bg-electronics > svg:nth-child(19),.bg-electronics > svg:nth-child(23),.bg-electronics > svg:nth-child(27),.bg-electronics > svg:nth-child(31),.bg-electronics > svg:nth-child(35){display:block;}
-    .bg-electronics > svg:nth-child(1){top:4%;left:2px !important}.bg-electronics > svg:nth-child(5){top:14%;left:3px !important}.bg-electronics > svg:nth-child(9){top:25%;left:2px !important}.bg-electronics > svg:nth-child(13){top:36%;left:3px !important}.bg-electronics > svg:nth-child(17){top:48%;left:2px !important}
-    .bg-electronics > svg:nth-child(19){top:10%;right:2px !important;left:auto !important}.bg-electronics > svg:nth-child(23){top:22%;right:3px !important;left:auto !important}.bg-electronics > svg:nth-child(27){top:35%;right:2px !important;left:auto !important}.bg-electronics > svg:nth-child(31){top:49%;right:3px !important;left:auto !important}.bg-electronics > svg:nth-child(35){top:64%;left:2px !important}
-  }
-
   .scan-header{ position:relative; }
   .scan-header::after{
     content:''; position:absolute; bottom:-1px; left:0;
     height:1px; width:130px;
     background:linear-gradient(90deg, #a3a3a8, transparent);
     pointer-events:none;
-  }
-
-  .side-signal{
-    position:fixed; top:0; bottom:0; width:48px;
-    pointer-events:none; z-index:-1; overflow:hidden;
-  }
-  .side-signal-left{ left:max(6px, calc(50% - 756px)); }
-  .side-signal-right{ right:max(6px, calc(50% - 756px)); transform:scaleX(-1); }
-  .side-signal svg{
-    display:block; width:48px;
-    --half:800px;
-    animation:waveScroll 16s linear infinite;
-  }
-  .wave-base{ fill:none; stroke:#27272a; stroke-width:1.5; opacity:.9; }
-  .wave-pulse{
-    fill:none; stroke:#a3a3a8; stroke-width:1.5; opacity:.30;
-    stroke-dasharray:45 955;
-    animation:wavePulse 6s linear infinite;
-  }
-  @keyframes waveScroll{
-    from{ transform:translateY(0); }
-    to{ transform:translateY(calc(-1 * var(--half))); }
-  }
-  @keyframes wavePulse{
-    from{ stroke-dashoffset:1000; }
-    to{ stroke-dashoffset:0; }
   }
 
   ::-webkit-scrollbar{ width:10px; }
@@ -501,6 +424,30 @@
     width:100%;
     pointer-events:auto;
   }
+  /* ===== Clean two/three-column portfolio layout ===== */
+  @media (min-width:1024px){
+    .portfolio-shell{ max-width:none !important; width:100% !important; padding-left:0 !important; padding-right:0 !important; }
+    .portfolio-grid{ gap:0 !important; }
+    #leftSidebar{
+      position:sticky !important;
+      top:24px !important;
+      align-self:start !important;
+      height:calc(100vh - 48px);
+      overflow-y:auto;
+      padding-left:0 !important;
+      padding-right:28px;
+      border-right:1px solid #27272a;
+      scrollbar-width:thin;
+    }
+    #centerColumn{ padding-left:32px; padding-right:32px; min-width:0; }
+    #rightSidebar{ padding-right:32px; }
+  }
+  @media (max-width:1023px){
+    #leftSidebar{ position:relative; }
+  }
+  .footer-about{ max-width:760px; }
+  .footer-about p{ margin:0; }
+
   @media (max-width:1100px){
     .project-detail-gh-slot{ width:min(330px, 42%); }
   }
@@ -593,42 +540,6 @@
   .pd-nav.pd-nav-scrolled .pdnav-gh-full{ opacity:0; pointer-events:none; }
   .pd-nav.pd-nav-scrolled .pdnav-gh-simple:not(.hidden){ opacity:1; }
 
-  /* ===== Restored project-area / lower electronics ===== */
-  .bg-electronics > svg.project-area-symbol{ opacity:.42 !important; pointer-events:none; }
-  .bg-electronics > svg.project-area-symbol:nth-of-type(1){top:2% !important;left:42% !important;}
-  .bg-electronics > svg.project-area-symbol:nth-of-type(2){top:6% !important;left:48% !important;}
-  .bg-electronics > svg.project-area-symbol:nth-of-type(3){top:3% !important;left:56% !important;}
-  .bg-electronics > svg.project-area-symbol:nth-of-type(4){top:8% !important;left:36% !important;}
-  .bg-electronics > svg.project-area-symbol:nth-of-type(5){top:9% !important;left:53% !important;}
-  .bg-electronics > svg.project-area-symbol:nth-of-type(6){top:4% !important;left:64% !important;}
-  .sidebar-lower-electronics{ position:relative; min-height:180px; margin-top:4px; pointer-events:none; opacity:.34; }
-  .sidebar-lower-electronics svg{ position:absolute; }
-  .sidebar-lower-electronics .sle-1{ left:8%; top:24px; }
-  .sidebar-lower-electronics .sle-2{ right:8%; top:72px; }
-  .sidebar-lower-electronics .sle-3{ left:36%; top:120px; }
-  .sidebar-lower-electronics .sle-4{ right:24%; top:22px; }
-  .footer-electronics-wrap{ position:relative; }
-  .footer-electronics{ position:absolute; inset:0; pointer-events:none; overflow:hidden; opacity:.38; }
-  .footer-electronics svg{ position:absolute; }
-  .footer-electronics .fe-1{ left:28%; top:4px; }
-  .footer-electronics .fe-2{ left:40%; top:7px; }
-  .footer-electronics .fe-3{ right:40%; top:4px; }
-  .footer-electronics .fe-4{ right:28%; top:7px; }
-  @media (max-width:1023px){
-    .bg-electronics > svg.project-area-symbol{ opacity:.26 !important; }
-    .sidebar-lower-electronics{ min-height:110px; }
-    .sidebar-lower-electronics .sle-1{left:8%;top:20px}.sidebar-lower-electronics .sle-2{right:10%;top:62px}.sidebar-lower-electronics .sle-3{left:44%;top:78px}.sidebar-lower-electronics .sle-4{right:32%;top:16px}
-    .footer-electronics{ opacity:.28; }
-  }
-  @media (max-width:639px){
-    .bg-electronics > svg.project-area-symbol{ opacity:.18 !important; }
-    .bg-electronics > svg.project-area-symbol:nth-of-type(1), .bg-electronics > svg.project-area-symbol:nth-of-type(2), .bg-electronics > svg.project-area-symbol:nth-of-type(3), .bg-electronics > svg.project-area-symbol:nth-of-type(4), .bg-electronics > svg.project-area-symbol:nth-of-type(5), .bg-electronics > svg.project-area-symbol:nth-of-type(6){ display:none; }
-    .sidebar-lower-electronics{ min-height:90px; }
-    .sidebar-lower-electronics svg{ width:20px; height:20px; }
-    .sidebar-lower-electronics .sle-1{left:6%;top:14px}.sidebar-lower-electronics .sle-2{right:6%;top:52px}.sidebar-lower-electronics .sle-3{left:43%;top:62px}.sidebar-lower-electronics .sle-4{right:28%;top:12px}
-    .footer-electronics svg{ width:18px; height:18px; }
-    .footer-electronics .fe-1{left:20%;top:4px}.footer-electronics .fe-2{left:36%;top:6px}.footer-electronics .fe-3{right:36%;top:4px}.footer-electronics .fe-4{right:20%;top:6px}
-  }
 
   /* ===== Boot / loading screen ===== */
   html.is-loading, html.is-loading body{ overflow:hidden; height:100%; }
@@ -740,15 +651,6 @@
   }
 
 
-  /* Final project-area symbol guard: the six original symbols must remain
-     visible above the project region at every breakpoint. */
-  .bg-electronics > svg.project-area-symbol:nth-of-type(1),
-  .bg-electronics > svg.project-area-symbol:nth-of-type(2),
-  .bg-electronics > svg.project-area-symbol:nth-of-type(3),
-  .bg-electronics > svg.project-area-symbol:nth-of-type(4),
-  .bg-electronics > svg.project-area-symbol:nth-of-type(5),
-  .bg-electronics > svg.project-area-symbol:nth-of-type(6){ display:block !important; }
-
 
   /* ===== Portfolio fixes ===== */
   .experience-meta-grid{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start;width:100%;}
@@ -827,57 +729,11 @@
 })();
 </script>
 
-<div class="bg-electronics fixed inset-0 pointer-events-none z-[-2] overflow-hidden" aria-hidden="true">
-  <svg class="absolute top-[2%] left-[42%]" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="6" y="6" width="12" height="12" rx="1"></rect><path d="M6 9H2M6 12H2M6 15H2 M18 9h4M18 12h4M18 15h4 M9 6V2M12 6V2M15 6V2 M9 18v4M12 18v4M15 18v4"></path></svg>
-  <svg class="absolute top-[6%] left-[48%] -rotate-12" width="28" height="36" viewBox="0 0 24 32" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="6" y="4" width="12" height="24" rx="1"></rect><path d="M6 8H2M6 14H2M6 20H2M6 26H2 M18 8h4M18 14h4M18 20h4M18 26h4"></path><path d="M10 4a2 2 0 0 1 4 0"></path></svg>
-  <svg class="absolute top-[3%] left-[56%]" width="38" height="14" viewBox="0 0 36 14" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M0 7h7l2-5 4 10 4-10 4 10 4-10 2 5h7"></path></svg>
-  <svg class="absolute top-[8%] left-[36%]" width="32" height="32" viewBox="0 0 30 30" fill="none" stroke="#a3a3a8" stroke-width="1.5"><circle cx="6" cy="6" r="3"></circle><circle cx="24" cy="24" r="3"></circle><path d="M6 9v6l12 12"></path></svg>
-  <svg class="absolute top-[9%] left-[53%]" width="30" height="24" viewBox="0 0 28 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M2 6h6M2 18h6M8 3h6a9 9 0 0 1 9 9 9 9 0 0 1-9 9H8V3zM23 12h3"></path></svg>
-  <svg class="absolute top-[4%] left-[64%]" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="7" y="5" width="10" height="14" rx="2"></rect><path d="M12 2v3M12 19v3"></path></svg>
-  <svg class="absolute top-[38%] left-[2%]" width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="6" y="6" width="12" height="12" rx="1"></rect><path d="M6 9H2M6 12H2M6 15H2 M18 9h4M18 12h4M18 15h4 M9 6V2M12 6V2M15 6V2 M9 18v4M12 18v4M15 18v4"></path></svg>
-  <svg class="absolute top-[46%] left-[4%] rotate-45" width="28" height="36" viewBox="0 0 24 32" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="6" y="4" width="12" height="24" rx="1"></rect><path d="M6 8H2M6 14H2M6 20H2M6 26H2 M18 8h4M18 14h4M18 20h4M18 26h4"></path><path d="M10 4a2 2 0 0 1 4 0"></path></svg>
-  <svg class="absolute top-[54%] left-[1.5%]" width="40" height="16" viewBox="0 0 32 12" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M0 6h6l2-4 4 8 4-8 4 8 4-8 2 4h6"></path></svg>
-  <svg class="absolute top-[62%] left-[3%]" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><circle cx="12" cy="12" r="9"></circle><path d="M7 12h5M12 7v10M12 9l5-3M12 15l5 3"></path></svg>
-  <svg class="absolute top-[42%] left-[6%]" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M2 12h8M14 12h8M10 5v14M14 5v14"></path></svg>
-  <svg class="absolute top-[50%] left-[7.5%]" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M2 12h6M16 12h6M8 6l8 6-8 6V6zM16 6v12"></path></svg>
-  <svg class="absolute top-[36%] right-[2%]" width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="6" y="6" width="12" height="12" rx="1"></rect><path d="M6 9H2M6 12H2M6 15H2 M18 9h4M18 12h4M18 15h4 M9 6V2M12 6V2M15 6V2 M9 18v4M12 18v4M15 18v4"></path></svg>
-  <svg class="absolute top-[45%] right-[3.5%] -rotate-90" width="28" height="36" viewBox="0 0 24 32" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="6" y="4" width="12" height="24" rx="1"></rect><path d="M6 8H2M6 14H2M6 20H2M6 26H2 M18 8h4M18 14h4M18 20h4M18 26h4"></path><path d="M10 4a2 2 0 0 1 4 0"></path></svg>
-  <svg class="absolute top-[53%] right-[1.5%]" width="42" height="16" viewBox="0 0 36 14" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M0 7h7l2-5 4 10 4-10 4 10 4-10 2 5h7"></path></svg>
-  <svg class="absolute top-[60%] right-[3%]" width="32" height="32" viewBox="0 0 30 30" fill="none" stroke="#a3a3a8" stroke-width="1.5"><circle cx="6" cy="6" r="3"></circle><circle cx="24" cy="24" r="3"></circle><path d="M6 9v6l12 12"></path></svg>
-  <svg class="absolute top-[40%] right-[7%]" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M12 2v20M12 2l-6 6M12 2l6 6M4 8h16"></path></svg>
-  <svg class="absolute top-[51%] right-[6.5%]" width="30" height="24" viewBox="0 0 28 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M2 6h6M2 18h6M8 3h6a9 9 0 0 1 9 9 9 9 0 0 1-9 9H8V3zM23 12h3"></path></svg>
-  <svg class="absolute top-[18%] left-[7%]" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="4" y="6" width="16" height="12" rx="2"></rect><path d="M4 12H0"></path><path d="M24 12H20"></path></svg>
-  <svg class="absolute top-[15%] right-[10%]" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v7"></path><path d="M12 15v7"></path><path d="M2 12h7"></path><path d="M15 12h7"></path></svg>
-  <svg class="absolute bottom-[20%] left-[5%]" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="6" y="6" width="12" height="12"></rect><path d="M6 8H2"></path><path d="M6 12H2"></path><path d="M6 16H2"></path><path d="M22 8h-4"></path><path d="M22 12h-4"></path><path d="M22 16h-4"></path></svg>
-  <svg class="absolute bottom-[18%] right-[12%] rotate-45" width="36" height="14" viewBox="0 0 36 14" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M0 7h7l2-5 4 10 4-10 4 10 4-10 2 5h7"></path></svg>
-
-  <!-- Restored project-area symbols from the earlier design: exact original types and positions. -->
-  <svg class="project-area-symbol absolute top-[2%] left-[42%]" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="6" y="6" width="12" height="12" rx="1"></rect><path d="M6 9H2M6 12H2M6 15H2 M18 9h4M18 12h4M18 15h4 M9 6V2M12 6V2M15 6V2 M9 18v4M12 18v4M15 18v4"></path></svg>
-  <svg class="project-area-symbol absolute top-[6%] left-[48%] -rotate-12" width="28" height="36" viewBox="0 0 24 32" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="6" y="4" width="12" height="24" rx="1"></rect><path d="M6 8H2M6 14H2M6 20H2M6 26H2 M18 8h4M18 14h4M18 20h4M18 26h4"></path><path d="M10 4a2 2 0 0 1 4 0"></path></svg>
-  <svg class="project-area-symbol absolute top-[3%] left-[56%]" width="38" height="14" viewBox="0 0 36 14" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M0 7h7l2-5 4 10 4-10 4 10 4-10 2 5h7"></path></svg>
-  <svg class="project-area-symbol absolute top-[8%] left-[36%]" width="32" height="32" viewBox="0 0 30 30" fill="none" stroke="#a3a3a8" stroke-width="1.5"><circle cx="6" cy="6" r="3"></circle><circle cx="24" cy="24" r="3"></circle><path d="M6 9v6l12 12"></path></svg>
-  <svg class="project-area-symbol absolute top-[9%] left-[53%]" width="30" height="24" viewBox="0 0 28 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M2 6h6M2 18h6M8 3h6a9 9 0 0 1 9 9 9 9 0 0 1-9 9H8V3zM23 12h3"></path></svg>
-  <svg class="project-area-symbol absolute top-[4%] left-[64%]" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="7" y="5" width="10" height="14" rx="2"></rect><path d="M12 2v3M12 19v3"></path></svg>
 </div>
 
-<div class="side-signal side-signal-left hidden lg:block" aria-hidden="true">
-  <svg preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 2304" style="height: 2304px; --half: 1152px;">
-    <path class="wave-base" d="M 34 0 V 48 H 14 V 96 H 34 V 144 H 14 V 192 H 34 V 240 H 14 V 288 H 34 V 336 H 14 V 384 H 34 V 432 H 14 V 480 H 34 V 528 H 14 V 576 H 34 V 624 H 14 V 672 H 34 V 720 H 14 V 768 H 34 V 816 H 14 V 864 H 34 V 912 H 14 V 960 H 34 V 1008 H 14 V 1056 H 34 V 1104 H 14 V 1152 H 34 V 1200 H 14 V 1248 H 34 V 1296 H 14 V 1344 H 34 V 1392 H 14 V 1440 H 34 V 1488 H 14 V 1536 H 34 V 1584 H 14 V 1632 H 34 V 1680 H 14 V 1728 H 34 V 1776 H 14 V 1824 H 34 V 1872 H 14 V 1920 H 34 V 1968 H 14 V 2016 H 34 V 2064 H 14 V 2112 H 34 V 2160 H 14 V 2208 H 34 V 2256 H 14 V 2304 H 34"></path>
-    <path class="wave-pulse" pathLength="1000" d="M 34 0 V 48 H 14 V 96 H 34 V 144 H 14 V 192 H 34 V 240 H 14 V 288 H 34 V 336 H 14 V 384 H 34 V 432 H 14 V 480 H 34 V 528 H 14 V 576 H 34 V 624 H 14 V 672 H 34 V 720 H 14 V 768 H 34 V 816 H 14 V 864 H 34 V 912 H 14 V 960 H 34 V 1008 H 14 V 1056 H 34 V 1104 H 14 V 1152 H 34 V 1200 H 14 V 1248 H 34 V 1296 H 14 V 1344 H 34 V 1392 H 14 V 1440 H 34 V 1488 H 14 V 1536 H 34 V 1584 H 14 V 1632 H 34 V 1680 H 14 V 1728 H 34 V 1776 H 14 V 1824 H 34 V 1872 H 14 V 1920 H 34 V 1968 H 14 V 2016 H 34 V 2064 H 14 V 2112 H 34 V 2160 H 14 V 2208 H 34 V 2256 H 14 V 2304 H 34"></path>
-  </svg>
-</div>
-<div class="side-signal side-signal-right hidden lg:block" aria-hidden="true">
-  <svg preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 2304" style="height: 2304px; --half: 1152px;">
-    <path class="wave-base" d="M 34 0 V 48 H 14 V 96 H 34 V 144 H 14 V 192 H 34 V 240 H 14 V 288 H 34 V 336 H 14 V 384 H 34 V 432 H 14 V 480 H 34 V 528 H 14 V 576 H 34 V 624 H 14 V 672 H 34 V 720 H 14 V 768 H 34 V 816 H 14 V 864 H 34 V 912 H 14 V 960 H 34 V 1008 H 14 V 1056 H 34 V 1104 H 14 V 1152 H 34 V 1200 H 14 V 1248 H 34 V 1296 H 14 V 1344 H 34 V 1392 H 14 V 1440 H 34 V 1488 H 14 V 1536 H 34 V 1584 H 14 V 1632 H 34 V 1680 H 14 V 1728 H 34 V 1776 H 14 V 1824 H 34 V 1872 H 14 V 1920 H 34 V 1968 H 14 V 2016 H 34 V 2064 H 14 V 2112 H 34 V 2160 H 14 V 2208 H 34 V 2256 H 14 V 2304 H 34"></path>
-    <path class="wave-pulse" pathLength="1000" d="M 34 0 V 48 H 14 V 96 H 34 V 144 H 14 V 192 H 34 V 240 H 14 V 288 H 34 V 336 H 14 V 384 H 34 V 432 H 14 V 480 H 34 V 528 H 14 V 576 H 34 V 624 H 14 V 672 H 34 V 720 H 14 V 768 H 34 V 816 H 14 V 864 H 34 V 912 H 14 V 960 H 34 V 1008 H 14 V 1056 H 34 V 1104 H 14 V 1152 H 34 V 1200 H 14 V 1248 H 34 V 1296 H 14 V 1344 H 34 V 1392 H 14 V 1440 H 34 V 1488 H 14 V 1536 H 34 V 1584 H 14 V 1632 H 34 V 1680 H 14 V 1728 H 34 V 1776 H 14 V 1824 H 34 V 1872 H 14 V 1920 H 34 V 1968 H 14 V 2016 H 34 V 2064 H 14 V 2112 H 34 V 2160 H 14 V 2208 H 34 V 2256 H 14 V 2304 H 34"></path>
-  </svg>
-</div>
+<div class="portfolio-shell w-full py-6 lg:py-10 flex-1 flex flex-col justify-between">
 
-</div>
-
-<div class="max-w-[1400px] w-full mx-auto px-3 sm:px-4 lg:px-6 py-6 lg:py-10 flex-1 flex flex-col justify-between">
-
-  <div class="flex-1 flex flex-col gap-8 lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start relative pb-12 lg:pb-16">
+  <div class="portfolio-grid flex-1 flex flex-col gap-8 lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start relative pb-12 lg:pb-16">
 
     <!-- ================= LEFT: PROFILE ================= -->
     <aside id="leftSidebar" class="lg:col-span-3 lg:sticky lg:top-8 transition-all duration-300 ease-in-out origin-left relative pt-16 lg:pt-0">
@@ -964,20 +820,6 @@
           <div class="spec-row">
             <span class="k inline-flex items-center gap-2"><i data-lucide="briefcase-business" class="w-3 h-3 text-faint"></i>Right to Work</span>
             <span class="v">United Kingdom</span>
-          </div>
-        </div>
-
-        <div class="mt-8 pt-6 border-t border-line">
-          <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Recommendations</p>
-          <!-- LinkedIn-style: name/role shown up front, but the actual
-               statement stays hidden until the quote icon is clicked - see
-               renderRecommendations(). The popover it opens is a small
-               anchored card (like the tag filter/layer dropdowns elsewhere
-               on the site), NOT the full-screen blurred modal system, per
-               request - it appears right by this section instead of taking
-               over the middle of the screen. -->
-          <div id="recommendationsList" class="flex flex-col gap-4">
-            <!-- Populated via JS: renderRecommendations() -->
           </div>
         </div>
       </div>
@@ -1095,24 +937,6 @@
 
     <!-- ================= RIGHT: LINKEDIN MODULES ================= -->
     <aside id="rightSidebar" class="lg:col-span-3 flex flex-col gap-8 transition-all duration-300 ease-in-out">
-
-      <div>
-        <div class="flex items-center justify-between mb-3">
-          <p class="font-mono text-xs uppercase tracking-widest text-faint">About Me</p>
-          <button id="aboutToggleBtn" onclick="const t = document.getElementById('aboutText'); t.classList.toggle('line-clamp-3'); this.innerText = t.classList.contains('line-clamp-3') ? 'See More' : 'See Less';" class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring">See More</button>
-        </div>
-        <p id="aboutText" class="text-sm text-dim leading-relaxed line-clamp-3 transition-all duration-300">
-          Software Engineering with Electronics student at the University of Westminster with
-          hands-on experience across RF/microwave design, PCB design, embedded systems and
-          hardware/software integration. Recently completed a placement at Leonardo, contributing
-          to microwave PCB and RF component design for electronic warfare self-protection systems.
-          Currently working on a final-year dissertation analysing and designing a wireless energy
-          harvester for IoT applications, and actively building a robotic arm through the SCC
-          programme. Open to placements in embedded systems, RF/microwave design, robotics and
-          firmware development.
-        </p>
-      </div>
-
       <div class="pt-6 border-t border-line">
         <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Education</p>
         <div class="flex items-start gap-3">
@@ -1189,27 +1013,21 @@
           <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openModalCategory('following')">View All ↗</button>
         </div>
       </div>
-
-      <div class="sidebar-lower-electronics" aria-hidden="true">
-        <svg class="sle-1" width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="5" y="5" width="14" height="14" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M12 1v4M12 19v4M1 12h4M19 12h4"></path></svg>
-        <svg class="sle-2" width="34" height="18" viewBox="0 0 34 18" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M1 9h6l2-6 4 12 4-12 4 12 2-6h9"></path></svg>
-        <svg class="sle-3" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M7 2v20M17 2v20M2 7h20M2 17h20"></path><circle cx="12" cy="12" r="2.5"></circle></svg>
-        <svg class="sle-4" width="28" height="30" viewBox="0 0 24 26" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="7" y="7" width="10" height="12" rx="1"></rect><path d="M7 10H2M7 16H2M17 10h5M17 16h5M10 7V2M14 7V2M10 19v5M14 19v5"></path></svg>
-      </div>
-
     </aside>
 
   </div>
 
-  <footer class="mt-auto pt-8 border-t border-line flex flex-col sm:flex-row justify-between gap-2 footer-electronics-wrap">
-    <div class="footer-electronics" aria-hidden="true">
-      <svg class="fe-1" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v7M12 15v7M2 12h7M15 12h7"></path></svg>
-      <svg class="fe-2" width="34" height="18" viewBox="0 0 34 18" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M1 9h6l2-6 4 12 4-12 4 12 2-6h9"></path></svg>
-      <svg class="fe-3" width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="5" y="5" width="14" height="14" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M12 1v4M12 19v4M1 12h4M19 12h4"></path></svg>
-      <svg class="fe-4" width="30" height="26" viewBox="0 0 30 26" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M2 13h8M20 13h8M15 2v8M15 16v8"></path><circle cx="15" cy="13" r="5"></circle></svg>
+  <footer class="mt-auto pt-8 border-t border-line flex flex-col sm:flex-row justify-between gap-6 footer-electronics-wrap">
+    <div class="footer-about">
+      <div class="flex items-center justify-between gap-4 mb-2">
+        <p class="text-xs text-faint uppercase tracking-wide">About Me</p>
+      </div>
+      <p class="text-sm text-dim leading-relaxed">Software Engineering with Electronics student at the University of Westminster with hands-on experience across RF/microwave design, PCB design, embedded systems and hardware/software integration. Recently completed a placement at Leonardo, contributing to microwave PCB and RF component design for electronic warfare self-protection systems. Currently working on a final-year dissertation analysing and designing a wireless energy harvester for IoT applications, and actively building a robotic arm through the SCC programme. Open to placements in embedded systems, RF/microwave design, robotics and firmware development.</p>
     </div>
-    <p class="font-mono text-xs text-faint uppercase tracking-wide">Suber Abdi - London, UK</p>
-    <p class="font-mono text-xs text-faint uppercase tracking-wide">© 2026</p>
+    <div class="flex flex-col sm:items-end justify-end gap-1 shrink-0">
+      <p class="text-xs text-faint uppercase tracking-wide">Suber Abdi - London, UK</p>
+      <p class="text-xs text-faint uppercase tracking-wide">© 2026</p>
+    </div>
   </footer>
 </div>
 
@@ -1760,12 +1578,8 @@
   ];
 
   // ==== Work Experience (main page "Experience" list) ====
-  // Each entry with `current: true` always renders fully expanded (the
-  // present role). Anything else renders as a collapsed summary row with a
-  // toggle to reveal the description + bullets - this keeps the homepage
-  // compact once older roles are added, without touching this rendering
-  // code. There's only Leonardo today, but the collapse machinery below is
-  // already wired up for whenever a past role gets added here.
+  // Each role can be expanded/collapsed. Leonardo is expanded by default,
+  // while past roles render collapsed to keep the homepage compact.
   const experiences = [
     {
       id: 'leonardo',
@@ -1887,8 +1701,8 @@
     container.innerHTML = experiences.map((e) => {
       const bulletsHtml = e.bullets.map(b => `<li><strong>${b.label}:</strong> ${b.text}</li>`).join('');
       const detailHtml = `
-        <p class="text-sm text-dim mt-3 leading-relaxed">${e.summary}</p>
-        <ul class="bullet-list mt-3 text-sm text-dim space-y-1.5">${bulletsHtml}</ul>
+        <p class="text-sm text-dim mt-2 leading-relaxed">${e.summary}</p>
+        <ul class="bullet-list mt-2 text-sm text-dim space-y-1.5">${bulletsHtml}</ul>
       `;
       // LinkedIn-style company logo to the left of the role (replaces the
       // earlier discreet icon) - see handleLogoError for the fallback shown
@@ -1908,22 +1722,34 @@
       const displayDates = displayDateRange(startStr, endStr, isCurrent, e);
 
       if (isCurrent) {
+        const detailId = `exp-detail-${e.id}`;
         return `
-          <div class="flex gap-3 items-start">
-            ${logoHtml}
-            <div class="flex-1 min-w-0">
-              <div class="experience-meta-grid">
-                <div class="experience-meta-left min-w-0">
-                  <h4 class="font-display font-semibold text-white text-base sm:text-lg">${e.role}</h4>
-                  <p class="font-mono text-xs text-dim uppercase tracking-wide mt-0.5">${e.company} · ${e.location}</p>
-                </div>
-                <div class="experience-meta-right">
-                  <span class="font-mono text-xs text-faint uppercase whitespace-nowrap">${displayDates}</span>
-                  <span class="font-mono text-xs text-faint mt-0.5 whitespace-nowrap">${dur}</span>
-                </div>
-              </div>
-              ${detailHtml}
+          <div>
+            <div class="flex gap-3 items-start">
+              ${logoHtml}
+              <button type="button" id="exp-toggle-${e.id}" class="flex-1 min-w-0 text-left focus-ring group cursor-pointer" onclick="toggleExperienceDetail('${e.id}')" aria-expanded="true" aria-controls="${detailId}" style="display:table; width:100%; border-collapse:collapse;">
+                <span style="display:table-row;">
+                  <span style="display:table-cell; vertical-align:top;">
+                    <h4 class="font-display font-semibold text-white text-base sm:text-lg transition-colors">${e.role}</h4>
+                  </span>
+                  <span style="display:table-cell; vertical-align:bottom; white-space:nowrap; text-align:right; padding-left:12px;">
+                    <span class="font-mono text-xs text-faint uppercase">${displayDates}</span>
+                  </span>
+                </span>
+                <span style="display:table-row;">
+                  <span style="display:table-cell; vertical-align:top;">
+                    <p class="font-mono text-xs text-dim uppercase tracking-wide mt-0.5 flex items-center gap-1.5">
+                      ${e.company} · ${e.location}
+                      <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-faint transition-transform shrink-0" id="exp-chevron-${e.id}" style="transform:rotate(180deg)"></i>
+                    </p>
+                  </span>
+                  <span style="display:table-cell; vertical-align:bottom; white-space:nowrap; text-align:right; padding-left:12px;">
+                    <span class="font-mono text-xs text-faint mt-0.5">${dur}</span>
+                  </span>
+                </span>
+              </button>
             </div>
+            <div id="${detailId}" class="pl-[52px]">${detailHtml}</div>
           </div>
         `;
       }
@@ -1938,7 +1764,7 @@
         <div>
           <div class="flex gap-3 items-start">
             ${logoHtml}
-            <button type="button" id="exp-toggle-${e.id}" class="flex-1 min-w-0 text-left focus-ring group" onclick="toggleExperienceDetail('${e.id}')" aria-expanded="false" aria-controls="${detailId}" style="display:table; width:100%; border-collapse:collapse;">
+            <button type="button" id="exp-toggle-${e.id}" class="flex-1 min-w-0 text-left focus-ring group cursor-pointer" onclick="toggleExperienceDetail('${e.id}')" aria-expanded="false" aria-controls="${detailId}" style="display:table; width:100%; border-collapse:collapse;">
               <span style="display:table-row;">
                 <span style="display:table-cell; vertical-align:top;">
                   <h4 class="font-display font-semibold text-white text-base sm:text-lg transition-colors">${e.role}</h4>
@@ -1983,139 +1809,6 @@
   // Recalculate live durations when the page becomes visible again and once an hour.
   document.addEventListener('visibilitychange', () => { if (!document.hidden) renderExperience(); });
   setInterval(() => { if (!document.hidden) renderExperience(); }, 60 * 60 * 1000);
-
-  // ==== Recommendations (sidebar) ====
-  // LinkedIn-style: the name/role is always visible, but the actual
-  // statement stays hidden until the quote icon is clicked. That reveals a
-  // small anchored popover right next to this section (not the site's
-  // full-screen modal, and without blurring the rest of the page) - see
-  // toggleRecommendation. Add another object here for a future
-  // recommendation; it renders the same way automatically.
-  const recommendations = [
-    {
-      id: 'kingham',
-      name: 'Matthew Kingham',
-      role: 'GEEP Mentor · Johnson Matthey',
-      linkedin: 'https://www.linkedin.com/in/matthew-kingham-9059a081/?lipi=urn%3Ali%3Apage%3Ad_flagship3_profile_view_base%3BhbmdhNLhTima1YsNmyUtcQ%3D%3D',
-      statement: '"I have had the privilege of mentoring Suber as part of the GEEP programme. Suber has shown to be very diligent in his work ethic and very effective in his communication as shown in securing a internship with Leonardo. I wish you all the best for the future in the placement and your third year."'
-    }
-  ];
-
-  function renderRecommendations() {
-    const container = document.getElementById('recommendationsList');
-    if (!container) return;
-
-    container.innerHTML = recommendations.map(r => `
-      <div>
-        <div class="flex items-center justify-between gap-3">
-          <div class="min-w-0">
-            <a href="${r.linkedin}" target="_blank" rel="noopener" class="text-sm text-white font-medium hover:underline decoration-faint underline-offset-2 truncate block">${r.name}</a>
-            <p class="font-mono text-xs text-faint mt-0.5">${r.role}</p>
-          </div>
-          <button id="recToggleBtn-${r.id}" onclick="toggleRecommendation('${r.id}', event)" aria-expanded="false" aria-controls="recPopover-${r.id}"
-                  class="focus-ring w-8 h-8 flex items-center justify-center border border-line rounded-sm text-dim hover:text-white hover:border-faint transition-colors shrink-0"
-                  title="View recommendation" aria-label="View recommendation from ${r.name}">
-            <i data-lucide="quote" class="w-4 h-4"></i>
-          </button>
-        </div>
-      </div>
-    `).join('') + recommendations.map(r => `
-      <!-- Rendered fixed to the viewport (see positionRecommendationPopover)
-           rather than absolutely inside the list above, so it can never be
-           clipped by a scrolling/overflowing ancestor and its position is
-           computed purely from real on-screen pixel coordinates - this is
-           what keeps it fully on-screen regardless of viewport size or zoom. -->
-      <div id="recPopover-${r.id}" class="hidden fixed bg-[#0f0f11] border border-line rounded-sm p-4 shadow-lg" style="z-index:200;">
-        <p class="text-sm text-dim leading-relaxed italic">${r.statement}</p>
-        <p class="font-mono text-xs text-faint mt-3">- ${r.name}, ${r.role}</p>
-      </div>
-    `).join('');
-
-    lucide.createIcons();
-  }
-
-  function toggleRecommendation(id, e) {
-    if (e) e.stopPropagation();
-    const pop = document.getElementById('recPopover-' + id);
-    const btn = document.getElementById('recToggleBtn-' + id);
-    if (!pop || !btn) return;
-    const willOpen = pop.classList.contains('hidden');
-    // Close any other open recommendation popover first, so only one shows
-    // at a time.
-    document.querySelectorAll('[id^="recPopover-"]').forEach(p => {
-      if (p !== pop) {
-        p.classList.add('hidden');
-        const otherId = p.id.replace('recPopover-', '');
-        document.getElementById('recToggleBtn-' + otherId)?.setAttribute('aria-expanded', 'false');
-      }
-    });
-    pop.classList.toggle('hidden');
-    btn.setAttribute('aria-expanded', String(willOpen));
-    if (willOpen) positionRecommendationPopover(pop, btn);
-  }
-
-  // Positions a recommendation popover using `position: fixed` anchored to
-  // the toggle button's actual on-screen coordinates (getBoundingClientRect
-  // already accounts for scroll position and zoom), then clamps the result
-  // so every edge stays within the viewport - horizontally against left/
-  // right, and vertically by flipping above the button if there isn't
-  // room below. This sidesteps any ambiguity from parent offsets/overflow
-  // that a plain CSS `right: 0` could run into.
-  function positionRecommendationPopover(pop, btn) {
-    const margin = 12;
-    const rect = btn.getBoundingClientRect();
-    const width = Math.min(300, window.innerWidth - margin * 2);
-    pop.style.width = width + 'px';
-
-    let left = rect.right - width; // default: right-align with the button
-    left = Math.max(margin, Math.min(left, window.innerWidth - width - margin));
-    pop.style.left = left + 'px';
-
-    // Measure height now that width is set, to decide which side it fits on.
-    const height = pop.offsetHeight;
-    let top = rect.bottom + 8;
-    if (top + height > window.innerHeight - margin) {
-      const above = rect.top - height - 8;
-      top = above >= margin ? above : Math.max(margin, window.innerHeight - height - margin);
-    }
-    pop.style.top = top + 'px';
-  }
-
-  // Re-clamp (or just close) any open popover if the viewport changes while
-  // it's showing - resizing/rotating recalculates position; scrolling closes
-  // it outright since a fixed-position card would otherwise visually detach
-  // from the button it belongs to.
-  window.addEventListener('resize', () => {
-    document.querySelectorAll('[id^="recPopover-"]').forEach(pop => {
-      if (!pop.classList.contains('hidden')) {
-        const id = pop.id.replace('recPopover-', '');
-        const btn = document.getElementById('recToggleBtn-' + id);
-        if (btn) positionRecommendationPopover(pop, btn);
-      }
-    });
-  });
-  window.addEventListener('scroll', () => {
-    document.querySelectorAll('[id^="recPopover-"]').forEach(pop => {
-      if (!pop.classList.contains('hidden')) {
-        pop.classList.add('hidden');
-        const id = pop.id.replace('recPopover-', '');
-        document.getElementById('recToggleBtn-' + id)?.setAttribute('aria-expanded', 'false');
-      }
-    });
-  }, true);
-
-  document.addEventListener('click', (e) => {
-    document.querySelectorAll('[id^="recPopover-"]').forEach(pop => {
-      const id = pop.id.replace('recPopover-', '');
-      const btn = document.getElementById('recToggleBtn-' + id);
-      if (!pop.classList.contains('hidden') && !pop.contains(e.target) && e.target !== btn && !btn?.contains(e.target)) {
-        pop.classList.add('hidden');
-        btn?.setAttribute('aria-expanded', 'false');
-      }
-    });
-  });
-
-  renderRecommendations();
 
   let leftSidebarOpen = true;
   function toggleLeftSidebar() {
@@ -3858,40 +3551,6 @@
     const match = window.location.hash.match(/^#project-(.+)$/);
     if (match && projects.some(p => p.id === match[1])) openProject(match[1]);
   });
-
-  (function () {
-    const svgs = document.querySelectorAll('.side-signal svg');
-    if (!svgs.length) return;
-
-    const PERIOD = 96;   
-    const AMP = 10;      
-    const CX = 24;       
-
-    function build() {
-      const half = Math.ceil(window.innerHeight / PERIOD) * PERIOD;
-      const total = half * 2;
-      const hi = CX + AMP, lo = CX - AMP;
-
-      let d = `M ${hi} 0`;
-      let x = hi;
-      for (let y = PERIOD / 2; y <= total; y += PERIOD / 2) {
-        d += ` V ${y}`;            
-        x = (x === hi) ? lo : hi;  
-        d += ` H ${x}`;            
-      }
-
-      svgs.forEach(svg => {
-        svg.setAttribute('viewBox', `0 0 48 ${total}`);
-        svg.style.height = total + 'px';
-        svg.style.setProperty('--half', half + 'px');
-        svg.querySelectorAll('path').forEach(p => p.setAttribute('d', d));
-      });
-    }
-
-    window.addEventListener('resize', build);
-    build();
-  })();
-
 </script>
 
 <!-- ================= MODAL SHELL ================= -->
