@@ -726,35 +726,79 @@
   .bg-electronics > svg.project-area-symbol:nth-of-type(5),
   .bg-electronics > svg.project-area-symbol:nth-of-type(6){ display:block !important; }
 
-
-  /* Electronics background must sit above the page background, but below all content. */
-  body{position:relative;}
-  .bg-electronics{z-index:0 !important; opacity:.22 !important;}
-  .bg-electronics > svg{opacity:.82 !important;}
-  /* Keep fixed decorative/terminal widgets fixed; only the page shell needs layering above the background. */
-  #pageShell{position:relative; z-index:1;}
-  .bg-electronics ~ .modal-overlay{z-index:50;}
-  .bg-electronics .project-area-symbol{display:block !important; visibility:visible !important; opacity:.9 !important;}
-</style>
-
-<style id="project-detail-scroll-tools">
-.project-scroll-tools{position:fixed;right:1rem;bottom:1rem;z-index:75;display:flex;flex-direction:column;align-items:flex-end;gap:.45rem;pointer-events:none}
-.project-scroll-tool{display:inline-flex;align-items:center;gap:.45rem;padding:.55rem .72rem;border:1px solid rgba(34,197,94,.38);border-radius:.35rem;background:rgba(8,12,10,.95);color:#86efac;font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,monospace;font-size:10px;text-transform:uppercase;letter-spacing:.06em;box-shadow:0 8px 22px rgba(0,0,0,.3);backdrop-filter:blur(8px);opacity:0;visibility:hidden;transform:translateY(8px);transition:opacity .18s ease,visibility .18s ease,transform .18s ease;pointer-events:auto;cursor:pointer;text-decoration:none}
-.project-scroll-tool.visible{opacity:1;visibility:visible;transform:translateY(0)}
-.project-scroll-tool:hover{color:#bbf7d0;border-color:rgba(34,197,94,.7)}
-@media(max-width:767px){.project-scroll-tools{right:.65rem;bottom:.65rem}.project-scroll-tool{padding:.5rem .62rem}}
 </style>
 </head>
 <body class="text-[#e6e6e4] antialiased min-h-screen flex flex-col justify-between">
-<div id="projectScrollTools" class="project-scroll-tools" aria-label="Project quick navigation">
-  <button id="projectScrollTop" class="project-scroll-tool" type="button" aria-label="Back to top"><span aria-hidden="true">↑</span> Top</button>
-  <a id="projectScrollGithub" class="project-scroll-tool" href="#" target="_blank" rel="noopener noreferrer" aria-label="Open project GitHub repository"><span aria-hidden="true">↗</span> GitHub Repo</a>
+
+<div id="loadScreen" role="status" aria-live="polite">
+  <div class="ls-inner">
+    <div class="ls-mark">SUBER<span>ABDI</span></div>
+    <div class="ls-bar"><div class="ls-bar-fill" id="lsBarFill"></div></div>
+    <div class="ls-row">
+      <span class="ls-dot"></span>
+      <span class="ls-log" id="lsLog">INITIALIZING PORTFOLIO...</span>
+      <span class="ls-pct" id="lsPct">0%</span>
+    </div>
+  </div>
 </div>
+<script>
+(function(){
+  document.documentElement.classList.add('is-loading');
 
+  function run(){
+    var screen = document.getElementById('loadScreen');
+    var bar = document.getElementById('lsBarFill');
+    var log = document.getElementById('lsLog');
+    var pctEl = document.getElementById('lsPct');
+    if (!screen) return;
 
+    var reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    var steps = [
+      'INITIALIZING PORTFOLIO...',
+      'MOUNTING PROJECT DATA...',
+      'CALIBRATING RF FRONT-END...',
+      'LINKING PROFILE...',
+      'READY.'
+    ];
+    var pct = 0, stepIdx = 0, finished = false;
 
+    function finish(){
+      if (finished) return;
+      finished = true;
+      screen.classList.add('ls-hide');
+      document.documentElement.classList.remove('is-loading');
+      setTimeout(function(){ if (screen.parentNode) screen.parentNode.removeChild(screen); }, 550);
+    }
 
-<div class="bg-electronics fixed inset-0 pointer-events-none overflow-hidden" aria-hidden="true">
+    if (reduceMotion) { finish(); return; }
+
+    function tick(){
+      pct = Math.min(100, pct + (Math.random() * 16 + 8));
+      bar.style.width = pct + '%';
+      pctEl.textContent = Math.floor(pct) + '%';
+      var nextStep = Math.floor((pct / 100) * (steps.length - 1));
+      if (nextStep > stepIdx) { stepIdx = nextStep; log.textContent = steps[stepIdx]; }
+      if (pct >= 100) {
+        log.textContent = steps[steps.length - 1];
+        setTimeout(finish, 220);
+      } else {
+        setTimeout(tick, 110 + Math.random() * 130);
+      }
+    }
+    tick();
+
+    setTimeout(finish, 4000);
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', run);
+  } else {
+    run();
+  }
+})();
+</script>
+
+<div class="bg-electronics fixed inset-0 pointer-events-none z-[-2] overflow-hidden" aria-hidden="true">
   <svg class="absolute top-[2%] left-[42%]" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="6" y="6" width="12" height="12" rx="1"></rect><path d="M6 9H2M6 12H2M6 15H2 M18 9h4M18 12h4M18 15h4 M9 6V2M12 6V2M15 6V2 M9 18v4M12 18v4M15 18v4"></path></svg>
   <svg class="absolute top-[6%] left-[48%] -rotate-12" width="28" height="36" viewBox="0 0 24 32" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="6" y="4" width="12" height="24" rx="1"></rect><path d="M6 8H2M6 14H2M6 20H2M6 26H2 M18 8h4M18 14h4M18 20h4M18 26h4"></path><path d="M10 4a2 2 0 0 1 4 0"></path></svg>
   <svg class="absolute top-[3%] left-[56%]" width="38" height="14" viewBox="0 0 36 14" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M0 7h7l2-5 4 10 4-10 4 10 4-10 2 5h7"></path></svg>
@@ -830,7 +874,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
   <div class="hw-body" id="hwTermBody"><span class="ts">[00:15:25]</span> SPI_TX: 0xB3 0x28 0x73<br><span class="ts">[00:15:27]</span> I2C ACK @0x3C<br><span class="ts">[00:15:29]</span> ADC_READ: 2.93V -&gt; <span class="ok">MARGIN_OK</span><br><span class="ts">[00:15:30]</span> TEMP: 25.7°C <span class="ok">[IN BOUNDS]</span><br><span class="ts">[00:15:32]</span> ADC_READ: 2.69V -&gt; <span class="ok">MARGIN_OK</span> <span class="cursor"></span></div>
 </div>
 
-<div id="pageShell" class="max-w-[1400px] w-full mx-auto px-3 sm:px-4 lg:px-6 py-6 lg:py-10 flex-1 flex flex-col justify-between">
+<div class="max-w-[1400px] w-full mx-auto px-3 sm:px-4 lg:px-6 py-6 lg:py-10 flex-1 flex flex-col justify-between">
 
   <div class="flex-1 flex flex-col gap-8 lg:grid lg:grid-cols-12 lg:gap-8 lg:items-start relative pb-12 lg:pb-16">
 
@@ -4646,47 +4690,5 @@ function goToSlide(prefix, index) {
 }
 </script>
 
-
-<script id="project-detail-scroll-tools-script">
-(function(){
-  const tools=document.getElementById('projectScrollTools');
-  const topBtn=document.getElementById('projectScrollTop');
-  const ghLink=document.getElementById('projectScrollGithub');
-  if(!tools||!topBtn||!ghLink) return;
-  function detailOpen(){const v=document.getElementById('projectDetailView');return !!v&&v.classList.contains('open');}
-  function update(){
-    if(!detailOpen()){tools.style.display='none';return;}
-    tools.style.display='flex';
-    const slot=document.getElementById('projectGithubCardSlot');
-    const card=slot&&slot.querySelector('.github-terminal-card');
-    const pastCard=card ? window.scrollY > (card.getBoundingClientRect().bottom + window.scrollY + 12) : window.scrollY>420;
-    topBtn.classList.toggle('visible',window.scrollY>300);
-    ghLink.classList.toggle('visible',pastCard);
-  }
-  topBtn.addEventListener('click',()=>window.scrollTo({top:0,behavior:'smooth'}));
-  window.addEventListener('scroll',update,{passive:true});
-  window.addEventListener('resize',update);
-  const oldOpen=window.openProject;
-  if(oldOpen&&!oldOpen.__scrollWrapped){
-    const wrapped=function(){const r=oldOpen.apply(this,arguments);setTimeout(update,50);return r;};
-    wrapped.__scrollWrapped=true; window.openProject=wrapped;
-  }
-  const oldClose=window.closeProject;
-  if(oldClose&&!oldClose.__scrollWrapped){
-    const wrapped=function(){const r=oldClose.apply(this,arguments);setTimeout(update,350);return r;};
-    wrapped.__scrollWrapped=true; window.closeProject=wrapped;
-  }
-  // The existing renderer writes the active project's repo into the card.
-  // Mirror that exact repo URL into the fixed link, without inventing a repo.
-  const observer=new MutationObserver(function(){
-    const card=document.querySelector('#projectGithubCardSlot .github-terminal-card .gtc-repo-link');
-    if(card&&card.href) ghLink.href=card.href;
-    update();
-  });
-  const slot=document.getElementById('projectGithubCardSlot');
-  if(slot) observer.observe(slot,{childList:true,subtree:true});
-  tools.style.display='none';
-})();
-</script>
 </body>
 </html>
