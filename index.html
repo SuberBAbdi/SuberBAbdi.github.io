@@ -1020,7 +1020,7 @@
           <div id="experienceList" class="flex flex-col gap-7 experience-main-list">
             <!-- Populated via JS: renderExperience() -->
           </div>
-          <div id="experienceRoulette" class="experience-roulette" aria-label="Experience selector">
+          <div id="experienceRoulette" class="experience-roulette" aria-label="Experience selector" style="display:grid;">
             <button type="button" id="experienceRoulettePrev" class="experience-roulette-arrow" onclick="moveExperienceRoulette(-1)" aria-label="Previous experience" hidden><i data-lucide="arrow-left"></i></button>
             <div id="experiencePlacards" class="experience-placards"></div>
             <button type="button" id="experienceRouletteNext" class="experience-roulette-arrow" onclick="moveExperienceRoulette(1)" aria-label="Next experience" hidden><i data-lucide="arrow-right"></i></button>
@@ -1915,6 +1915,15 @@
     const prev = document.getElementById('experienceRoulettePrev');
     const next = document.getElementById('experienceRouletteNext');
     if (!wrap) return;
+
+    // The roulette is part of the Experience section itself and must be
+    // visible immediately on page load. There is intentionally no separate
+    // "Show Roulette" button or interaction required to reveal it.
+    const roulette = document.getElementById('experienceRoulette');
+    if (roulette) {
+      roulette.hidden = false;
+      roulette.style.display = 'grid';
+    }
 
     const available = getRouletteExperiences();
     const hasOverflow = available.length > 3;
