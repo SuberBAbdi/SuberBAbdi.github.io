@@ -718,38 +718,31 @@
 
   /* ===== Experience roulette ===== */
   .experience-section-head{position:relative;}
-  .experience-view-toggle{position:absolute;right:0;top:0;display:inline-flex;align-items:center;gap:6px;padding:4px 0;color:#8f8f95;font:10px/1 Arial,sans-serif;text-transform:uppercase;letter-spacing:.08em;transition:color .18s ease;cursor:pointer;}
-  .experience-view-toggle:hover{color:#f5f5f5;}
-  .experience-view-toggle svg{transition:transform .22s ease;}
-  .experience-roulette{display:grid;grid-template-columns:42px minmax(0,1fr) 42px;align-items:stretch;gap:8px;margin:-3px 0 18px;padding:0;transition:all .24s ease;}
+  .experience-roulette{display:grid;grid-template-columns:30px minmax(0,1fr) 30px;align-items:stretch;gap:6px;margin:14px 0 0;padding:0;transition:all .24s ease;}
   .experience-roulette-arrow{display:flex;align-items:center;justify-content:center;border:1px solid #2b2b2f;background:#111113;color:#8f8f95;font:10px/1 Arial,sans-serif;letter-spacing:.04em;min-height:58px;transition:background .18s ease,color .18s ease,border-color .18s ease;cursor:pointer;}
   .experience-roulette-arrow:hover{color:#fff;border-color:#5a5a60;background:#171719;}
-  .experience-placards{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(170px,1fr);gap:8px;min-width:0;overflow:hidden;}
-  .experience-placard{min-width:0;text-align:left;padding:9px 12px;border:1px solid #2b2b2f;background:#111113;color:#fff;min-height:58px;transition:transform .22s ease,opacity .22s ease,border-color .22s ease,background .22s ease;cursor:pointer;}
+  .experience-placards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;min-width:0;overflow:hidden;}
+  .experience-placard{min-width:0;text-align:left;padding:7px 9px;border:1px solid #2b2b2f;background:#111113;color:#fff;min-height:52px;transition:transform .22s ease,opacity .22s ease,border-color .22s ease,background .22s ease;cursor:pointer;}
   .experience-placard:hover{border-color:#5a5a60;background:#171719;}
   .experience-placard.is-active{border-color:rgba(245,245,245,.72);background:#18181a;box-shadow:inset 0 -2px 0 #f5f5f5;}
-  .experience-placard-title{display:block;font:600 12px/1.25 Arial,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .experience-placard-company{display:block;margin-top:4px;color:#8f8f95;font:10px/1.25 Arial,sans-serif;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .experience-main-list{overflow:hidden;transition:max-height .3s ease,opacity .24s ease,transform .3s ease;}
-  .experience-main-list.is-contracted{max-height:78px;opacity:1;}
-  .experience-main-list.is-contracted > div{display:none;}
-  .experience-main-list.is-contracted > div:first-child{display:block;}
-  .experience-roulette.is-contracted{grid-template-columns:minmax(0,1fr);margin-bottom:12px;}
-  .experience-roulette.is-contracted .experience-roulette-arrow{display:none;}
-  .experience-roulette.is-contracted .experience-placards{grid-template-columns:repeat(auto-fit,minmax(150px,1fr));grid-auto-flow:row;grid-auto-columns:auto;overflow:visible;}
-  .experience-roulette.is-contracted .experience-placard{min-height:52px;}
+  .experience-placard-title{display:block;font:600 11px/1.25 Arial,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .experience-placard-company{display:block;margin-top:3px;color:#8f8f95;font:10px/1.25 Arial,sans-serif;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .experience-placard-top{display:flex;align-items:center;gap:7px;min-width:0;}
+  .experience-placard-logo{width:22px;height:22px;object-fit:cover;border-radius:2px;border:1px solid #2b2b2f;background:#141416;flex:0 0 auto;}
+  .experience-placard-meta{display:block;margin-top:4px;color:#8f8f95;font:9px/1.2 Arial,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
+  .experience-main-list{overflow:hidden;}
   @media (max-width:767px){
     .experience-roulette{grid-template-columns:30px minmax(0,1fr) 30px;gap:5px;}
     .experience-roulette-arrow{font-size:8px;}
-    .experience-placards{grid-auto-columns:minmax(145px,1fr);}
-    .experience-roulette.is-contracted .experience-placards{grid-template-columns:1fr 1fr;}
+    .experience-placards{grid-template-columns:repeat(3,minmax(0,1fr));}
+    .experience-placard{padding:6px 7px;}
   }
 
   /* ===== 2048x1030 desktop fit + compact footer ===== */
-  .footer-inner{min-height:20px!important;gap:18px!important;}
-  .footer-about .about-hover-label{font-size:11px!important;letter-spacing:.06em!important;}
-  .footer-meta>span{font-size:11px!important;letter-spacing:.06em!important;}
-  .footer-meta{gap:10px!important;}
+  .footer-inner{min-height:16px!important;gap:12px!important;}
+  .footer-about .about-hover-label{font-size:9px!important;letter-spacing:.05em!important;}
+  .footer-meta>span{font-size:9px!important;letter-spacing:.05em!important;}
+  .footer-meta{gap:8px!important;}
   .footer-meta-divider{height:12px!important;}
   @media (min-width:1024px) and (max-height:1100px){
     body{overflow:hidden;}
@@ -764,7 +757,7 @@
     #leftProfileContent .mt-3{margin-top:8px!important;}
     #leftProfileContent .mt-2{margin-top:6px!important;}
     #experienceList{gap:16px!important;}
-    footer.footer-electronics-wrap{padding-top:6px!important;padding-bottom:6px!important;margin-top:0!important;}
+    footer.footer-electronics-wrap{padding-top:3px!important;padding-bottom:3px!important;margin-top:auto!important;}
   }
 </style>
 </head>
@@ -1016,17 +1009,14 @@
         <div id="experienceSection">
           <div class="experience-section-head">
             <p class="scan-header font-display font-extrabold uppercase text-2xl sm:text-3xl text-white tracking-tight border-b border-line pb-4 mb-5">Experience</p>
-            <button id="experienceViewToggle" type="button" class="experience-view-toggle" onclick="toggleExperienceView()" aria-expanded="true" aria-controls="experienceRoulette experienceList">
-              <span>Contract</span><i data-lucide="chevron-down" class="w-3.5 h-3.5"></i>
-            </button>
+          </div>
+          <div id="experienceList" class="flex flex-col gap-7 experience-main-list">
+            <!-- Populated via JS: renderExperience() -->
           </div>
           <div id="experienceRoulette" class="experience-roulette" aria-label="Experience selector">
             <button type="button" class="experience-roulette-arrow" onclick="moveExperienceRoulette(-1)" aria-label="Previous experience">&lt;&lt; &lt;</button>
             <div id="experiencePlacards" class="experience-placards"></div>
             <button type="button" class="experience-roulette-arrow" onclick="moveExperienceRoulette(1)" aria-label="Next experience">&gt; &gt;&gt;</button>
-          </div>
-          <div id="experienceList" class="flex flex-col gap-7 experience-main-list">
-            <!-- Populated via JS: renderExperience() -->
           </div>
         </div>
 
@@ -1691,12 +1681,12 @@
   ];
 
   // ==== Work Experience (main page "Experience" list) ====
-  // Each role can be expanded/collapsed. Leonardo is expanded by default,
-  // while past roles render collapsed to keep the homepage compact.
+  // The selected role is expanded by default; the roulette switches between roles/focus cards.
   const experiences = [
     {
       id: 'leonardo',
       role: 'Microwave Engineer (Internship)',
+      roleType: 'Internship',
       company: 'Leonardo',
       // Logo lives in the repo's Logos/ folder (https://github.com/SuberBAbdi/SuberBAbdi.github.io/tree/main/Logos)
       logo: 'Logos/leonardo_logo.jpg',
@@ -1713,6 +1703,42 @@
         { label: 'RF & Power Integrity', text: 'Considered controlled impedance, RF grounding, via fencing, power integrity and design for fabrication.' },
         { label: 'Documentation & Verification', text: 'Produced engineering documentation, technical-risk assessments and verification plans.' },
         { label: 'Stakeholder Presentations', text: 'Presented the project and key design decisions to engineering stakeholders.' }
+      ]
+    },
+    {
+      id: 'leonardo-rf-focus',
+      role: 'RF / Microwave Engineering',
+      roleType: 'Role Focus',
+      company: 'Leonardo',
+      logo: 'Logos/leonardo_logo.jpg',
+      location: 'Luton, England, UK · Hybrid',
+      dates: 'Jun 2026 - Present',
+      startDate: '2026-06-01',
+      endDate: '2099-12-31',
+      current: true,
+      summary: 'RF and microwave-focused engineering work within the same Leonardo placement, centred on PCB design, controlled impedance, grounding and component selection.',
+      bullets: [
+        { label: 'RF Design', text: 'Considered controlled impedance, RF grounding and via fencing during PCB development.' },
+        { label: 'Components', text: 'Reviewed component datasheets, land patterns, interfaces and bills of materials.' },
+        { label: 'Verification', text: 'Supported documentation, technical-risk assessments and verification planning.' }
+      ]
+    },
+    {
+      id: 'leonardo-pcb-focus',
+      role: 'Microwave PCB Engineering',
+      roleType: 'Role Focus',
+      company: 'Leonardo',
+      logo: 'Logos/leonardo_logo.jpg',
+      location: 'Luton, England, UK · Hybrid',
+      dates: 'Jun 2026 - Present',
+      startDate: '2026-06-01',
+      endDate: '2099-12-31',
+      current: true,
+      summary: 'PCB-focused engineering work within the same Leonardo placement, covering schematic preparation, footprints, fabrication considerations and power integrity.',
+      bullets: [
+        { label: 'KiCad', text: 'Used KiCad for symbol, footprint, schematic and PCB preparation activities.' },
+        { label: 'Fabrication', text: 'Considered design-for-fabrication requirements alongside board layout decisions.' },
+        { label: 'Power Integrity', text: 'Considered power integrity and grounding as part of the PCB design process.' }
       ]
     }
     // To add a past role: copy the object above, give it a unique id, and
@@ -1808,7 +1834,6 @@
   function liveOngoingDuration(startStr) { return durationLabel(startStr, 'Present'); }
 
   let activeExperienceIndex = 0;
-  let experienceViewExpanded = true;
 
   function experienceShortTitle(role) {
     const cleaned = String(role || '').replace(/\(Internship\)/i, '').trim();
@@ -1820,39 +1845,35 @@
     const wrap = document.getElementById('experiencePlacards');
     if (!wrap) return;
     if (!experiences.length) { wrap.innerHTML = ''; return; }
-    wrap.innerHTML = experiences.map((e, i) => `
+    const start = Math.min(Math.max(activeExperienceIndex - 1, 0), Math.max(0, experiences.length - 3));
+    const visible = experiences.slice(start, start + 3);
+    wrap.innerHTML = visible.map((e, localIndex) => {
+      const i = start + localIndex;
+      return `
       <button type="button" class="experience-placard ${i === activeExperienceIndex ? 'is-active' : ''}" onclick="selectExperience(${i})" aria-current="${i === activeExperienceIndex ? 'true' : 'false'}">
-        <span class="experience-placard-title">${experienceShortTitle(e.role)}</span>
-        <span class="experience-placard-company">${e.company}</span>
+        <span class="experience-placard-top">
+          <img class="experience-placard-logo" src="${e.logo}" alt="${e.company} logo" onerror="handleLogoError(this)">
+          <span class="experience-placard-title">${experienceShortTitle(e.role)}</span>
+        </span>
+        <span class="experience-placard-company">${e.company} · ${e.roleType || 'Internship'}</span>
+        <span class="experience-placard-meta">${displayDateRange((e.dates||'').split(' - ')[0], (e.dates||'').split(' - ')[1], e.current, e)}</span>
       </button>
-    `).join('');
+    `;
+    }).join('');
   }
 
   function selectExperience(index) {
     if (!experiences.length) return;
-    activeExperienceIndex = (index + experiences.length) % experiences.length;
+    activeExperienceIndex = Math.max(0, Math.min(index, experiences.length - 1));
     renderExperience();
   }
 
   function moveExperienceRoulette(direction) {
-    selectExperience(activeExperienceIndex + direction);
-  }
-
-  function toggleExperienceView() {
-    experienceViewExpanded = !experienceViewExpanded;
-    const roulette = document.getElementById('experienceRoulette');
-    const list = document.getElementById('experienceList');
-    const toggle = document.getElementById('experienceViewToggle');
-    if (roulette) roulette.classList.toggle('is-contracted', !experienceViewExpanded);
-    if (list) list.classList.toggle('is-contracted', !experienceViewExpanded);
-    if (toggle) {
-      toggle.setAttribute('aria-expanded', String(experienceViewExpanded));
-      toggle.querySelector('span').textContent = experienceViewExpanded ? 'Contract' : 'Expand';
-      const icon = toggle.querySelector('[data-lucide]');
-      if (icon) icon.style.transform = experienceViewExpanded ? 'rotate(0deg)' : 'rotate(-90deg)';
-    }
-    renderExperiencePlacards();
-    lucide.createIcons();
+    if (!experiences.length) return;
+    const maxStart = Math.max(0, experiences.length - 3);
+    const currentStart = Math.min(Math.max(activeExperienceIndex, 0), maxStart);
+    const nextStart = Math.max(0, Math.min(currentStart + direction, maxStart));
+    selectExperience(nextStart);
   }
 
   function renderExperience() {
