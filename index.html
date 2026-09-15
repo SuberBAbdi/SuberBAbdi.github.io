@@ -42,7 +42,7 @@
   ::selection{ background:#f1f1ef; color:#0c0c0d; }
 
   .tag{
-    font-family:'JetBrains Mono', monospace; font-size:11.5px; letter-spacing:0.06em;
+    font-family:Arial, Helvetica, sans-serif; font-size:11.5px; letter-spacing:0.06em;
     padding:5px 10px; border:1px solid #27272a; color:#c4c4c8; text-transform:uppercase;
   }
 
@@ -50,12 +50,12 @@
      renderProjectGrid) - same colours/border, smaller so several tags fit
      next to a truncated title without overwhelming the card. */
   .tag-mini{
-    font-family:'JetBrains Mono', monospace; font-size:9.5px; letter-spacing:0.05em;
+    font-family:Arial, Helvetica, sans-serif; font-size:9.5px; letter-spacing:0.05em;
     padding:2px 6px; border:1px solid #27272a; color:#9a9a9e; text-transform:uppercase;
   }
 
   .btn-block{
-    font-family:'JetBrains Mono', monospace; font-size:13px; letter-spacing:0.06em; text-transform:uppercase;
+    font-family:Arial, Helvetica, sans-serif; font-size:13px; letter-spacing:0.06em; text-transform:uppercase;
     padding:15px 20px; text-align:center; transition:all .15s ease;
   }
   .btn-solid{ background:#f1f1ef; color:#0c0c0d; font-weight:700; }
@@ -65,7 +65,7 @@
 
   .focus-ring:focus-visible{ outline:2px solid #f1f1ef; outline-offset:2px; }
 
-  .spec-row{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #1a1a1c; font-family:'JetBrains Mono', monospace; font-size:12.5px; gap:12px; }
+  .spec-row{ display:flex; justify-content:space-between; padding:10px 0; border-bottom:1px solid #1a1a1c; font-family:Arial, Helvetica, sans-serif; font-size:12.5px; gap:12px; }
   .spec-row:last-child{ border-bottom:none; }
   .spec-row .k{ color:#68686d; text-transform:uppercase; letter-spacing:0.04em; }
   .spec-row .v{ color:#f1f1ef; text-align:right; }
@@ -87,7 +87,7 @@
      section; .sectionchip-sm is a smaller variant used for the OR/AND
      match-mode toggle at the bottom of the panel. */
   .sectionchip{
-    font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.05em;
+    font-family:Arial, Helvetica, sans-serif; font-size:10.5px; letter-spacing:0.05em;
     padding:5px 10px; border:1px solid #27272a; color:#a3a3a8; text-transform:uppercase;
     cursor:pointer; transition:all .15s ease; background:transparent; white-space:nowrap;
   }
@@ -99,7 +99,7 @@
      apply to several at once. .tagchip-disabled marks a chip that would
      filter the project grid down to zero results (see tagWouldYieldResults). */
   .tagchip{
-    font-family:'JetBrains Mono', monospace; font-size:10.5px; letter-spacing:0.04em;
+    font-family:Arial, Helvetica, sans-serif; font-size:10.5px; letter-spacing:0.04em;
     padding:4px 9px; border:1px solid #27272a; color:#c4c4c8; text-transform:uppercase;
     cursor:pointer; transition:all .15s ease; background:transparent;
   }
@@ -174,11 +174,11 @@
     padding:12px 20px; border-bottom:1px solid #1a1a1c; flex-shrink:0;
   }
   .modal-eyebrow{
-    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.1em;
+    font-family:Arial, Helvetica, sans-serif; font-size:10px; letter-spacing:.1em;
     text-transform:uppercase; color:#68686d;
   }
   .modal-title{
-    font-family:'Outfit', ui-sans-serif, system-ui; font-weight:700;
+    font-family:Arial, Helvetica, sans-serif; font-weight:700;
     font-size:1.3rem; color:#ffffff; line-height:1.2; margin-top:3px;
   }
   .modal-close{
@@ -202,7 +202,7 @@
   .modal-section{ margin-top:16px; padding-top:14px; border-top:1px solid #1a1a1c; }
   .modal-section:first-child{ margin-top:0; padding-top:0; border-top:none; }
   .modal-label{
-    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.1em;
+    font-family:Arial, Helvetica, sans-serif; font-size:10px; letter-spacing:.1em;
     text-transform:uppercase; color:#68686d; margin-bottom:9px;
   }
 
@@ -219,11 +219,11 @@
   .carousel-slide img:not([data-src]){ opacity:1; transition:opacity .25s ease; }
   .carousel-ph{
     display:flex; align-items:center; justify-content:center; height:220px;
-    font-family:'JetBrains Mono', monospace; font-size:10.5px; color:#68686d;
+    font-family:Arial, Helvetica, sans-serif; font-size:10.5px; color:#68686d;
     letter-spacing:.08em; text-transform:uppercase; text-align:center; padding:0 20px;
   }
   .carousel-cap{
-    font-family:'JetBrains Mono', monospace; font-size:10.5px; color:#a3a3a8;
+    font-family:Arial, Helvetica, sans-serif; font-size:10.5px; color:#a3a3a8;
     padding:9px 12px; border-top:1px solid #1a1a1c; letter-spacing:.03em;
   }
   .carousel-btn{
@@ -241,7 +241,7 @@
   .carousel-dot.active{ background:#f1f1ef; transform:scale(1.1); }
   .carousel-count{
     position:absolute; top:8px; right:8px;
-    font-family:'JetBrains Mono', monospace; font-size:10px; color:#a3a3a8;
+    font-family:Arial, Helvetica, sans-serif; font-size:10px; color:#a3a3a8;
     background:rgba(12,12,13,.85); border:1px solid #27272a; padding:2px 7px;
   }
 
@@ -251,7 +251,7 @@
   .module-btn:hover .module-title{ color:#ffffff; }
   .module-btn:hover .module-more{ color:#f1f1ef; }
   .module-more{
-    font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.08em;
+    font-family:Arial, Helvetica, sans-serif; font-size:10px; letter-spacing:.08em;
     text-transform:uppercase; color:#68686d; margin-top:8px;
     display:inline-flex; align-items:center; gap:5px; transition:color .15s ease;
   }
@@ -279,7 +279,7 @@
     transition:opacity .15s ease;
   }
   .click-to-interact-overlay .ctio-label{
-    font-family:'JetBrains Mono', monospace; font-size:11px; letter-spacing:.06em;
+    font-family:Arial, Helvetica, sans-serif; font-size:11px; letter-spacing:.06em;
     text-transform:uppercase; color:#f1f1ef; background:rgba(12,12,13,.8);
     border:1px solid #3a3a3e; padding:8px 14px; border-radius:4px;
     pointer-events:none; display:flex; align-items:center; gap:7px;
@@ -292,7 +292,7 @@
      Fully scoped under .github-terminal-card - no global element resets.
      Used as the live GitHub repository panel in the project title row. */
   .github-terminal-card{
-    font-family:'JetBrains Mono', monospace;
+    font-family:Arial, Helvetica, sans-serif;
     width:min(100%, 330px);
     position:absolute;
     top:0; right:0;
@@ -511,7 +511,7 @@
   .pd-nav .pdnav-top-btn{
     opacity:0; pointer-events:none; transform:translateY(-4px);
     transition:opacity .2s ease, transform .2s ease;
-    font-family:'JetBrains Mono', monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+    font-family:Arial, Helvetica, sans-serif; font-size:11px; text-transform:uppercase; letter-spacing:.06em;
     color:#a3a3a8; background:transparent; border:1px solid #27272a; border-radius:4px; padding:6px 14px;
     cursor:pointer; white-space:nowrap;
   }
@@ -519,7 +519,7 @@
 
   .pd-nav .pdnav-gh-full{ transition:opacity .2s ease; }
   .pd-nav .pdnav-gh-simple{
-    font-family:'JetBrains Mono', monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+    font-family:Arial, Helvetica, sans-serif; font-size:11px; text-transform:uppercase; letter-spacing:.06em;
     color:#a3a3a8; white-space:nowrap; opacity:0; pointer-events:none;
     position:absolute; right:0; top:50%; transform:translateY(-50%);
     transition:opacity .2s ease;
@@ -555,13 +555,13 @@
   }
   .ls-inner{ width:260px; display:flex; flex-direction:column; align-items:flex-start; gap:16px; }
   .ls-mark{
-    font-family:'Outfit', ui-sans-serif, system-ui; font-weight:800; text-transform:uppercase;
+    font-family:Arial, Helvetica, sans-serif; font-weight:800; text-transform:uppercase;
     font-size:1.6rem; letter-spacing:0.02em; color:#f1f1ef; align-self:center;
   }
   .ls-mark span{ color:#68686d; }
   .ls-bar{ width:100%; height:2px; background:#1a1a1c; overflow:hidden; }
   .ls-bar-fill{ height:100%; width:0%; background:#f1f1ef; transition:width .15s ease-out; }
-  .ls-row{ display:flex; align-items:center; gap:8px; width:100%; font-family:'JetBrains Mono', monospace; }
+  .ls-row{ display:flex; align-items:center; gap:8px; width:100%; font-family:Arial, Helvetica, sans-serif; }
   .ls-log{
     font-size:11px; color:#68686d; letter-spacing:.02em; text-transform:uppercase;
     flex:1; min-width:0; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
@@ -657,6 +657,22 @@
   .experience-meta-right{display:flex;flex-direction:column;align-items:flex-end;text-align:right;min-width:max-content;}
   #modalBody > .modal-section:first-child{margin-top:0!important;padding-top:0!important;}
   #modalBody .modal-section{margin-top:16px;}
+
+  /* ===== Final layout refinements ===== */
+  .footer-about{position:relative;max-width:760px;}
+  .footer-about .about-hover-label{display:inline-flex;align-items:center;cursor:help;position:relative;}
+  .footer-about .about-hover-text{position:absolute;left:0;bottom:calc(100% + 10px);width:min(620px,70vw);padding:12px 14px;background:#131315;border:1px solid #27272a;color:#a3a3a8;font-size:13px;line-height:1.55;text-transform:none;letter-spacing:normal;opacity:0;visibility:hidden;transform:translateY(5px);transition:opacity .16s ease,transform .16s ease,visibility .16s ease;pointer-events:none;z-index:60;box-shadow:0 12px 30px rgba(0,0,0,.3);}
+  .footer-about .about-hover-label:hover .about-hover-text,.footer-about .about-hover-label:focus-visible .about-hover-text{opacity:1;visibility:visible;transform:translateY(0);}
+  .footer-meta{margin-left:auto;text-align:right;align-self:flex-end;}
+  @media (min-width:1024px){#leftSidebar{border-right:1px solid #27272a;padding-right:32px!important;}#leftToggleBtn{right:32px!important;}}
+  .experience-expand-label{margin-left:8px;color:#68686d;font-size:10px;text-transform:uppercase;letter-spacing:.06em;}
+  #experienceList .experience-row-toggle{width:100%;}
+  .pd-nav{padding:14px 0;gap:18px;}
+  .pd-nav .pdnav-left{gap:20px;}
+  .pd-nav .pdnav-left button,.pd-nav .pdnav-right,.pd-nav .pdnav-gh-simple{font-size:13px!important;}
+  .pd-nav .pdnav-top-btn{font-size:13px;padding:8px 17px;}
+  @media (max-width:767px){.footer-about .about-hover-text{width:min(88vw,620px);left:0;}.footer-meta{margin-left:0;text-align:left;align-self:flex-start;}}
+  .bg-symbol,.background-symbol,.side-signal,.side-signals,.electronics-symbol,.signal-line{display:none!important;}
 </style>
 </head>
 <body class="text-[#e6e6e4] antialiased min-h-screen flex flex-col justify-between">
@@ -937,7 +953,7 @@
 
     <!-- ================= RIGHT: LINKEDIN MODULES ================= -->
     <aside id="rightSidebar" class="lg:col-span-3 flex flex-col gap-8 transition-all duration-300 ease-in-out">
-      <div class="pt-6 border-t border-line">
+      <div class="pt-0">
         <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Education</p>
         <div class="flex items-start gap-3">
           <img src="Logos/university_of_westminster_logo.jpg" alt="University of Westminster logo" onerror="handleLogoError(this)" class="company-logo">
@@ -1019,12 +1035,12 @@
 
   <footer class="mt-auto pt-8 border-t border-line flex flex-col sm:flex-row justify-between gap-6 footer-electronics-wrap">
     <div class="footer-about">
-      <div class="flex items-center justify-between gap-4 mb-2">
-        <p class="text-xs text-faint uppercase tracking-wide">About Me</p>
+      <div class="about-hover-label text-xs text-faint uppercase tracking-wide" tabindex="0" aria-describedby="aboutMeHover">
+        About Me
+        <span id="aboutMeHover" role="tooltip" class="about-hover-text">Software Engineering with Electronics student at the University of Westminster with hands-on experience across RF/microwave design, PCB design, embedded systems and hardware/software integration. Recently completed a placement at Leonardo, contributing to microwave PCB and RF component design for electronic warfare self-protection systems. Currently working on a final-year dissertation analysing and designing a wireless energy harvester for IoT applications, and actively building a robotic arm through the SCC programme. Open to placements in embedded systems, RF/microwave design, robotics and firmware development.</span>
       </div>
-      <p class="text-sm text-dim leading-relaxed">Software Engineering with Electronics student at the University of Westminster with hands-on experience across RF/microwave design, PCB design, embedded systems and hardware/software integration. Recently completed a placement at Leonardo, contributing to microwave PCB and RF component design for electronic warfare self-protection systems. Currently working on a final-year dissertation analysing and designing a wireless energy harvester for IoT applications, and actively building a robotic arm through the SCC programme. Open to placements in embedded systems, RF/microwave design, robotics and firmware development.</p>
     </div>
-    <div class="flex flex-col sm:items-end justify-end gap-1 shrink-0">
+    <div class="footer-meta flex flex-col justify-end gap-1 shrink-0">
       <p class="text-xs text-faint uppercase tracking-wide">Suber Abdi - London, UK</p>
       <p class="text-xs text-faint uppercase tracking-wide">© 2026</p>
     </div>
@@ -1727,29 +1743,26 @@
           <div>
             <div class="flex gap-3 items-start">
               ${logoHtml}
-              <button type="button" id="exp-toggle-${e.id}" class="flex-1 min-w-0 text-left focus-ring group cursor-pointer" onclick="toggleExperienceDetail('${e.id}')" aria-expanded="true" aria-controls="${detailId}" style="display:table; width:100%; border-collapse:collapse;">
+              <button type="button" id="exp-toggle-${e.id}" class="experience-row-toggle flex-1 min-w-0 text-left focus-ring group cursor-pointer" onclick="toggleExperienceDetail('${e.id}')" aria-expanded="false" aria-controls="${detailId}" style="display:table; width:100%; border-collapse:collapse;">
                 <span style="display:table-row;">
                   <span style="display:table-cell; vertical-align:top;">
                     <h4 class="font-display font-semibold text-white text-base sm:text-lg transition-colors">${e.role}</h4>
                   </span>
-                  <span style="display:table-cell; vertical-align:bottom; white-space:nowrap; text-align:right; padding-left:12px;">
-                    <span class="font-mono text-xs text-faint uppercase">${displayDates}</span>
+                  <span style="display:table-cell; vertical-align:top; white-space:nowrap; text-align:right; padding-left:12px;">
+                    <span class="font-mono text-xs text-faint uppercase">${displayDates}</span><span class="experience-expand-label">Expand</span>
                   </span>
                 </span>
                 <span style="display:table-row;">
                   <span style="display:table-cell; vertical-align:top;">
-                    <p class="font-mono text-xs text-dim uppercase tracking-wide mt-0.5 flex items-center gap-1.5">
-                      ${e.company} · ${e.location}
-                      <i data-lucide="chevron-down" class="w-3.5 h-3.5 text-faint transition-transform shrink-0" id="exp-chevron-${e.id}" style="transform:rotate(180deg)"></i>
-                    </p>
+                    <p class="font-mono text-xs text-dim uppercase tracking-wide mt-0.5 flex items-center gap-1.5">${e.company} · ${e.location}<i data-lucide="chevron-down" class="w-3.5 h-3.5 text-faint transition-transform shrink-0" id="exp-chevron-${e.id}"></i></p>
                   </span>
-                  <span style="display:table-cell; vertical-align:bottom; white-space:nowrap; text-align:right; padding-left:12px;">
+                  <span style="display:table-cell; vertical-align:top; white-space:nowrap; text-align:right; padding-left:12px;">
                     <span class="font-mono text-xs text-faint mt-0.5">${dur}</span>
                   </span>
                 </span>
               </button>
             </div>
-            <div id="${detailId}" class="pl-[52px]">${detailHtml}</div>
+            <div id="${detailId}" class="hidden pl-[52px]">${detailHtml}</div>
           </div>
         `;
       }
@@ -1764,13 +1777,13 @@
         <div>
           <div class="flex gap-3 items-start">
             ${logoHtml}
-            <button type="button" id="exp-toggle-${e.id}" class="flex-1 min-w-0 text-left focus-ring group cursor-pointer" onclick="toggleExperienceDetail('${e.id}')" aria-expanded="false" aria-controls="${detailId}" style="display:table; width:100%; border-collapse:collapse;">
+            <button type="button" id="exp-toggle-${e.id}" class="experience-row-toggle flex-1 min-w-0 text-left focus-ring group cursor-pointer" onclick="toggleExperienceDetail('${e.id}')" aria-expanded="false" aria-controls="${detailId}" style="display:table; width:100%; border-collapse:collapse;">
               <span style="display:table-row;">
                 <span style="display:table-cell; vertical-align:top;">
                   <h4 class="font-display font-semibold text-white text-base sm:text-lg transition-colors">${e.role}</h4>
                 </span>
                 <span style="display:table-cell; vertical-align:bottom; white-space:nowrap; text-align:right; padding-left:12px;">
-                  <span class="font-mono text-xs text-faint uppercase">${displayDates}</span>
+                  <span class="font-mono text-xs text-faint uppercase">${displayDates}</span><span class="experience-expand-label">Expand</span>
                 </span>
               </span>
               <span style="display:table-row;">
@@ -3641,7 +3654,7 @@ function renderFollowingBody() {
     bucket.items.push(c);
   });
   return `<div class="modal-section space-y-2">` + groups.map(g => `
-    <details class="group border border-line rounded-sm bg-panel open:bg-[#161618] transition-colors [&_summary::-webkit-details-marker]:hidden">
+    <details class="group following-accordion border border-line rounded-sm bg-panel open:bg-[#161618] transition-colors [&_summary::-webkit-details-marker]:hidden">
       <summary class="cursor-pointer outline-none list-none flex items-center gap-2 px-3 py-2.5 font-display font-semibold text-sm text-white">
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-dim shrink-0 transition-transform group-open:rotate-90"></i>
         ${g.name}
@@ -3656,6 +3669,20 @@ function renderFollowingBody() {
       </ul>
     </details>
   `).join('') + `</div>`;
+}
+
+function initFollowingAccordion() {
+  const root = document.getElementById('modalBody');
+  if (!root) return;
+  const accordions = root.querySelectorAll('details.following-accordion');
+  if (!accordions.length) return;
+  accordions.forEach(d => {
+    d.open = false;
+    d.addEventListener('toggle', () => {
+      if (!d.open) return;
+      accordions.forEach(other => { if (other !== d) other.open = false; });
+    });
+  });
 }
 
 const CATEGORY_DATA = {
@@ -4144,6 +4171,7 @@ function renderCategoryModalItem() {
   }
 
   document.getElementById('modalBody').innerHTML = bodyHTML;
+  if (currentCategoryKey === 'following') initFollowingAccordion();
   document.getElementById('modalPanel').className = `modal-panel ${m.size}`;
 
   // PERF: quietly pre-fetch the 2nd slide shortly after opening, so the
@@ -4274,4 +4302,3 @@ function goToSlide(prefix, index) {
 
 </body>
 </html>
-      github: 'https://github.com/SuberBAbdi/SCC-Robotic-Arm'
