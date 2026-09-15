@@ -664,7 +664,30 @@
   .footer-about .about-hover-text{position:absolute;left:0;bottom:calc(100% + 10px);width:min(620px,70vw);padding:12px 14px;background:#131315;border:1px solid #27272a;color:#a3a3a8;font-size:13px;line-height:1.55;text-transform:none;letter-spacing:normal;opacity:0;visibility:hidden;transform:translateY(5px);transition:opacity .16s ease,transform .16s ease,visibility .16s ease;pointer-events:none;z-index:60;box-shadow:0 12px 30px rgba(0,0,0,.3);}
   .footer-about .about-hover-label:hover .about-hover-text,.footer-about .about-hover-label:focus-visible .about-hover-text{opacity:1;visibility:visible;transform:translateY(0);}
   .footer-meta{margin-left:auto;text-align:right;align-self:flex-end;}
-  @media (min-width:1024px){#leftSidebar{border-right:1px solid #27272a;padding-right:32px!important;}#leftToggleBtn{right:32px!important;}}
+  @media (min-width:1024px){
+    #leftSidebar{
+      border-right:0!important;
+      padding-left:20px!important;
+      padding-right:32px!important;
+      position:relative!important;
+    }
+    #leftSidebar::after{
+      content:"";
+      position:absolute;
+      top:0;
+      right:0;
+      bottom:0;
+      width:2px;
+      background:#f5f5f5;
+      opacity:1;
+      pointer-events:none;
+      z-index:5;
+    }
+    #leftToggleBtn{
+      right:24px!important;
+      z-index:10!important;
+    }
+  }
   .experience-expand-label{margin-left:4px;color:#68686d;font-size:10px;text-transform:uppercase;letter-spacing:.06em;}
   .experience-company-line{display:inline-flex;align-items:center;gap:6px;}
   .experience-date-cell{width:1%;min-width:150px;text-align:right;white-space:nowrap;padding-left:16px;}
