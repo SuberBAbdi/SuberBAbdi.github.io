@@ -1750,6 +1750,23 @@
       ],
 
       report: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/tree/main/University%20Submitted%20Documents',
+      sourceLinks: [
+        {
+          label: 'University Submitted Documents',
+          href: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/tree/main/University%20Submitted%20Documents',
+          icon: 'file-text'
+        },
+        {
+          label: '3D & 2D Models',
+          href: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/tree/main/3D%20and%202D%20Models',
+          icon: 'box'
+        },
+        {
+          label: 'Examples of Results',
+          href: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/tree/main/Examples%20of%20Results',
+          icon: 'images'
+        }
+      ],
       contribution: 'This was assessed as a group engineering project. The work covered the analogue front-end and PIC16F877A design, Assembly firmware, simulation, verification and practical demonstration, with the final submission supported by a technical report and group presentation.',
       githubCard: 'SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner',
       tags: ['Assembly', 'PIC16F877A', 'MPLAB X'],
@@ -3596,6 +3613,21 @@
           </div>
         </div>
       `;
+    }
+
+    if (p.sourceLinks && p.sourceLinks.length) {
+      extraAssets += `<div class="mt-8 flex flex-col gap-3 w-full">
+        <p class="font-mono text-[10px] text-faint uppercase tracking-widest">Project Sources</p>`;
+      p.sourceLinks.forEach((source) => {
+        extraAssets += `
+        <div class="flex items-center justify-between p-3.5 bg-panel border border-line hover:border-faint transition-colors rounded-sm">
+          <a href="${source.href}" target="_blank" rel="noopener" class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors text-left flex-1">
+            <i data-lucide="${source.icon || 'external-link'}" class="w-4 h-4 text-dim"></i>
+            <span>${source.label} ↗</span>
+          </a>
+        </div>`;
+      });
+      extraAssets += `</div>`;
     }
 
     if (p.report || p.codeFile || p.presentation || p.images) {
