@@ -746,27 +746,15 @@
   /* ===== Experience roulette: always visible ===== */
   .experience-roulette{visibility:visible!important;opacity:1!important;}
 
-  /* ===== 2048x1030 fit: footer is anchored at the bottom without waste ===== */
+  /* ===== 2048x1030 fit: preserve the portfolio's top spacing and only compact the footer ===== */
   @media (min-width:1024px) and (max-height:1100px){
-    .portfolio-shell{height:100vh!important;min-height:0!important;box-sizing:border-box;padding-top:14px!important;padding-bottom:4px!important;}
-    .portfolio-grid{min-height:0!important;flex:1 1 auto!important;padding-bottom:6px!important;}
+    body{overflow:hidden;}
+    .portfolio-shell{height:100vh!important;min-height:0!important;box-sizing:border-box;}
+    .portfolio-grid{min-height:0!important;flex:1 1 auto!important;padding-bottom:0!important;}
     .portfolio-shell>footer.footer-electronics-wrap{flex:0 0 auto!important;margin-top:0!important;padding-top:2px!important;padding-bottom:2px!important;}
     .footer-inner{min-height:14px!important;}
     #experienceSection{min-height:0!important;height:100%!important;display:flex!important;flex-direction:column!important;}
     #experienceSection .experience-roulette{margin-top:auto!important;margin-bottom:0!important;padding-top:8px!important;padding-bottom:4px!important;}
-  }
-
-  /* ===== 2048x1030 desktop fit + compact footer ===== */
-  .footer-inner{min-height:16px!important;gap:12px!important;}
-  .footer-about .about-hover-label{font-size:9px!important;letter-spacing:.05em!important;}
-  .footer-meta>span{font-size:9px!important;letter-spacing:.05em!important;}
-  .footer-meta{gap:8px!important;}
-  .footer-meta-divider{height:12px!important;}
-  @media (min-width:1024px) and (max-height:1100px){
-    body{overflow:hidden;}
-    .portfolio-shell{padding-top:18px!important;padding-bottom:10px!important;}
-    .portfolio-grid{padding-bottom:18px!important;}
-    #feedView{padding-top:42px!important;gap:28px!important;}
     #leftSidebar{height:calc(100vh - 34px)!important;}
     #leftProfileContent .mt-8{margin-top:18px!important;}
     #leftProfileContent .pt-6{padding-top:14px!important;}
@@ -775,10 +763,14 @@
     #leftProfileContent .mt-3{margin-top:8px!important;}
     #leftProfileContent .mt-2{margin-top:6px!important;}
     #experienceList{gap:16px!important;}
-    #experienceSection{min-height:0!important;}
-    #experienceSection .experience-roulette{padding-top:8px!important;padding-bottom:4px!important;}
-    footer.footer-electronics-wrap{padding-top:2px!important;padding-bottom:2px!important;margin-top:0!important;}
   }
+
+  /* Keep footer deliberately compact; do not use this rule to alter the page's top spacing. */
+  .footer-inner{min-height:16px!important;gap:12px!important;}
+  .footer-about .about-hover-label{font-size:9px!important;letter-spacing:.05em!important;}
+  .footer-meta>span{font-size:9px!important;letter-spacing:.05em!important;}
+  .footer-meta{gap:8px!important;}
+  .footer-meta-divider{height:12px!important;}
 </style>
 </head>
 <body class="text-[#e6e6e4] antialiased min-h-screen flex flex-col justify-between">
