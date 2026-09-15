@@ -211,39 +211,6 @@
     to{ stroke-dashoffset:0; }
   }
 
-  .hw-widget{
-    position:fixed; z-index:30; pointer-events:none;
-    background:rgba(19,19,21,.88); border:1px solid #27272a;
-    font-family:'JetBrains Mono', monospace;
-    backdrop-filter:blur(2px);
-  }
-  .hw-head{
-    display:flex; align-items:center; gap:6px;
-    padding:5px 8px; border-bottom:1px solid #1a1a1c;
-    font-size:9.5px; letter-spacing:.06em; text-transform:uppercase; color:#68686d;
-  }
-  .hw-dot{ width:5px; height:5px; border-radius:50%; background:#a3a3a8; }
-  .hw-dot.live{ animation:hwBlink 1.2s steps(1) infinite; }
-  @keyframes hwBlink{ 50%{ opacity:.25; } }
-
-  #hwLogic{ right:14px; bottom:14px; width:212px; }
-  #hwLogic canvas{ display:block; width:100%; height:112px; }
-
-  #hwReg{ right:14px; top:14px; width:212px; }
-  #hwReg .hw-body{ padding:7px 9px; font-size:10.5px; line-height:1.75; color:#a3a3a8; white-space:pre; }
-  #hwReg .v{ color:#f1f1ef; }
-  #hwReg .flag{ color:#68686d; }
-
-  #hwTerm{ left:14px; bottom:14px; width:210px; transform: scale(0.9); transform-origin: bottom left; }
-  #hwTerm .hw-body{ padding:7px 9px; font-size:9.5px; line-height:1.6; color:#a3a3a8; min-height:80px; }
-  #hwTerm .ts{ color:#68686d; }
-  #hwTerm .ok{ color:#f1f1ef; }
-  #hwTerm .cursor{ display:inline-block; width:6px; height:10px; background:#a3a3a8; animation:hwBlink 1s steps(1) infinite; vertical-align:-1px; }
-
-  @media (max-width:1023px){
-    .hw-widget{ display:none !important; }
-  }
-
   ::-webkit-scrollbar{ width:10px; }
   ::-webkit-scrollbar-track{ background:#0c0c0d; }
   ::-webkit-scrollbar-thumb{ background:#27272a; }
@@ -281,7 +248,7 @@
 
   .modal-head{
     display:flex; align-items:flex-start; justify-content:space-between; gap:16px;
-    padding:16px 20px; border-bottom:1px solid #1a1a1c; flex-shrink:0;
+    padding:12px 20px; border-bottom:1px solid #1a1a1c; flex-shrink:0;
   }
   .modal-eyebrow{
     font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.1em;
@@ -307,9 +274,9 @@
   .modal-nav-btn:hover:not(:disabled){ background:#f1f1ef; color:#0c0c0d; }
   .modal-nav-btn:disabled{ opacity:.25; cursor:not-allowed; border-color:#1a1a1c; color:#68686d; }
 
-  .modal-body{ overflow-y:auto; padding:20px; }
+  .modal-body{ overflow-y:auto; padding:10px 20px 20px; }
   .modal-body p{ font-size:.9rem; line-height:1.7; color:#a3a3a8; }
-  .modal-section{ margin-top:22px; padding-top:18px; border-top:1px solid #1a1a1c; }
+  .modal-section{ margin-top:16px; padding-top:14px; border-top:1px solid #1a1a1c; }
   .modal-section:first-child{ margin-top:0; padding-top:0; border-top:none; }
   .modal-label{
     font-family:'JetBrains Mono', monospace; font-size:10px; letter-spacing:.1em;
@@ -782,6 +749,12 @@
   .bg-electronics > svg.project-area-symbol:nth-of-type(5),
   .bg-electronics > svg.project-area-symbol:nth-of-type(6){ display:block !important; }
 
+
+  /* ===== Portfolio fixes ===== */
+  .experience-meta-grid{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start;width:100%;}
+  .experience-meta-right{display:flex;flex-direction:column;align-items:flex-end;text-align:right;min-width:max-content;}
+  #modalBody > .modal-section:first-child{margin-top:0!important;padding-top:0!important;}
+  #modalBody .modal-section{margin-top:16px;}
 </style>
 </head>
 <body class="text-[#e6e6e4] antialiased min-h-screen flex flex-col justify-between">
@@ -900,19 +873,6 @@
   </svg>
 </div>
 
-<div id="hwLogic" class="hw-widget" aria-hidden="true">
-  <div class="hw-head"><span class="hw-dot live"></span><span id="hwLogicStatus">DECODING SPI</span></div>
-  <canvas id="hwLogicCanvas" width="212" height="112"></canvas>
-</div>
-<div id="hwReg" class="hw-widget" aria-hidden="true">
-  <div class="hw-head"><span class="hw-dot live"></span>MCU_STATUS [PIC16F]</div>
-  <div class="hw-body" id="hwRegBody">ADCON0 : <span class="v">0x41</span> <span class="flag">[ADC ACTIVE]</span>
-PORTB  : <span class="v">0b01111010</span>
-TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></div>
-</div>
-<div id="hwTerm" class="hw-widget" aria-hidden="true">
-  <div class="hw-head"><span class="hw-dot live"></span>/dev/ttyUSB0 · 115200 8N1</div>
-  <div class="hw-body" id="hwTermBody"><span class="ts">[00:15:25]</span> SPI_TX: 0xB3 0x28 0x73<br><span class="ts">[00:15:27]</span> I2C ACK @0x3C<br><span class="ts">[00:15:29]</span> ADC_READ: 2.93V -&gt; <span class="ok">MARGIN_OK</span><br><span class="ts">[00:15:30]</span> TEMP: 25.7°C <span class="ok">[IN BOUNDS]</span><br><span class="ts">[00:15:32]</span> ADC_READ: 2.69V -&gt; <span class="ok">MARGIN_OK</span> <span class="cursor"></span></div>
 </div>
 
 <div class="max-w-[1400px] w-full mx-auto px-3 sm:px-4 lg:px-6 py-6 lg:py-10 flex-1 flex flex-col justify-between">
@@ -1025,7 +985,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 
     <!-- ================= CENTER: MAIN FEED ================= -->
     <div id="centerColumn" class="lg:col-span-6 transition-all duration-300 ease-in-out">
-      <div id="feedView" class="flex flex-col gap-12 lg:pt-32">
+      <div id="feedView" class="flex flex-col gap-12 lg:pt-24">
 
         <div>
           <div class="scan-header border-b border-line pb-4 mb-3 flex items-center justify-between gap-3">
@@ -1352,11 +1312,6 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
           html: `<p>A video of the board booting and running the embedded C program (blink + UART output), a block diagram of the system, and a short write-up of design decisions - why single-cycle first, what would be pipelined next, and what was left out and why. This is what turns it into an interview talking point, not just a repo.</p>`,
           span2: true
         },
-        {
-          title: 'Fallback / Parallel Project',
-          html: `<p>If the timeline slips: a <strong>Fault-Tolerant Environmental Control Unit</strong> - an STM32 Nucleo-based safety controller (temperature/humidity sensors, PWM fan control, CAN/RS-485, watchdog, deterministic state machine) representing an avionics enclosure or battery compartment controller. Same-week buildable and domain-matched to Leonardo, but doesn't move the needle for Arm the way the CPU project does - used only if the RISC-V timeline slips, not attempted alongside it to a polished standard alongside the dissertation.</p>`,
-          span2: true
-        }
       ],
 
       has3DModel: true,
@@ -1395,7 +1350,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       ],
       githubCard: 'SuberBAbdi/FPGA-RISC-V-Safety-Control-Processor',
       tags: ['RISC-V', 'FPGA', 'Verilog/VHDL'],
-      github: null
+      github: 'https://github.com/SuberBAbdi/FPGA-RISC-V-Safety-Control-Processor'
     },
     {
       id: 'harvester',
@@ -1494,6 +1449,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       // time pulled straight from the GitHub REST API. `github` itself is
       // left unset so the simple title-row button doesn't also render.
       githubCard: 'SuberBAbdi/Wireless-Energy-Harvester',
+      github: 'https://github.com/SuberBAbdi/Wireless-Energy-Harvester',
 
       // Rendered as its own card near the bottom of the page (see the
       // `contribution` block in openProject) - update this if the project
@@ -1518,6 +1474,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     {
       id: 'arm',
       status: 'Complete · Apr – Jul 2026',
+      hoverDescription: 'A robotic-arm learning project built around the Freenove FNK0036, Arduino UNO R4 WiFi, Raspberry Pi 3B+, joystick control, camera overlay and a physical Tic-Tac-Toe game.',
       title: 'SCC Robotic Arm',
       overview: 'Research project designing a guide and toolkit enabling CS and Engineering students to build their own robotic arms using first-year programming and electronics skills - evaluating the easiest way to build a low-budget arm and how structured resources improve learning outcomes.',
       stack: 'Prototype arm builds, wiring loom design, instructional guide, voluntary student questionnaire for evaluation.',
@@ -1565,6 +1522,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     {
       id: 'micromouse',
       status: 'Complete · Feb – Apr 2026',
+      hoverDescription: 'Team embedded-systems project developing an autonomous maze-solving robot from mechanical design and wiring through C++ firmware, sensor fusion and live maze testing.',
       title: 'Micro Mouse (Autonomous Maze-Solving Robot)',
       overview: 'A team embedded-systems project to build a robot capable of solving a maze without human input, from mechanical design through to firmware.',
       stack: 'C++ on Mbed via Keil Studio, ultrasonic/IR sensor fusion for wall-following, 3D-printed chassis, GitHub for version control.',
@@ -1612,6 +1570,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     {
       id: 'anpr',
       status: 'Complete · Dec 2025 – Jan 2026',
+      hoverDescription: 'MATLAB App Designer GUI for multi-image vehicle analysis, contrast and histogram evaluation, filtering, thresholding and morphological isolation of licence-plate regions.',
       title: 'Number Plate Recognition System',
       overview: 'A MATLAB-based computer vision tool with a custom GUI that processes vehicle images from a dataset to isolate and identify licence plates, improving image quality before extraction.',
       stack: 'Greyscale conversion → thresholding → noise removal → morphological operations → binarisation, wrapped in a custom MATLAB GUI.',
@@ -1651,7 +1610,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       ],
       githubCard: 'SuberBAbdi/Number-Plate-Recognition-System',
       tags: ['MATLAB', 'Image Processing'],
-      github: null,
+      github: 'https://github.com/SuberBAbdi/Number-Plate-Recognition-System',
       report: 'https://SuberBAbdi.github.io/Number Plate Recognition System/Number_Plate_Recognition_System_Report.pdf',
       codeFile: 'https://SuberBAbdi.github.io/Number Plate Recognition System/Number_Plate_Recognition_System_Code.m',
       presentation: 'https://SuberBAbdi.github.io/Number Plate Recognition System/Number_Plate_Recognition_System_Presentation.pptx',
@@ -1705,7 +1664,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       ],
       githubCard: 'SuberBAbdi/Arduino-Radar-System',
       tags: ['Arduino', 'Ultrasonic Sensing', 'Processing'],
-      github: null
+      github: 'https://github.com/SuberBAbdi/Arduino-Radar-System'
     },
     {
       id: 'dfmini',
@@ -1753,13 +1712,14 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       ],
       githubCard: 'SuberBAbdi/DFMiniPlayer-Voltage-Triggered-Audio-System',
       tags: ['C++', 'Arduino', 'Audio'],
-      github: null
+      github: 'https://github.com/SuberBAbdi/DFMiniPlayer-Voltage-Triggered-Audio-System'
     },
     {
       id: 'dac',
       status: 'Complete · Mar – May 2025',
       title: 'DAC with PIC16F877A',
-      overview: 'A microcontroller instrumentation project converting analogue thermistor readings into a digital display using low-level Assembly firmware.',
+      hoverDescription: 'A PIC16F877A temperature scanner and DAC project combining analogue front-end design, ADC sampling, Assembly firmware, LCD output and hardware verification.',
+      overview: 'A PIC16F877A temperature scanner and DAC project combining analogue front-end design, ADC sampling, Assembly firmware, LCD output and hardware verification.',
       // NOTE: this project intentionally skips stack/challenges/outcome and
       // uses `sections` instead (see the `p.sections` branch in openProject)
       // to better reflect the assessment structure (viva + technical report)
@@ -1789,43 +1749,11 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         }
       ],
 
-      has3DModel: true,
-      stlBodies: [
-        { id: 'enclosure', name: 'Antenna Enclosure', path: 'Controller_Model.stl', visible: true },
-        { id: 'pcb', path: 'PCB.stl', visible: true }
-      ],
-      kicadSchematic: { path: 'Wireless_Energy_Harvester_Schematic.png' },
-      pcbLayoutImage: {
-        layers: [
-          { id: 'f-cu', name: 'Front Copper (F.Cu)', path: 'temp/PIC16F877A_Fixed-F_Cu.svg', visible: true },
-          { id: 'b-cu', name: 'Back Copper (B.Cu)', path: 'temp/PIC16F877A_Fixed-B_Cu.svg', visible: true },
-          { id: 'f-silkscreen', name: 'Front Silkscreen (F.Silkscreen)', path: 'temp/PIC16F877A_Fixed-F_Silkscreen.svg', visible: true },
-          { id: 'b-silkscreen', name: 'Back Silkscreen (B.Silkscreen)', path: 'temp/PIC16F877A_Fixed-B_Silkscreen.svg', visible: false },
-          { id: 'f-mask', name: 'Front Mask (F.Mask)', path: 'temp/PIC16F877A_Fixed-F_Mask.svg', visible: false },
-          { id: 'b-mask', name: 'Back Mask (B.Mask)', path: 'temp/PIC16F877A_Fixed-B_Mask.svg', visible: false },
-          { id: 'f-fab', name: 'Front Fabrication (F.Fab)', path: 'temp/PIC16F877A_Fixed-F_Fab.svg', visible: false },
-          { id: 'b-fab', name: 'Back Fabrication (B.Fab)', path: 'temp/PIC16F877A_Fixed-B_Fab.svg', visible: false },
-          { id: 'edge-cuts', name: 'Board Outline (Edge.Cuts)', path: 'temp/PIC16F877A_Fixed-Edge_Cuts.svg', visible: true }
-        ]
-      },
-      pcbModel: { path: 'PCB.stl', label: 'PCB' },
-      presentation: 'Wireless_Energy_Harvester_Presentation.pptx',
-      presentationEmbed: true,
-      report: 'Wireless_Energy_Harvester_Report.pdf',
-      demoVideoId: '1rsLRHpR1H8',
-      presentationVideoId: '1rsLRHpR1H8',
-      contribution: 'This project is an individual final-year dissertation. All research, analysis, RF/antenna design, simulation, PCB layout, and testing were carried out independently, under academic supervision from the University of Westminster.',
-      timeline: [
-        { date: 'Sep 2026', title: 'Project proposal approved', description: 'Scope agreed with the supervisor: antenna filter design at 3.6 GHz feeding an RF-to-DC conversion path for IoT power delivery.' },
-        { date: 'Oct 2026', title: 'Literature review & requirements', description: 'Reviewed existing energy-harvesting and antenna filter approaches to set the design requirements and constraints.' },
-        { date: 'Dec 2026', title: 'Antenna & filter design, simulation', description: 'Modelled the antenna filter and RF-to-DC path, iterating on gain vs selectivity trade-offs at 3.6 GHz.' },
-        { date: 'Feb 2027', title: 'PCB layout & fabrication', description: 'Translated the simulated design into a PCB layout, including the enclosure and controller board, ready for fabrication.' },
-        { date: 'Apr 2027', title: 'Prototype assembly & testing', description: 'Assembled the physical prototype and began lab testing against the simulated performance figures.' },
-        { date: 'Jun 2027', title: 'Final report & submission', description: 'Write-up of the full design, simulation and testing process for final dissertation submission.' }
-      ],
+      report: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/tree/main/University%20Submitted%20Documents',
+      contribution: 'This was assessed as a group engineering project. The work covered the analogue front-end and PIC16F877A design, Assembly firmware, simulation, verification and practical demonstration, with the final submission supported by a technical report and group presentation.',
       githubCard: 'SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner',
       tags: ['Assembly', 'PIC16F877A', 'MPLAB X'],
-      github: null
+      github: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner'
     }
   ];
 
@@ -1844,9 +1772,9 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       // Logo lives in the repo's Logos/ folder (https://github.com/SuberBAbdi/SuberBAbdi.github.io/tree/main/Logos)
       logo: 'Logos/leonardo_logo.jpg',
       location: 'Luton, England, UK · Hybrid',
-      dates: 'Jun 2026 - Sep 2026',
+      dates: 'Jun 2026 - Present',
       startDate: '2026-06-01',
-      endDate: '2026-09-30',
+      endDate: '2099-12-31',
       current: true, // legacy fallback; live date logic below determines the actual current state
       summary: 'Contributed to the development of an internal multi-channel microwave electronics prototype within a multi-disciplinary team, from requirements and architecture through to schematic and PCB design.',
       bullets: [
@@ -1982,22 +1910,14 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
           <div class="flex gap-3 items-start">
             ${logoHtml}
             <div class="flex-1 min-w-0">
-              <div style="display:table; width:100%; border-collapse:collapse;">
-                <div style="display:table-row;">
-                  <div style="display:table-cell; vertical-align:top;">
-                    <h4 class="font-display font-semibold text-white text-base sm:text-lg">${e.role}</h4>
-                  </div>
-                  <div style="display:table-cell; vertical-align:bottom; white-space:nowrap; text-align:right; padding-left:12px;">
-                    <span class="font-mono text-xs text-faint uppercase">${displayDates}</span>
-                  </div>
+              <div class="experience-meta-grid">
+                <div class="experience-meta-left min-w-0">
+                  <h4 class="font-display font-semibold text-white text-base sm:text-lg">${e.role}</h4>
+                  <p class="font-mono text-xs text-dim uppercase tracking-wide mt-0.5">${e.company} · ${e.location}</p>
                 </div>
-                <div style="display:table-row;">
-                  <div style="display:table-cell; vertical-align:top;">
-                    <p class="font-mono text-xs text-dim uppercase tracking-wide mt-0.5">${e.company} · ${e.location}</p>
-                  </div>
-                  <div style="display:table-cell; vertical-align:bottom; white-space:nowrap; text-align:right; padding-left:12px;">
-                    <span class="font-mono text-xs text-faint mt-0.5">${dur}</span>
-                  </div>
+                <div class="experience-meta-right">
+                  <span class="font-mono text-xs text-faint uppercase whitespace-nowrap">${displayDates}</span>
+                  <span class="font-mono text-xs text-faint mt-0.5 whitespace-nowrap">${dur}</span>
                 </div>
               </div>
               ${detailHtml}
@@ -2279,7 +2199,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 
   let activeTagSection = 'all';    // selected Level-1 section key, or 'all'
   let activeTags = new Set();      // selected Level-2 tags (multi-select)
-  let tagFilterMode = 'OR';        // how multiple activeTags combine: 'OR' or 'AND'
+  let tagFilterMode = 'AND';       // how multiple activeTags combine: 'OR' or 'AND'
   let tagChipSearch = '';          // filters the TAG CHIP LIST itself (not the projects)
 
   // Builds one lowercase blob of searchable text for a project: title, tags,
@@ -2363,6 +2283,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
   }
 
   function toggleTagFilterTag(tag) {
+    if (window.event) window.event.stopPropagation();
     if (activeTags.has(tag)) activeTags.delete(tag);
     else activeTags.add(tag);
     renderTagFilterPanel();
@@ -2371,6 +2292,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
   }
 
   function setTagFilterMode(mode) {
+    if (window.event) window.event.stopPropagation();
     tagFilterMode = mode;
     renderTagFilterPanel();
     renderProjectGrid();
@@ -2386,7 +2308,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
   function clearTagFilters() {
     activeTagSection = 'all';
     activeTags.clear();
-    tagFilterMode = 'OR';
+    tagFilterMode = 'AND';
     tagChipSearch = '';
     renderTagFilterPanel();
     updateTagFilterBadge();
@@ -2446,8 +2368,10 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
           const active = activeTags.has(t);
           const disabled = !active && !tagWouldYieldResults(t);
           return `<button onclick="toggleTagFilterTag('${t}')" ${disabled ? 'disabled' : ''} class="tagchip ${active ? 'tagchip-active' : ''} ${disabled ? 'tagchip-disabled' : ''}">${t}</button>`;
-        }).join('') : `<span class="font-mono text-[10px] text-faint py-1">No matching tags.</span>`}
+        }).join('') : `<span class="font-mono text-[10px] text-faint py-1">No match</span>`}
       </div>
+
+      ${getFilteredProjects().length === 0 ? `<div class="pt-2.5 mt-2.5 border-t border-lineSoft font-mono text-[10px] uppercase tracking-wider text-faint">No match</div>` : ''}
 
       ${activeTags.size > 1 ? `
       <div class="flex items-center justify-between pt-2.5 mt-2.5 border-t border-lineSoft">
@@ -2539,22 +2463,18 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 
     grid.innerHTML = visible.map((p, i) => `
       <div class="case-card group focus-ring px-3 py-4 border-t border-l border-r border-line ${i === visible.length - 1 ? 'border-b rounded-b-sm' : ''}" tabindex="0" role="button"
-           aria-label="View ${p.title}" onclick="openProject('${p.id}')" title="${p.hoverDescription ? p.hoverDescription.replace(/"/g, '&quot;') : ''}"
+           aria-label="View ${p.title}" onclick="openProject('${p.id}')"
+           title="${p.hoverDescription ? p.hoverDescription.replace(/"/g,'&quot;') : ''}"
            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProject('${p.id}');}">
-        <div class="flex items-center justify-between gap-3">
-          <div class="flex items-center gap-3 min-w-0 flex-1">
-            <span class="font-mono text-xs text-faint shrink-0">${String(i + 1).padStart(2, '0')}</span>
-            <div class="min-w-0 flex-1">
-              <p class="font-mono text-[11px] text-faint uppercase tracking-wider truncate">${p.status}</p>
-              <h4 class="font-display font-semibold text-lg sm:text-xl leading-snug truncate">
-                ${p.favourite ? '<span class="text-white" title="Favourite project">★</span> ' : ''}${p.title}
-              </h4>
-              <!-- Tags shown next to/under the title on the homepage card too,
-                   mirroring the project detail view. Uses the smaller
-                   .tag-mini style (defined in <style>) so cards stay compact. -->
-              <div class="flex flex-wrap gap-1 mt-1.5">
-                ${p.tags.map(t => `<span class="tag-mini">${t}</span>`).join('')}
-              </div>
+        <div class="flex items-center gap-3 min-w-0">
+          <span class="font-mono text-xs text-faint shrink-0">${String(i + 1).padStart(2, '0')}</span>
+          <div class="min-w-0 flex-1">
+            <p class="font-mono text-xs text-dim uppercase tracking-wider">${p.status}</p>
+            <h4 class="font-display font-semibold text-lg text-white truncate mt-1">
+              ${p.favourite ? '<span class="text-white" title="Favourite project">★</span> ' : ''}${p.title}
+            </h4>
+            <div class="flex flex-wrap gap-1 mt-2">
+              ${p.tags.map(t => `<span class="tag-mini">${t}</span>`).join('')}
             </div>
           </div>
           <i data-lucide="arrow-up-right" class="arrow w-5 h-5 text-dim shrink-0"></i>
@@ -2592,8 +2512,8 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         ${projects.map(p => `
           <button onclick="goToProjectFromModal('${p.id}')" class="w-full text-left py-3 flex items-center gap-3 group focus-ring">
             <div class="min-w-0 flex-1">
-              <p class="font-mono text-[10px] text-faint uppercase tracking-wider truncate">${p.status}</p>
-              <span class="text-sm text-dim group-hover:text-white transition-colors truncate block">
+              <p class="font-mono text-xs text-dim uppercase tracking-wider">${p.status}</p>
+              <span class="font-display font-semibold text-lg text-dim group-hover:text-white transition-colors truncate block mt-1">
                 ${p.favourite ? '<span class="text-white">★</span> ' : ''}${p.title}
               </span>
             </div>
@@ -3667,7 +3587,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
 
     // ---- YouTube presentation video embed - rendered last, at the very
     // bottom of the page's media, below the report/presentation/code links. ----
-    if (p.presentationVideoId) {
+    if (false && p.presentationVideoId) {
       extraAssets += `
         <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
           <p class="font-mono text-xs text-dim uppercase tracking-wider mb-3">${p.title} - Presentation Video</p>
@@ -3682,7 +3602,14 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       extraAssets += `<div class="mt-8 flex flex-col gap-3 w-full">`;
       
       if (p.report) {
-        extraAssets += `
+        const reportIsExternal = /^https?:\/\//i.test(p.report);
+        extraAssets += reportIsExternal ? `
+        <div class="flex items-center justify-between p-3.5 bg-panel border border-line hover:border-faint transition-colors rounded-sm">
+          <a href="${p.report}" target="_blank" rel="noopener" class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors text-left flex-1">
+            <i data-lucide="file-text" class="w-4 h-4 text-dim"></i>
+            <span>View Report ↗</span>
+          </a>
+        </div>` : `
         <div class="flex items-center justify-between p-3.5 bg-panel border border-line hover:border-faint transition-colors rounded-sm">
           <button onclick="togglePdfViewer('${p.report}')" class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors text-left flex-1 cursor-pointer">
             <i data-lucide="file-text" class="w-4 h-4 text-dim"></i>
@@ -3963,117 +3890,6 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     build();
   })();
 
-  // ---- Floating hardware widgets -------------------------------------
-  (function () {
-    if (window.matchMedia('(max-width: 1023px)').matches) return;
-    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-    // 1. Logic analyser
-    const laCanvas = document.getElementById('hwLogicCanvas');
-    if (laCanvas) {
-      const ctx = laCanvas.getContext('2d');
-      const W = laCanvas.width, H = laCanvas.height;
-      
-      const chans = ['MOSI', 'MISO', 'SCK', 'CS', 'TX', 'RX'].map((name, i) => {
-        const period = [18, 24, 8, 48, 32, 28][i];
-        const bits = [];
-        let state = 1;
-        for (let x = 0; x < W; x++) {
-          if (x % period === 0) state ^= 1;
-          bits.push(state);
-        }
-        return { name, y0: 10 + i * 17, bits, state, hot: 0 };
-      });
-      chans[2].clock = true;
-      let tick = 0;
-
-      function step() {
-        tick++;
-        for (const c of chans) {
-          if (c.clock) { 
-            if (tick % 8 === 0) { c.state ^= 1; c.hot = 1; } 
-          } else if (Math.random() < 0.02) { 
-            c.state ^= 1; c.hot = 1; 
-          }
-          c.bits.push(c.state); 
-          c.bits.shift(); 
-          c.hot *= 0.92;
-        }
-        ctx.clearRect(0, 0, W, H);
-        ctx.font = '8px "JetBrains Mono", monospace';
-        for (const c of chans) {
-          ctx.fillStyle = '#68686d'; ctx.fillText(c.name, 4, c.y0 + 4);
-          const g = Math.round(163 + c.hot * 80); 
-          ctx.strokeStyle = `rgba(${g},${g},${g + 5},0.9)`;
-          ctx.lineWidth = 1; ctx.beginPath();
-          const x0 = 34, span = W - x0 - 4, amp = 5;
-          let prev = c.bits[0];
-          ctx.moveTo(x0, c.y0 + (prev ? -amp : amp));
-          for (let x = 1; x < span; x++) {
-            const b = c.bits[c.bits.length - span + x];
-            const yy = c.y0 + (b ? -amp : amp);
-            if (b !== prev) ctx.lineTo(x0 + x, c.y0 + (prev ? -amp : amp));
-            ctx.lineTo(x0 + x, yy);
-            prev = b;
-          }
-          ctx.stroke();
-        }
-      }
-
-      if (reduceMotion) { step(); }
-      else {
-        let last = 0;
-        (function loop(t) { if (t - last > 50) { step(); last = t; } requestAnimationFrame(loop); })(0);
-      }
-
-      const statuses = ['SAMPLING: 24 MHz', 'DECODING I2C', 'DECODING SPI', 'TRIG: SCK ↑'];
-      let si = 0;
-      const statusEl = document.getElementById('hwLogicStatus');
-      if (!reduceMotion) setInterval(() => { si = (si + 1) % statuses.length; statusEl.textContent = statuses[si]; }, 4000);
-    }
-
-    // 2. Register map
-    const regBody = document.getElementById('hwRegBody');
-    if (regBody) {
-      let portb = 0b10110010, timer1 = 0xFA2C;
-      function hex(n, w) { return '0x' + n.toString(16).toUpperCase().padStart(w, '0'); }
-      function bin(n) { return '0b' + n.toString(2).padStart(8, '0'); }
-      function renderReg() {
-        const adcon = 0x40 | (Math.random() < 0.5 ? 0x01 : 0x03);
-        portb ^= (1 << Math.floor(Math.random() * 8));
-        if (Math.random() < 0.4) portb ^= (1 << Math.floor(Math.random() * 8));
-        timer1 = (timer1 + 0x0100 + Math.floor(Math.random() * 0x0EFF)) & 0xFFFF;
-        regBody.innerHTML = `ADCON0 : <span class="v">${hex(adcon, 2)}</span> <span class="flag">[ADC ACTIVE]</span>\nPORTB  : <span class="v">${bin(portb)}</span>\nTIMER1 : <span class="v">${hex(timer1, 4)}</span> <span class="flag">(PULSING...)</span>`;
-      }
-      renderReg(); if (!reduceMotion) setInterval(renderReg, 900);
-    }
-
-    // 3. Serial terminal
-    const termBody = document.getElementById('hwTermBody');
-    if (termBody) {
-      let h = 0, m = 12, s = 4; const lines = [];
-      function ts() {
-        s += 1 + Math.floor(Math.random() * 3);
-        if (s > 59) { s -= 60; m++; } if (m > 59) { m -= 60; h++; }
-        const p = n => String(n).padStart(2, '0'); return `[${p(h)}:${p(m)}:${p(s)}]`;
-      }
-      function randByte() { return '0x' + Math.floor(Math.random() * 256).toString(16).toUpperCase().padStart(2, '0'); }
-      function makeLine() {
-        const r = Math.random();
-        if (r < 0.3) return `${ts()} ADC_READ: ${(2.5 + Math.random() * 0.6).toFixed(2)}V -> <span class="ok">MARGIN_OK</span>`;
-        if (r < 0.55) return `${ts()} TEMP: ${(22 + Math.random() * 4).toFixed(1)}°C <span class="ok">[IN BOUNDS]</span>`;
-        if (r < 0.8) return `${ts()} SPI_TX: ${randByte()} ${randByte()} ${randByte()}`;
-        return `${ts()} I2C ACK @0x3C`;
-      }
-      function renderTerm() {
-        lines.push(makeLine()); if (lines.length > 5) lines.shift();
-        termBody.innerHTML = lines.map(l => l.replace(/^(\[[\d:]+\])/, '<span class="ts">$1</span>')).join('<br>') + ' <span class="cursor"></span>';
-      }
-      renderTerm(); renderTerm(); renderTerm();
-      if (!reduceMotion) setInterval(renderTerm, 2200);
-    }
-
-  })();
 </script>
 
 <!-- ================= MODAL SHELL ================= -->
@@ -4164,7 +3980,7 @@ function renderFollowingBody() {
     bucket.items.push(c);
   });
   return `<div class="modal-section space-y-2">` + groups.map(g => `
-    <details class="group border border-line rounded-sm bg-panel open:bg-[#161618] transition-colors [&_summary::-webkit-details-marker]:hidden" open>
+    <details class="group border border-line rounded-sm bg-panel open:bg-[#161618] transition-colors [&_summary::-webkit-details-marker]:hidden">
       <summary class="cursor-pointer outline-none list-none flex items-center gap-2 px-3 py-2.5 font-display font-semibold text-sm text-white">
         <i data-lucide="chevron-right" class="w-3.5 h-3.5 text-dim shrink-0 transition-transform group-open:rotate-90"></i>
         ${g.name}
@@ -4359,8 +4175,8 @@ const CATEGORY_DATA = {
       eyebrow: 'Part-Time Experience',
       title: `Student Team Leader <span class="text-dim text-sm font-normal block mt-1">Westminster SU · Sep 2026 - Present · ${liveOngoingDuration('Sep 2026')}</span>`,
       body: `
-        <div class="modal-section">
-          <ul class="bullet-list mt-2 text-sm text-dim space-y-2">
+        <div class="modal-section pt-0 mt-0">
+          <ul class="bullet-list mt-1 text-sm text-dim space-y-2">
             <li><strong class="text-[#d2d2d0] font-medium">Team Leadership:</strong> Supervised and supported a shift team of up to 7 Student Callers, ensuring team members were up to date on call expectations, campaign resources, and university procedures.</li>
             <li><strong class="text-[#d2d2d0] font-medium">Operations & Administration:</strong> Managed daily call centre operations, including creating weekly staff rotas, generating daily targeted call lists, and accurately auditing student opt-out information using Microsoft Excel.</li>
             <li><strong class="text-[#d2d2d0] font-medium">Student Support & Communication:</strong> Handled first-level escalation queries from student callers, providing empathetic and assertive guidance to signpost students to appropriate university welfare and support services.</li>
@@ -4591,7 +4407,7 @@ function renderCategoryTOC(categoryKey) {
   });
 
   return groups.map(g => `
-    <div class="mb-4 last:mb-0">
+    <div class="mb-2 last:mb-0">
       <p class="font-mono text-[10px] uppercase tracking-widest text-faint mb-1">${g.name}</p>
       <div class="flex flex-col divide-y divide-lineSoft border-t border-b border-lineSoft">${g.rows.join('')}</div>
     </div>
