@@ -747,6 +747,19 @@
   .experience-roulette{visibility:visible!important;opacity:1!important;}
 
 </style>
+
+<style id="bottom-right-grey-gradient">
+  /* Subtle grey gradient anchored to the bottom-right corner. */
+  body::after {
+    content: "";
+    position: fixed;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    background: radial-gradient(circle at 100% 100%, rgba(150,150,150,.18) 0%, rgba(150,150,150,.08) 24%, rgba(150,150,150,0) 55%);
+  }
+  body > * { position: relative; z-index: 1; }
+</style>
 </head>
 <body class="text-[#e6e6e4] antialiased min-h-screen flex flex-col justify-between">
 
