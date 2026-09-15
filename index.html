@@ -439,8 +439,8 @@
       border-right:1px solid #27272a;
       scrollbar-width:thin;
     }
-    #centerColumn{ padding-left:32px; padding-right:32px; min-width:0; }
-    #rightSidebar{ padding-right:32px; }
+    #centerColumn{ padding-left:32px; padding-right:0; min-width:0; position:relative; }
+    #rightSidebar{ padding-left:32px; padding-right:32px; }
   }
   @media (max-width:1023px){
     #leftSidebar{ position:relative; }
@@ -665,7 +665,11 @@
   .footer-about .about-hover-label:hover .about-hover-text,.footer-about .about-hover-label:focus-visible .about-hover-text{opacity:1;visibility:visible;transform:translateY(0);}
   .footer-meta{margin-left:auto;text-align:right;align-self:flex-end;}
   @media (min-width:1024px){#leftSidebar{border-right:1px solid #27272a;padding-right:32px!important;}#leftToggleBtn{right:32px!important;}}
-  .experience-expand-label{margin-left:8px;color:#68686d;font-size:10px;text-transform:uppercase;letter-spacing:.06em;}
+  .experience-expand-label{margin-left:4px;color:#68686d;font-size:10px;text-transform:uppercase;letter-spacing:.06em;}
+  .experience-company-line{display:inline-flex;align-items:center;gap:6px;}
+  .experience-date-cell{width:1%;min-width:150px;text-align:right;white-space:nowrap;padding-left:16px;}
+  .footer-meta{white-space:nowrap;}
+  .footer-meta p{margin:0;}
   #experienceList .experience-row-toggle{width:100%;}
   .pd-nav{padding:14px 0;gap:18px;}
   .pd-nav .pdnav-left{gap:20px;}
@@ -793,6 +797,25 @@
           <a href="Suber_Abdi_CV.pdf" download="" class="btn-solid btn-block focus-ring flex items-center justify-center gap-2">
             <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="download" aria-hidden="true" class="lucide lucide-download w-4 h-4"><path d="M12 15V3"></path><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><path d="m7 10 5 5 5-5"></path></svg> Resume
           </a>
+        </div>
+
+        <div class="mt-8 pt-6 border-t border-line">
+          <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Education</p>
+          <div class="flex items-start gap-3">
+            <img src="Logos/university_of_westminster_logo.jpg" alt="University of Westminster logo" onerror="handleLogoError(this)" class="company-logo">
+            <div class="min-w-0">
+              <h4 class="font-display font-semibold text-white text-sm">University of Westminster, London</h4>
+              <p class="text-sm text-dim mt-0.5"><a href="https://www.westminster.ac.uk/computer-science-and-engineering-courses/2026-27/september/full-time/software-engineering-with-electronics-beng-honours" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-2">BEng Software Engineering with Electronics ↗</a></p>
+              <p class="font-mono text-xs text-faint mt-1 uppercase">Sep 2024 - Jun 2027</p>
+            </div>
+          </div>
+          <button class="module-btn focus-ring mt-3" onclick="openModal('modules')">
+            <h4 class="module-title font-display font-semibold text-dim text-sm">View Key Modules ↗</h4>
+          </button>
+          <p class="text-sm text-dim mt-3 leading-snug">
+            <span class="text-faint block font-mono text-[10px] uppercase tracking-widest mb-1">Dissertation</span>
+            <span class="text-white font-medium cursor-pointer hover:underline transition-colors" onclick="openProject('harvester'); return false;" title="The concept and implementation of efficient wireless energy harvesters for IoT and sub-6GHz 5G applications. The analysis, design, and simulation, as well as the possible implementation and testing of a wireless energy harvester including one antenna filter at 3.6 GHz.">Analysis and Design of Wireless Energy Harvesters for IoT Applications</span>
+          </p>
         </div>
 
         <div class="mt-8 pt-6 border-t border-line">
@@ -953,35 +976,7 @@
 
     <!-- ================= RIGHT: LINKEDIN MODULES ================= -->
     <aside id="rightSidebar" class="lg:col-span-3 flex flex-col gap-8 transition-all duration-300 ease-in-out">
-      <div class="pt-0">
-        <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Education</p>
-        <div class="flex items-start gap-3">
-          <img src="Logos/university_of_westminster_logo.jpg" alt="University of Westminster logo" onerror="handleLogoError(this)" class="company-logo">
-          <div class="min-w-0">
-            <h4 class="font-display font-semibold text-white text-sm">University of Westminster, London</h4>
-            <!-- Course name links out to the official Westminster course page -->
-            <p class="text-sm text-dim mt-0.5">
-              <a href="https://www.westminster.ac.uk/computer-science-and-engineering-courses/2026-27/september/full-time/software-engineering-with-electronics-beng-honours" target="_blank" rel="noopener" class="hover:text-white transition-colors underline decoration-faint underline-offset-2">BEng Software Engineering with Electronics ↗</a>
-            </p>
-            <p class="font-mono text-xs text-faint mt-1 uppercase">Sep 2024 - Jun 2027</p>
-          </div>
-        </div>
-
-        <!-- "View Key Modules" and the Dissertation entry now sit in the same
-             flowing block as the university info above (no divider/heading
-             break between them) so the whole card reads as one cohesive
-             Education entry rather than separate stacked pieces. -->
-        <button class="module-btn focus-ring mt-3" onclick="openModal('modules')">
-          <h4 class="module-title font-display font-semibold text-dim text-sm">View Key Modules ↗</h4>
-        </button>
-
-        <p class="text-sm text-dim mt-3 leading-snug">
-          <span class="text-faint block font-mono text-[10px] uppercase tracking-widest mb-1">Dissertation</span>
-          <span class="text-white font-medium cursor-pointer hover:underline transition-colors" onclick="openProject('harvester'); return false;" title="The concept and implementation of efficient wireless energy harvesters for IoT and sub-6GHz 5G applications. The analysis, design, and simulation, as well as the possible implementation and testing of a wireless energy harvester including one antenna filter at 3.6 GHz.">Analysis and Design of Wireless Energy Harvesters for IoT Applications</span>
-        </p>
-      </div>
-
-      <div class="pt-6 border-t border-line">
+      <div class="pt-6">
         <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Top Skills</p>
         <!-- Quick view: broadest/most-endorsed skills. Full list (9 items)
              lives in the "skills" entry of SINGLE_MODALS below - keep the
@@ -1040,9 +1035,9 @@
         <span id="aboutMeHover" role="tooltip" class="about-hover-text">Software Engineering with Electronics student at the University of Westminster with hands-on experience across RF/microwave design, PCB design, embedded systems and hardware/software integration. Recently completed a placement at Leonardo, contributing to microwave PCB and RF component design for electronic warfare self-protection systems. Currently working on a final-year dissertation analysing and designing a wireless energy harvester for IoT applications, and actively building a robotic arm through the SCC programme. Open to placements in embedded systems, RF/microwave design, robotics and firmware development.</span>
       </div>
     </div>
-    <div class="footer-meta flex flex-col justify-end gap-1 shrink-0">
-      <p class="text-xs text-faint uppercase tracking-wide">Suber Abdi - London, UK</p>
-      <p class="text-xs text-faint uppercase tracking-wide">© 2026</p>
+    <div class="footer-meta flex flex-row items-center gap-4 shrink-0">
+      <span class="text-xs text-faint uppercase tracking-wide">Suber Abdi - London, UK</span>
+      <span class="text-xs text-faint uppercase tracking-wide">© 2026</span>
     </div>
   </footer>
 </div>
@@ -1748,15 +1743,15 @@
                   <span style="display:table-cell; vertical-align:top;">
                     <h4 class="font-display font-semibold text-white text-base sm:text-lg transition-colors">${e.role}</h4>
                   </span>
-                  <span style="display:table-cell; vertical-align:top; white-space:nowrap; text-align:right; padding-left:12px;">
-                    <span class="font-mono text-xs text-faint uppercase">${displayDates}</span><span class="experience-expand-label">Expand</span>
+                  <span class="experience-date-cell" style="display:table-cell; vertical-align:top;">
+                    <span class="font-mono text-xs text-faint uppercase">${displayDates}</span>
                   </span>
                 </span>
                 <span style="display:table-row;">
                   <span style="display:table-cell; vertical-align:top;">
-                    <p class="font-mono text-xs text-dim uppercase tracking-wide mt-0.5 flex items-center gap-1.5">${e.company} · ${e.location}<i data-lucide="chevron-down" class="w-3.5 h-3.5 text-faint transition-transform shrink-0" id="exp-chevron-${e.id}"></i></p>
+                    <p class="font-mono text-xs text-dim uppercase tracking-wide mt-0.5 experience-company-line">${e.company} · ${e.location}<i data-lucide="chevron-down" class="w-3.5 h-3.5 text-faint transition-transform shrink-0" id="exp-chevron-${e.id}"></i><span class="experience-expand-label">Expand</span></p>
                   </span>
-                  <span style="display:table-cell; vertical-align:top; white-space:nowrap; text-align:right; padding-left:12px;">
+                  <span class="experience-date-cell" style="display:table-cell; vertical-align:top;">
                     <span class="font-mono text-xs text-faint mt-0.5">${dur}</span>
                   </span>
                 </span>
@@ -1783,7 +1778,7 @@
                   <h4 class="font-display font-semibold text-white text-base sm:text-lg transition-colors">${e.role}</h4>
                 </span>
                 <span style="display:table-cell; vertical-align:bottom; white-space:nowrap; text-align:right; padding-left:12px;">
-                  <span class="font-mono text-xs text-faint uppercase">${displayDates}</span><span class="experience-expand-label">Expand</span>
+                  <span class="font-mono text-xs text-faint uppercase">${displayDates}</span>
                 </span>
               </span>
               <span style="display:table-row;">
