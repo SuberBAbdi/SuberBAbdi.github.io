@@ -720,9 +720,11 @@
   .experience-section-head{position:relative;}
   .experience-section{display:flex;flex-direction:column;min-height:calc(100vh - 300px);}
   .experience-main-list{flex:0 0 auto;}
-  .experience-roulette{display:grid;grid-template-columns:56px minmax(0,1fr) 56px;align-items:center;gap:10px;margin-top:auto;margin-bottom:auto;padding:20px 0;transition:all .24s ease;}
-  .experience-roulette-arrow{display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#8f8f95;font:700 22px/1 Arial,sans-serif;letter-spacing:.02em;min-height:72px;padding:0;transition:transform .18s ease,color .18s ease;cursor:pointer;}
-  .experience-roulette-arrow:hover{color:#fff;transform:scale(1.12);}
+  .experience-roulette{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:6px;margin-top:auto;margin-bottom:auto;padding:20px 0;transition:all .24s ease;}
+  .experience-roulette-arrow{display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#b8b8bd;min-height:72px;padding:0;transition:transform .18s ease,color .18s ease,opacity .18s ease;cursor:pointer;}
+  .experience-roulette-arrow svg{width:34px;height:34px;stroke-width:1.7;}
+  .experience-roulette-arrow[hidden]{display:none!important;}
+  .experience-roulette-arrow:hover{color:#fff;transform:scale(1.16);}
   .experience-placards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;min-width:0;overflow:hidden;}
   .experience-placard{min-width:0;text-align:left;padding:7px 9px;border:1px solid #2b2b2f;background:#111113;color:#fff;min-height:52px;transition:transform .22s ease,opacity .22s ease,border-color .22s ease,background .22s ease;cursor:pointer;}
   .experience-placard:hover{border-color:#5a5a60;background:#171719;}
@@ -734,8 +736,9 @@
   .experience-placard-meta{display:block;margin-top:4px;color:#8f8f95;font:9px/1.2 Arial,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .experience-main-list{overflow:hidden;}
   @media (max-width:767px){
-    .experience-roulette{grid-template-columns:38px minmax(0,1fr) 38px;gap:4px;}
-    .experience-roulette-arrow{font-size:18px;min-height:58px;}
+    .experience-roulette{grid-template-columns:34px minmax(0,1fr) 34px;gap:2px;}
+    .experience-roulette-arrow{min-height:58px;}
+    .experience-roulette-arrow svg{width:28px;height:28px;}
     .experience-placards{grid-template-columns:repeat(3,minmax(0,1fr));}
     .experience-placard{padding:6px 7px;}
   }
@@ -1018,9 +1021,9 @@
             <!-- Populated via JS: renderExperience() -->
           </div>
           <div id="experienceRoulette" class="experience-roulette" aria-label="Experience selector">
-            <button type="button" class="experience-roulette-arrow" onclick="moveExperienceRoulette(-1)" aria-label="Previous experience">&lt;&lt; &lt;</button>
+            <button type="button" id="experienceRoulettePrev" class="experience-roulette-arrow" onclick="moveExperienceRoulette(-1)" aria-label="Previous experience" hidden><i data-lucide="arrow-left"></i></button>
             <div id="experiencePlacards" class="experience-placards"></div>
-            <button type="button" class="experience-roulette-arrow" onclick="moveExperienceRoulette(1)" aria-label="Next experience">&gt; &gt;&gt;</button>
+            <button type="button" id="experienceRouletteNext" class="experience-roulette-arrow" onclick="moveExperienceRoulette(1)" aria-label="Next experience" hidden><i data-lucide="arrow-right"></i></button>
           </div>
         </div>
 
@@ -1880,6 +1883,7 @@
   function liveOngoingDuration(startStr) { return durationLabel(startStr, 'Present'); }
 
   let activeExperienceIndex = 0;
+  let rouletteStartIndex = 0;
 
   function experienceShortTitle(role) {
     const cleaned = String(role || '').replace(/\(Internship\)/i, '').trim();
@@ -1887,39 +1891,73 @@
     return words.slice(0, 3).join(' ');
   }
 
+  /*
+   * FUTURE-PROOF EXPERIENCE ROULETTE
+   * ---------------------------------
+   * The currently selected experience is intentionally EXCLUDED from the
+   * roulette. This means the cards always represent roles the visitor can
+   * switch TO, rather than repeating the role already shown above.
+   *
+   * Only three cards are rendered at once. If there are more than three
+   * OTHER roles available, the arrow controls become visible automatically.
+   * When adding real experience entries to `experiences`, no roulette code
+   * needs to be changed: the list and arrow visibility are calculated from
+   * the number of entries automatically.
+   */
+  function getRouletteExperiences() {
+    return experiences
+      .map((entry, index) => ({ entry, index }))
+      .filter(item => item.index !== activeExperienceIndex);
+  }
+
   function renderExperiencePlacards() {
     const wrap = document.getElementById('experiencePlacards');
+    const prev = document.getElementById('experienceRoulettePrev');
+    const next = document.getElementById('experienceRouletteNext');
     if (!wrap) return;
-    if (!experiences.length) { wrap.innerHTML = ''; return; }
-    const start = Math.min(Math.max(activeExperienceIndex - 1, 0), Math.max(0, experiences.length - 3));
-    const visible = experiences.slice(start, start + 3);
-    wrap.innerHTML = visible.map((e, localIndex) => {
-      const i = start + localIndex;
-      return `
-      <button type="button" class="experience-placard ${i === activeExperienceIndex ? 'is-active' : ''}" onclick="selectExperience(${i})" aria-current="${i === activeExperienceIndex ? 'true' : 'false'}">
+
+    const available = getRouletteExperiences();
+    const hasOverflow = available.length > 3;
+
+    // Clamp the carousel window whenever the selected role changes or roles
+    // are added/removed. Three is the intentional maximum visible count.
+    const maxStart = Math.max(0, available.length - 3);
+    rouletteStartIndex = Math.min(Math.max(rouletteStartIndex, 0), maxStart);
+    const visible = available.slice(rouletteStartIndex, rouletteStartIndex + 3);
+
+    wrap.innerHTML = visible.map(({ entry: e, index: i }) => `
+      <button type="button" class="experience-placard" onclick="selectExperience(${i})" aria-label="View ${e.role}">
         <span class="experience-placard-top">
           <img class="experience-placard-logo" src="${e.logo}" alt="${e.company} logo" onerror="handleLogoError(this)">
           <span class="experience-placard-title">${experienceShortTitle(e.role)}</span>
         </span>
-        <span class="experience-placard-company">${e.company} · ${e.roleType || 'Internship'}</span>
+        <span class="experience-placard-company">${e.company} · ${e.roleType || 'Role'}</span>
         <span class="experience-placard-meta">${displayDateRange((e.dates||'').split(' - ')[0], (e.dates||'').split(' - ')[1], e.current, e)}</span>
       </button>
-    `;
-    }).join('');
+    `).join('');
+
+    // IMPORTANT: arrows only appear when there are MORE THAN THREE roles
+    // available besides the role currently displayed in the experience list.
+    if (prev) prev.hidden = !hasOverflow || rouletteStartIndex <= 0;
+    if (next) next.hidden = !hasOverflow || rouletteStartIndex >= maxStart;
   }
 
   function selectExperience(index) {
     if (!experiences.length) return;
     activeExperienceIndex = Math.max(0, Math.min(index, experiences.length - 1));
+    // Reset the roulette window after switching roles so the visitor gets a
+    // predictable set of alternatives immediately below the newly opened role.
+    rouletteStartIndex = 0;
     renderExperience();
   }
 
   function moveExperienceRoulette(direction) {
-    if (!experiences.length) return;
-    const maxStart = Math.max(0, experiences.length - 3);
-    const currentStart = Math.min(Math.max(activeExperienceIndex, 0), maxStart);
-    const nextStart = Math.max(0, Math.min(currentStart + direction, maxStart));
-    selectExperience(nextStart);
+    const available = getRouletteExperiences();
+    if (available.length <= 3) return;
+    const maxStart = Math.max(0, available.length - 3);
+    rouletteStartIndex = Math.max(0, Math.min(rouletteStartIndex + direction, maxStart));
+    renderExperiencePlacards();
+    lucide.createIcons();
   }
 
   function renderExperience() {
@@ -1950,7 +1988,7 @@
       const dur = durationLabel(startStr, isCurrent ? 'Present' : endStr);
       const displayDates = displayDateRange(startStr, endStr, isCurrent, e);
 
-      if (isCurrent) {
+      if (true) { // The selected role always opens expanded; selecting from the roulette must never leave it contracted.
         const detailId = `exp-detail-${e.id}`;
         return `
           <div>
