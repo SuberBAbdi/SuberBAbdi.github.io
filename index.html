@@ -718,10 +718,12 @@
 
   /* ===== Experience roulette ===== */
   .experience-section-head{position:relative;}
-  .experience-roulette{display:grid;grid-template-columns:30px minmax(0,1fr) 30px;align-items:stretch;gap:6px;margin:14px 0 0;padding:0;transition:all .24s ease;}
-  .experience-roulette-arrow{display:flex;align-items:center;justify-content:center;border:1px solid #2b2b2f;background:#111113;color:#8f8f95;font:10px/1 Arial,sans-serif;letter-spacing:.04em;min-height:58px;transition:background .18s ease,color .18s ease,border-color .18s ease;cursor:pointer;}
-  .experience-roulette-arrow:hover{color:#fff;border-color:#5a5a60;background:#171719;}
-  .experience-placards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;min-width:0;overflow:hidden;}
+  .experience-section{display:flex;flex-direction:column;min-height:calc(100vh - 300px);}
+  .experience-main-list{flex:0 0 auto;}
+  .experience-roulette{display:grid;grid-template-columns:56px minmax(0,1fr) 56px;align-items:center;gap:10px;margin-top:auto;margin-bottom:auto;padding:20px 0;transition:all .24s ease;}
+  .experience-roulette-arrow{display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#8f8f95;font:700 22px/1 Arial,sans-serif;letter-spacing:.02em;min-height:72px;padding:0;transition:transform .18s ease,color .18s ease;cursor:pointer;}
+  .experience-roulette-arrow:hover{color:#fff;transform:scale(1.12);}
+  .experience-placards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;min-width:0;overflow:hidden;}
   .experience-placard{min-width:0;text-align:left;padding:7px 9px;border:1px solid #2b2b2f;background:#111113;color:#fff;min-height:52px;transition:transform .22s ease,opacity .22s ease,border-color .22s ease,background .22s ease;cursor:pointer;}
   .experience-placard:hover{border-color:#5a5a60;background:#171719;}
   .experience-placard.is-active{border-color:rgba(245,245,245,.72);background:#18181a;box-shadow:inset 0 -2px 0 #f5f5f5;}
@@ -732,8 +734,8 @@
   .experience-placard-meta{display:block;margin-top:4px;color:#8f8f95;font:9px/1.2 Arial,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
   .experience-main-list{overflow:hidden;}
   @media (max-width:767px){
-    .experience-roulette{grid-template-columns:30px minmax(0,1fr) 30px;gap:5px;}
-    .experience-roulette-arrow{font-size:8px;}
+    .experience-roulette{grid-template-columns:38px minmax(0,1fr) 38px;gap:4px;}
+    .experience-roulette-arrow{font-size:18px;min-height:58px;}
     .experience-placards{grid-template-columns:repeat(3,minmax(0,1fr));}
     .experience-placard{padding:6px 7px;}
   }
@@ -757,6 +759,8 @@
     #leftProfileContent .mt-3{margin-top:8px!important;}
     #leftProfileContent .mt-2{margin-top:6px!important;}
     #experienceList{gap:16px!important;}
+    #experienceSection{min-height:calc(100vh - 250px)!important;}
+    #experienceSection .experience-roulette{padding-top:26px!important;padding-bottom:26px!important;}
     footer.footer-electronics-wrap{padding-top:3px!important;padding-bottom:3px!important;margin-top:auto!important;}
   }
 </style>
@@ -1740,12 +1744,54 @@
         { label: 'Fabrication', text: 'Considered design-for-fabrication requirements alongside board layout decisions.' },
         { label: 'Power Integrity', text: 'Considered power integrity and grounding as part of the PCB design process.' }
       ]
+    },
+    {
+      id: 'test-embedded', role: 'Embedded Systems Engineer', roleType: 'Test Role', company: 'Leonardo', logo: 'Logos/leonardo_logo.jpg', location: 'Luton, England, UK · Hybrid', dates: 'Sep 2025 - May 2026', startDate: '2025-09-01', endDate: '2026-05-31', current: false, summary: 'Mock role added for roulette interaction and layout testing.', bullets: [
+        {label:'Firmware',text:'Developed and tested embedded firmware for hardware interfaces.'},{label:'Integration',text:'Integrated sensors, peripherals and control logic.'},{label:'Verification',text:'Created repeatable tests for embedded behaviour.'}
+      ]
+    },
+    {
+      id: 'test-fpga', role: 'FPGA Design Engineer', roleType: 'Test Role', company: 'Leonardo', logo: 'Logos/leonardo_logo.jpg', location: 'Luton, England, UK · Hybrid', dates: 'Jan 2025 - Aug 2025', startDate: '2025-01-01', endDate: '2025-08-31', current: false, summary: 'Mock role added for roulette interaction and layout testing.', bullets: [
+        {label:'RTL',text:'Designed small RTL modules and interface logic.'},{label:'Simulation',text:'Ran simulation checks against expected behaviour.'},{label:'Debug',text:'Investigated timing and functional issues.'}
+      ]
+    },
+    {
+      id: 'test-rf', role: 'RF Test Engineer', roleType: 'Test Role', company: 'Leonardo', logo: 'Logos/leonardo_logo.jpg', location: 'Luton, England, UK · Hybrid', dates: 'Jun 2024 - Dec 2024', startDate: '2024-06-01', endDate: '2024-12-31', current: false, summary: 'Mock role added for roulette interaction and layout testing.', bullets: [
+        {label:'Measurements',text:'Supported RF measurement and test activities.'},{label:'Equipment',text:'Prepared test equipment and repeatable setups.'},{label:'Reporting',text:'Recorded results and summarised verification findings.'}
+      ]
+    },
+    {
+      id: 'test-electronics', role: 'Electronics Design Engineer', roleType: 'Test Role', company: 'Leonardo', logo: 'Logos/leonardo_logo.jpg', location: 'Luton, England, UK · Hybrid', dates: 'Sep 2023 - May 2024', startDate: '2023-09-01', endDate: '2024-05-31', current: false, summary: 'Mock role added for roulette interaction and layout testing.', bullets: [
+        {label:'Schematics',text:'Produced and reviewed electronic schematics.'},{label:'PCB',text:'Supported board layout and component selection.'},{label:'Documentation',text:'Maintained concise design documentation.'}
+      ]
+    },
+    {
+      id: 'test-firmware', role: 'Firmware Engineer', roleType: 'Test Role', company: 'Leonardo', logo: 'Logos/leonardo_logo.jpg', location: 'Luton, England, UK · Hybrid', dates: 'Jan 2023 - Aug 2023', startDate: '2023-01-01', endDate: '2023-08-31', current: false, summary: 'Mock role added for roulette interaction and layout testing.', bullets: [
+        {label:'C / C++',text:'Implemented small firmware features in C and C++.'},{label:'Drivers',text:'Worked with low-level peripheral drivers.'},{label:'Testing',text:'Debugged firmware using structured test cases.'}
+      ]
+    },
+    {
+      id: 'test-robotics', role: 'Robotics Engineer', roleType: 'Test Role', company: 'Leonardo', logo: 'Logos/leonardo_logo.jpg', location: 'Luton, England, UK · Hybrid', dates: 'Jun 2022 - Dec 2022', startDate: '2022-06-01', endDate: '2022-12-31', current: false, summary: 'Mock role added for roulette interaction and layout testing.', bullets: [
+        {label:'Control',text:'Implemented basic motion and control logic.'},{label:'Sensors',text:'Integrated sensor inputs into control loops.'},{label:'Prototype',text:'Supported rapid hardware and software prototyping.'}
+      ]
     }
     // To add a past role: copy the object above, give it a unique id, and
     // either set current:false or omit `current` entirely - it will
     // automatically render collapsed with a "show details" toggle, so
     // Leonardo stays the only role expanded by default.
   ];
+
+  // Randomise the additional test roles on each load while keeping the real
+  // Leonardo role first so the portfolio still opens on the genuine experience.
+  {
+    const primary = experiences[0];
+    const testRoles = experiences.slice(1);
+    for (let i = testRoles.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [testRoles[i], testRoles[j]] = [testRoles[j], testRoles[i]];
+    }
+    experiences.splice(0, experiences.length, primary, ...testRoles);
+  }
 
   // Computes a compact "1 yr 4 mos" style duration between two "Mon YYYY"
   // date tokens (or "Present" for an ongoing role) - used next to dates on
