@@ -570,6 +570,62 @@
     }
   }
 
+  /* ===== Sticky project-detail header (see initProjectDetailStickyNav) =====
+     #projectDetailNav is a 3-column grid (left/centre/right) so the "Top"
+     button in the centre column stays perfectly centred no matter how wide
+     the left (back buttons) or right (GitHub card/link) content is.
+     `position: sticky` (not fixed) is deliberate: it keeps the header
+     within its normal column width/position automatically, so both the
+     left-aligned back buttons and the right-aligned GitHub content line up
+     exactly with where they sit in the un-scrolled state - no manual width-
+     matching against the page's responsive sidebar layout required. */
+  .pd-nav{
+    position:sticky; top:0; z-index:40;
+    display:grid;
+    grid-template-columns: 1fr auto 1fr;
+    align-items:center;
+    gap:12px;
+    padding:10px 0;
+    background:transparent;
+    border-bottom:1px solid transparent;
+    transition:background-color .25s ease, border-color .25s ease, backdrop-filter .25s ease, padding .25s ease;
+  }
+  .pd-nav .pdnav-left{ display:flex; align-items:center; gap:16px; flex-wrap:wrap; justify-self:start; min-width:0; }
+  .pd-nav .pdnav-center{ justify-self:center; }
+  .pd-nav .pdnav-right{ position:relative; justify-self:end; min-width:0; }
+
+  .pd-nav .pdnav-top-btn{
+    opacity:0; pointer-events:none; transform:translateY(-4px);
+    transition:opacity .2s ease, transform .2s ease;
+    font-family:'JetBrains Mono', monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+    color:#a3a3a8; background:transparent; border:1px solid #27272a; border-radius:4px; padding:6px 14px;
+    cursor:pointer; white-space:nowrap;
+  }
+  .pd-nav .pdnav-top-btn:hover{ color:#f1f1ef; border-color:#6b6b70; }
+
+  .pd-nav .pdnav-gh-full{ transition:opacity .2s ease; }
+  .pd-nav .pdnav-gh-simple{
+    font-family:'JetBrains Mono', monospace; font-size:11px; text-transform:uppercase; letter-spacing:.06em;
+    color:#a3a3a8; white-space:nowrap; opacity:0; pointer-events:none;
+    position:absolute; right:0; top:50%; transform:translateY(-50%);
+    transition:opacity .2s ease;
+  }
+  .pd-nav .pdnav-gh-simple:not(.hidden){ pointer-events:auto; }
+  .pd-nav .pdnav-gh-simple:hover{ color:#f1f1ef; }
+
+  /* Scrolled/stuck state: the sentinel above #projectDetailNav has left the
+     viewport, so the header is now pinned - fade the big card into the
+     simple link, bring in the "Top" button, and reveal the blurred bar. */
+  .pd-nav.pd-nav-scrolled{
+    background:rgba(12,12,13,.72);
+    backdrop-filter:blur(10px);
+    -webkit-backdrop-filter:blur(10px);
+    border-bottom-color:#1a1a1c;
+  }
+  .pd-nav.pd-nav-scrolled .pdnav-top-btn{ opacity:1; pointer-events:auto; transform:translateY(0); }
+  .pd-nav.pd-nav-scrolled .pdnav-gh-full{ opacity:0; pointer-events:none; }
+  .pd-nav.pd-nav-scrolled .pdnav-gh-simple:not(.hidden){ opacity:1; }
+
   /* ===== Restored project-area / lower electronics ===== */
   .bg-electronics > svg.project-area-symbol{ opacity:.42 !important; pointer-events:none; }
   .bg-electronics > svg.project-area-symbol:nth-of-type(1){top:2% !important;left:42% !important;}
@@ -829,21 +885,6 @@
   <svg class="project-area-symbol absolute top-[8%] left-[36%]" width="32" height="32" viewBox="0 0 30 30" fill="none" stroke="#a3a3a8" stroke-width="1.5"><circle cx="6" cy="6" r="3"></circle><circle cx="24" cy="24" r="3"></circle><path d="M6 9v6l12 12"></path></svg>
   <svg class="project-area-symbol absolute top-[9%] left-[53%]" width="30" height="24" viewBox="0 0 28 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M2 6h6M2 18h6M8 3h6a9 9 0 0 1 9 9 9 9 0 0 1-9 9H8V3zM23 12h3"></path></svg>
   <svg class="project-area-symbol absolute top-[4%] left-[64%]" width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="7" y="5" width="10" height="14" rx="2"></rect><path d="M12 2v3M12 19v3"></path></svg>
-
-  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><circle cx="12" cy="12" r="3"></circle><path d="M12 2v7M12 15v7M2 12h7M15 12h7"></path></svg>
-  <svg width="34" height="18" viewBox="0 0 34 18" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M1 9h6l2-6 4 12 4-12 4 12 2-6h9"></path></svg>
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="5" y="5" width="14" height="14" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M12 1v4M12 19v4M1 12h4M19 12h4"></path></svg>
-  <svg width="36" height="22" viewBox="0 0 36 22" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M1 11h8l3-7 4 14 4-14 3 7h12"></path><path d="M10 2v18"></path></svg>
-  <svg width="26" height="32" viewBox="0 0 24 30" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M12 1v7M12 22v7M1 15h7M16 15h7"></path><circle cx="12" cy="15" r="5"></circle></svg>
-  <svg width="32" height="24" viewBox="0 0 32 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M2 12h7l3-6 4 12 3-6h11"></path><circle cx="2" cy="12" r="1.5"></circle></svg>
-  <svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M7 2v20M17 2v20M2 7h20M2 17h20"></path><circle cx="12" cy="12" r="2.5"></circle></svg>
-  <svg width="34" height="16" viewBox="0 0 34 16" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M1 8h5l2-4 4 8 4-8 4 8 2-4h11"></path></svg>
-  <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="8" y="8" width="8" height="8"></rect><path d="M8 10H3M8 14H3M16 10h5M16 14h5M10 8V3M14 8V3M10 16v5M14 16v5"></path></svg>
-  <svg width="32" height="20" viewBox="0 0 32 20" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M1 10h6l3-5 4 10 4-10 3 5h10"></path><circle cx="7" cy="10" r="2"></circle></svg>
-  <svg width="30" height="26" viewBox="0 0 30 26" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M2 13h8M20 13h8M15 2v8M15 16v8"></path><circle cx="15" cy="13" r="5"></circle></svg>
-  <svg width="36" height="18" viewBox="0 0 36 18" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M1 9h7M28 9h7M8 9c3-10 17-10 20 0-3 10-17 10-20 0z"></path></svg>
-  <svg width="28" height="30" viewBox="0 0 24 26" fill="none" stroke="#a3a3a8" stroke-width="1.5"><rect x="7" y="7" width="10" height="12" rx="1"></rect><path d="M7 10H2M7 16H2M17 10h5M17 16h5M10 7V2M14 7V2M10 19v5M14 19v5"></path></svg>
-  <svg width="34" height="24" viewBox="0 0 34 24" fill="none" stroke="#a3a3a8" stroke-width="1.5"><path d="M2 12h6l3-8 5 16 4-8h12"></path><path d="M8 4v16"></path></svg>
 </div>
 
 <div class="side-signal side-signal-left hidden lg:block" aria-hidden="true">
@@ -1052,8 +1093,14 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
       </div>
 
       <div id="projectDetailView" class="project-detail-shell">
-        <div class="flex items-start gap-4 flex-wrap mb-6">
-          <div class="flex items-center gap-4 flex-wrap">
+        <!-- Sentinel used purely to detect, via IntersectionObserver, the
+             moment #projectDetailNav would scroll past the top of the
+             viewport - see initProjectDetailStickyNav(). It has no visible
+             footprint of its own. -->
+        <div id="projectDetailNavSentinel" style="height:1px;"></div>
+
+        <div id="projectDetailNav" class="pd-nav mb-6">
+          <div class="pdnav-left">
             <button onclick="closeProject()" class="focus-ring inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white transition-colors">
               <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Portfolio
             </button>
@@ -1065,7 +1112,21 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
               <i data-lucide="list" class="w-3.5 h-3.5"></i> Back to Project List
             </button>
           </div>
-          <div id="projectGithubCardSlot" class="project-detail-gh-slot" aria-live="polite"></div>
+
+          <!-- Only appears once the header has stuck to the top of the
+               viewport (see .pd-nav-scrolled) - centred via the 3-column
+               grid on #projectDetailNav regardless of how wide the left/
+               right content is. -->
+          <div class="pdnav-center">
+            <button class="pdnav-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Scroll to top">↑ Top</button>
+          </div>
+
+          <div class="pdnav-right">
+            <div id="projectGithubCardSlot" class="pdnav-gh-full project-detail-gh-slot" aria-live="polite"></div>
+            <!-- The full card's "morphed" replacement once scrolled - same
+                 right-hand boundary as the card above it, see .pdnav-gh-simple. -->
+            <a id="projectDetailGhSimpleLink" class="pdnav-gh-simple hidden" href="#" target="_blank" rel="noopener noreferrer">GitHub Repo ↗</a>
+          </div>
         </div>
         <div id="projectDetailContent"></div>
       </div>
@@ -3415,6 +3476,27 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     if (entry) render(entry);
   }
 
+  // Tracks whether #projectDetailNav is currently "stuck" to the top of the
+  // viewport, via an IntersectionObserver watching a 1px sentinel placed
+  // immediately above it - once the sentinel scrolls out of view, the nav
+  // has reached the top and gets the .pd-nav-scrolled class (see the CSS
+  // for what that morphs: the "Top" button fades in, the full GitHub card
+  // fades into the plain link, and a blurred background/border appear).
+  // Re-run every time a project is opened, since a fresh IntersectionObserver
+  // is cheap and this avoids any staleness from the previous project's DOM.
+  let projectDetailNavObserver = null;
+  function initProjectDetailStickyNav() {
+    const nav = document.getElementById('projectDetailNav');
+    const sentinel = document.getElementById('projectDetailNavSentinel');
+    if (!nav || !sentinel) return;
+
+    if (projectDetailNavObserver) projectDetailNavObserver.disconnect();
+    projectDetailNavObserver = new IntersectionObserver(([entry]) => {
+      nav.classList.toggle('pd-nav-scrolled', !entry.isIntersecting);
+    }, { threshold: 0 });
+    projectDetailNavObserver.observe(sentinel);
+  }
+
   function openProject(id) {
     const p = projects.find(x => x.id === id);
     if (!p) return;
@@ -3734,6 +3816,19 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
         </div>` : '';
     }
 
+    // The header's "scrolled" state morphs the full card above into this
+    // plain link instead - same repo, just far less vertical space. Hidden
+    // entirely for projects with no githubCard.
+    const ghSimpleLink = document.getElementById('projectDetailGhSimpleLink');
+    if (ghSimpleLink) {
+      if (p.githubCard) {
+        ghSimpleLink.href = `https://github.com/${p.githubCard}`;
+        ghSimpleLink.classList.remove('hidden');
+      } else {
+        ghSimpleLink.classList.add('hidden');
+      }
+    }
+
     const rightSidebarEl = document.getElementById('rightSidebar');
     rightSidebarEl.classList.add('opacity-0', 'pointer-events-none', 'translate-x-3');
     setTimeout(() => { rightSidebarEl.classList.add('hidden'); }, 300);
@@ -3748,6 +3843,7 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     feedView.style.display = 'none';
     detailView.classList.add('open');
     lucide.createIcons();
+    initProjectDetailStickyNav();
 
     if (p.githubCard) {
       initGithubTerminalCard('ghCard-' + p.id, p.githubCard);
@@ -3793,6 +3889,15 @@ TIMER1 : <span class="v">0x4C51</span> <span class="flag">(PULSING...)</span></d
     viewer3DInstances = {};
     view2DResets = {};
     view2DLayerInstances = {};
+
+    // Stop watching the sticky-nav sentinel now that the project page (and
+    // its nav bar) is being torn down.
+    if (projectDetailNavObserver) {
+      projectDetailNavObserver.disconnect();
+      projectDetailNavObserver = null;
+    }
+    const navEl = document.getElementById('projectDetailNav');
+    if (navEl) navEl.classList.remove('pd-nav-scrolled');
 
     // Play a quick fade+slide-out (see .closing / @keyframes fadeOut) before
     // actually swapping back to the feed view, instead of vanishing instantly.
