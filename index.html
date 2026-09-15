@@ -743,6 +743,19 @@
     .experience-placard{padding:6px 7px;}
   }
 
+  /* ===== Experience roulette: always visible ===== */
+  .experience-roulette{visibility:visible!important;opacity:1!important;}
+
+  /* ===== 2048x1030 fit: footer is anchored at the bottom without waste ===== */
+  @media (min-width:1024px) and (max-height:1100px){
+    .portfolio-shell{height:100vh!important;min-height:0!important;box-sizing:border-box;padding-top:14px!important;padding-bottom:4px!important;}
+    .portfolio-grid{min-height:0!important;flex:1 1 auto!important;padding-bottom:6px!important;}
+    .portfolio-shell>footer.footer-electronics-wrap{flex:0 0 auto!important;margin-top:0!important;padding-top:2px!important;padding-bottom:2px!important;}
+    .footer-inner{min-height:14px!important;}
+    #experienceSection{min-height:0!important;height:100%!important;display:flex!important;flex-direction:column!important;}
+    #experienceSection .experience-roulette{margin-top:auto!important;margin-bottom:0!important;padding-top:8px!important;padding-bottom:4px!important;}
+  }
+
   /* ===== 2048x1030 desktop fit + compact footer ===== */
   .footer-inner{min-height:16px!important;gap:12px!important;}
   .footer-about .about-hover-label{font-size:9px!important;letter-spacing:.05em!important;}
@@ -762,9 +775,9 @@
     #leftProfileContent .mt-3{margin-top:8px!important;}
     #leftProfileContent .mt-2{margin-top:6px!important;}
     #experienceList{gap:16px!important;}
-    #experienceSection{min-height:calc(100vh - 250px)!important;}
-    #experienceSection .experience-roulette{padding-top:26px!important;padding-bottom:26px!important;}
-    footer.footer-electronics-wrap{padding-top:3px!important;padding-bottom:3px!important;margin-top:auto!important;}
+    #experienceSection{min-height:0!important;}
+    #experienceSection .experience-roulette{padding-top:8px!important;padding-bottom:4px!important;}
+    footer.footer-electronics-wrap{padding-top:2px!important;padding-bottom:2px!important;margin-top:0!important;}
   }
 </style>
 </head>
@@ -1884,6 +1897,11 @@
 
   let activeExperienceIndex = 0;
   let rouletteStartIndex = 0;
+  // Roulette history/order: newest selected alternative is always placed on the LEFT.
+  // The current role is never shown in the roulette. When a role is selected, the
+  // role that was just active is returned to the front of this queue. This keeps
+  // the left side as the most recently used role and the right side as the oldest.
+  let rouletteOrder = null;
 
   function experienceShortTitle(role) {
     const cleaned = String(role || '').replace(/\(Internship\)/i, '').trim();
@@ -1905,31 +1923,54 @@
    * the number of entries automatically.
    */
   function getRouletteExperiences() {
-    return experiences
-      .map((entry, index) => ({ entry, index }))
-      .filter(item => item.index !== activeExperienceIndex);
+    const all = experiences.map((entry, index) => ({ entry, index }));
+    const validIndexes = new Set(all.map(item => item.index));
+
+    // Build the queue once from the experience data. Newest roles are initially
+    // placed first; after the visitor starts switching, selection history controls
+    // the order so the most recently selected role is always on the LEFT.
+    if (!Array.isArray(rouletteOrder)) {
+      rouletteOrder = all
+        .filter(item => item.index !== activeExperienceIndex)
+        .sort((a, b) => {
+          const da = parseISODate(a.entry.startDate)?.getTime() || 0;
+          const db = parseISODate(b.entry.startDate)?.getTime() || 0;
+          return db - da;
+        })
+        .map(item => item.index);
+    }
+
+    // Future-proofing: if real roles are added/removed later, automatically
+    // reconcile the stored queue without needing to edit roulette code.
+    rouletteOrder = rouletteOrder.filter(index => validIndexes.has(index) && index !== activeExperienceIndex);
+    all.forEach(item => {
+      if (item.index !== activeExperienceIndex && !rouletteOrder.includes(item.index)) {
+        rouletteOrder.push(item.index);
+      }
+    });
+
+    return rouletteOrder.map(index => ({ entry: experiences[index], index }));
   }
 
   function renderExperiencePlacards() {
     const wrap = document.getElementById('experiencePlacards');
     const prev = document.getElementById('experienceRoulettePrev');
     const next = document.getElementById('experienceRouletteNext');
+    const roulette = document.getElementById('experienceRoulette');
     if (!wrap) return;
 
-    // The roulette is part of the Experience section itself and must be
-    // visible immediately on page load. There is intentionally no separate
-    // "Show Roulette" button or interaction required to reveal it.
-    const roulette = document.getElementById('experienceRoulette');
+    // The roulette is ALWAYS rendered and visible. There is deliberately no
+    // reveal button, click-to-open state, or collapsed carousel state.
     if (roulette) {
       roulette.hidden = false;
+      roulette.removeAttribute('hidden');
       roulette.style.display = 'grid';
+      roulette.style.visibility = 'visible';
+      roulette.style.opacity = '1';
     }
 
     const available = getRouletteExperiences();
     const hasOverflow = available.length > 3;
-
-    // Clamp the carousel window whenever the selected role changes or roles
-    // are added/removed. Three is the intentional maximum visible count.
     const maxStart = Math.max(0, available.length - 3);
     rouletteStartIndex = Math.min(Math.max(rouletteStartIndex, 0), maxStart);
     const visible = available.slice(rouletteStartIndex, rouletteStartIndex + 3);
@@ -1945,17 +1986,21 @@
       </button>
     `).join('');
 
-    // IMPORTANT: arrows only appear when there are MORE THAN THREE roles
-    // available besides the role currently displayed in the experience list.
+    // Navigation exists only when there are MORE THAN THREE alternative roles.
     if (prev) prev.hidden = !hasOverflow || rouletteStartIndex <= 0;
     if (next) next.hidden = !hasOverflow || rouletteStartIndex >= maxStart;
   }
 
   function selectExperience(index) {
-    if (!experiences.length) return;
+    if (!experiences.length || index === activeExperienceIndex) return;
+    const previousIndex = activeExperienceIndex;
+
+    // Return the role that was just displayed to the LEFT of the roulette.
+    if (!Array.isArray(rouletteOrder)) rouletteOrder = [];
+    rouletteOrder = rouletteOrder.filter(i => i !== index && i !== previousIndex);
+    rouletteOrder.unshift(previousIndex);
+
     activeExperienceIndex = Math.max(0, Math.min(index, experiences.length - 1));
-    // Reset the roulette window after switching roles so the visitor gets a
-    // predictable set of alternatives immediately below the newly opened role.
     rouletteStartIndex = 0;
     renderExperience();
   }
