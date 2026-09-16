@@ -429,15 +429,17 @@
     .portfolio-shell{ max-width:none !important; width:100% !important; padding-left:0 !important; padding-right:0 !important; }
     .portfolio-grid{ gap:0 !important; }
     #leftSidebar{
-      position:sticky !important;
-      top:24px !important;
-      align-self:start !important;
-      height:calc(100vh - 48px);
-      overflow-y:auto;
+      /* NOTE: position/height/overflow deliberately left unset here - a
+         later rule (see the second #leftSidebar block further down) sets
+         position:relative for this element, so pairing that with a capped
+         height + overflow-y:auto (as a "sticky" version of this rule once
+         did) just clips the sidebar and forces its own internal scrollbar
+         once its content is taller than the viewport - i.e. exactly the
+         "scroll window" bug. Left unfixed/unclipped on purpose so it just
+         flows with the page like the rest of the layout. */
       padding-left:0 !important;
       padding-right:28px;
       border-right:1px solid #27272a;
-      scrollbar-width:thin;
     }
     #centerColumn{ padding-left:32px; padding-right:0; min-width:0; position:relative; }
     #rightSidebar{ padding-left:32px; padding-right:32px; }
@@ -704,14 +706,24 @@
   .pd-nav .pdnav-left button,.pd-nav .pdnav-right,.pd-nav .pdnav-gh-simple{font-size:13px!important;}
   .pd-nav .pdnav-top-btn{font-size:13px;padding:8px 17px;}
   @media (max-width:767px){.footer-about .about-hover-text{width:min(88vw,620px);left:0;}.footer-meta{margin-left:0;text-align:left;align-self:flex-start;}}
-  .footer-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:30px;}
+  .footer-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:30px;max-width:1600px;margin:0 auto;flex-wrap:wrap;width:100%;}
   .footer-about{max-width:none;}
   .footer-about .about-hover-label{gap:6px;}
   .about-hover-mark{font-size:10px;opacity:.65;transform:translateY(-1px);}
-  .footer-meta{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-left:auto;text-align:right;align-self:center;white-space:nowrap;}
+  /* Quick links row - sits between "About Me" and the copyright, so the
+     footer reads as one connected bar rather than two isolated text
+     fragments stretched apart. */
+  .footer-links{display:flex;align-items:center;gap:8px;}
+  .footer-link{
+    display:flex;align-items:center;justify-content:center;
+    width:26px;height:26px;border:1px solid #27272a;border-radius:4px;
+    color:#8f8f95;background:transparent;transition:color .15s ease,border-color .15s ease;
+  }
+  .footer-link:hover{color:#f1f1ef;border-color:#6b6b70;}
+  .footer-meta{display:flex;align-items:center;justify-content:flex-end;gap:12px;text-align:right;align-self:center;white-space:nowrap;}
   .footer-meta>span{font-size:9px;color:#8f8f95;text-transform:uppercase;letter-spacing:.08em;}
   .footer-meta-divider{width:1px;height:11px;background:rgba(245,245,245,.22);display:inline-block;}
-  @media (max-width:767px){.footer-inner{align-items:flex-start;flex-direction:column;gap:10px;}.footer-meta{margin-left:0;justify-content:flex-start;text-align:left;gap:12px;white-space:normal;}.footer-meta-divider{height:12px;}}
+  @media (max-width:767px){.footer-inner{align-items:flex-start;flex-direction:column;gap:10px;}.footer-links{order:2;}.footer-meta{order:3;margin-left:0;justify-content:flex-start;text-align:left;gap:12px;white-space:normal;}.footer-meta-divider{height:12px;}}
 
   .bg-symbol,.background-symbol,.side-signal,.side-signals,.electronics-symbol,.signal-line{display:none!important;}
 
@@ -749,14 +761,19 @@
 </style>
 
 <style id="bottom-right-grey-gradient">
-  /* Subtle grey gradient anchored to the bottom-right corner. */
+  /* A single flat grey blob in one corner read as a bit dull/default -
+     softened the falloff with more colour stops for a smoother blend, and
+     added a second, cooler-toned glow in the opposite corner so the page
+     has some depth/balance rather than everything being lit from one spot. */
   body::after {
     content: "";
     position: fixed;
     inset: 0;
     pointer-events: none;
     z-index: 0;
-    background: radial-gradient(circle at 100% 100%, rgba(150,150,150,.18) 0%, rgba(150,150,150,.08) 24%, rgba(150,150,150,0) 55%);
+    background:
+      radial-gradient(circle at 100% 100%, rgba(190,190,198,.17) 0%, rgba(160,160,170,.10) 20%, rgba(130,130,145,.05) 38%, rgba(120,120,135,.02) 55%, transparent 70%),
+      radial-gradient(circle at 0% 0%, rgba(120,145,180,.11) 0%, rgba(100,120,150,.06) 22%, rgba(90,105,130,.02) 42%, transparent 60%);
   }
   body > * { position: relative; z-index: 1; }
 </style>
@@ -1125,6 +1142,23 @@
           <span class="about-hover-mark" aria-hidden="true">↗</span>
           <span id="aboutMeHover" role="tooltip" class="about-hover-text">Software Engineering with Electronics student at the University of Westminster with hands-on experience across RF/microwave design, PCB design, embedded systems and hardware/software integration. Recently completed a placement at Leonardo, contributing to microwave PCB and RF component design for electronic warfare self-protection systems. Currently working on a final-year dissertation analysing and designing a wireless energy harvester for IoT applications, and actively building a robotic arm through the SCC programme. Open to placements in embedded systems, RF/microwave design, robotics and firmware development.</span>
         </div>
+      </div>
+      <!-- Quick links - repeats the sidebar's contact links here too, plus a
+           back-to-top shortcut, mainly so the footer bar doesn't read as two
+           lonely fragments of text stretched across the page. -->
+      <div class="footer-links">
+        <a href="mailto:suberabdi54@gmail.com" class="footer-link" title="Email" aria-label="Email">
+          <i data-lucide="mail" class="w-3.5 h-3.5"></i>
+        </a>
+        <a href="https://github.com/SuberBAbdi" target="_blank" rel="noopener" class="footer-link" title="GitHub" aria-label="GitHub">
+          <i data-lucide="github" class="w-3.5 h-3.5"></i>
+        </a>
+        <a href="https://www.linkedin.com/in/suber-abdi-889182331/" target="_blank" rel="noopener" class="footer-link" title="LinkedIn" aria-label="LinkedIn">
+          <i data-lucide="linkedin" class="w-3.5 h-3.5"></i>
+        </a>
+        <button type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})" class="footer-link" title="Back to top" aria-label="Back to top">
+          <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i>
+        </button>
       </div>
       <div class="footer-meta">
         <span>Suber Abdi · London, UK</span>
