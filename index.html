@@ -11,6 +11,7 @@
 <!-- Three.js Libraries for 3D Model Rendering -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <script>
@@ -1714,8 +1715,12 @@
           url: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/blob/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Lower%20Body.stl'
         },
         {
-          name: 'Temperature Checker with a DAC.step — full PCB / assembly',
+          name: 'Temperature Checker with a DAC.step — full PCB / assembly source',
           url: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/blob/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Temperature%20Checker%20with%20a%20DAC.step'
+        },
+        {
+          name: 'Temperature Checker with a DAC.glb — web viewer model',
+          url: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/blob/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Temperature%20Checker%20with%20a%20DAC.glb'
         }
       ],
 
@@ -2652,7 +2657,7 @@
     // gradients and fine geometry are easier to read. To retheme this,
     // just edit `color` below - everything else adapts automatically.
     return new THREE.MeshPhysicalMaterial({
-      color: 0x8b95a1,
+      color: 0xb8bcc1,
       roughness: 0.4,       // kept in the 0.3–0.6 band so it reads as plastic, not wet or chalky
       metalness: 0.05,
       normalMap: normalMap,
