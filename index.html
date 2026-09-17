@@ -1714,7 +1714,7 @@
           url: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/blob/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Lower%20Body.stl'
         },
         {
-          name: 'Temperature Checker with a DAC.step',
+          name: 'Temperature Checker with a DAC.step — full PCB / assembly',
           url: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/blob/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Temperature%20Checker%20with%20a%20DAC.step'
         }
       ],
@@ -3024,7 +3024,7 @@
           if (loadedCount >= totalBodies) {
             const sizeVec = new THREE.Vector3();
             groupBounds.getSize(sizeVec);
-            const radius = Math.max(sizeVec.length() * 0.6, 40);
+            const radius = Math.max(sizeVec.length() * 1.05, 60);
             // FRONT-FACING START (see note above init3DViewer): frame the
             // model from straight down the +Z axis - the view cube's FRONT
             // face - instead of an isometric corner, so the model opens
