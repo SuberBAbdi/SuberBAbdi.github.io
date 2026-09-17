@@ -1679,6 +1679,46 @@
       report: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/tree/main/University%20Submitted%20Documents',
       presentation: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/tree/main/University%20Submitted%20Documents',
       presentationEmbed: false,
+
+      // Interactive 3D CAD viewer - copied from the Harvester project's
+      // existing Three.js/STLLoader viewer. The DAC repo keeps the model
+      // files in "3D and 2D Models /3D Model of PCB/" (note the trailing
+      // space in the parent folder name), so the viewer loads the STL files
+      // directly from GitHub's raw-content endpoint.
+      has3DModel: true,
+      stlBodies: [
+        {
+          id: 'cover',
+          name: 'Cover',
+          path: 'https://raw.githubusercontent.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Cover.stl',
+          visible: true
+        },
+        {
+          id: 'lower-body',
+          name: 'Lower Body',
+          path: 'https://raw.githubusercontent.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Lower%20Body.stl',
+          visible: true
+        }
+      ],
+
+      // Source/download links for the CAD files. STEP is linked here because
+      // the copied viewer uses THREE.STLLoader and therefore renders STL,
+      // not STEP, in-browser.
+      cadFiles: [
+        {
+          name: 'Cover.stl',
+          url: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/blob/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Cover.stl'
+        },
+        {
+          name: 'Lower Body.stl',
+          url: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/blob/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Lower%20Body.stl'
+        },
+        {
+          name: 'Temperature Checker with a DAC.step',
+          url: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/blob/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Temperature%20Checker%20with%20a%20DAC.step'
+        }
+      ],
+
       contribution: 'This was assessed as a group engineering project. The work covered the analogue front-end and PIC16F877A design, Assembly firmware, simulation, verification and practical demonstration, with the final submission supported by a technical report and group presentation.',
       githubCard: 'SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner',
       tags: ['Assembly', 'PIC16F877A', 'MPLAB X'],
@@ -3421,6 +3461,26 @@
           </div>
           <div id="pcbViewerContainer" class="relative w-full h-[28rem] border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing" style="background:#f3f3f2;"></div>
           <p class="font-mono text-[10px] text-faint mt-2">Click and drag to rotate model · Scroll to zoom · Click the view cube to snap views</p>
+        </div>
+      `;
+    }
+
+    if (p.cadFiles && p.cadFiles.length) {
+      extraAssets += `
+        <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
+          <div class="flex items-center justify-between mb-3">
+            <p class="font-mono text-xs text-dim uppercase tracking-wider">${p.title} - CAD Source Files</p>
+            <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">GitHub</span>
+          </div>
+          <div class="flex flex-col gap-2">
+            ${p.cadFiles.map(file => `
+              <a href="${file.url}" target="_blank" rel="noopener noreferrer"
+                 class="flex items-center justify-between gap-3 border border-line px-3 py-2 text-sm text-dim hover:text-white hover:border-faint transition-colors">
+                <span class="min-w-0 break-words">${file.name}</span>
+                <span class="font-mono text-[10px] uppercase tracking-wider text-faint shrink-0">Open ↗</span>
+              </a>
+            `).join('')}
+          </div>
         </div>
       `;
     }
