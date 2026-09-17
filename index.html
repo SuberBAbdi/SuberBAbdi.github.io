@@ -11,7 +11,6 @@
 <!-- Three.js Libraries for 3D Model Rendering -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.160.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <script>
@@ -1680,50 +1679,6 @@
       report: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/tree/main/University%20Submitted%20Documents',
       presentation: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/tree/main/University%20Submitted%20Documents',
       presentationEmbed: false,
-
-      // Interactive 3D CAD viewer - copied from the Harvester project's
-      // existing Three.js/STLLoader viewer. The DAC repo keeps the model
-      // files in "3D and 2D Models /3D Model of PCB/" (note the trailing
-      // space in the parent folder name), so the viewer loads the STL files
-      // directly from GitHub's raw-content endpoint.
-      has3DModel: true,
-      stlBodies: [
-        {
-          id: 'cover',
-          name: 'Cover',
-          path: 'https://raw.githubusercontent.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Cover.stl',
-          visible: true
-        },
-        {
-          id: 'lower-body',
-          name: 'Lower Body',
-          path: 'https://raw.githubusercontent.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Lower%20Body.stl',
-          visible: true
-        }
-      ],
-
-      // Source/download links for the CAD files. STEP is linked here because
-      // the copied viewer uses THREE.STLLoader and therefore renders STL,
-      // not STEP, in-browser.
-      cadFiles: [
-        {
-          name: 'Cover.stl',
-          url: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/blob/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Cover.stl'
-        },
-        {
-          name: 'Lower Body.stl',
-          url: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/blob/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Lower%20Body.stl'
-        },
-        {
-          name: 'Temperature Checker with a DAC.step — full PCB / assembly source',
-          url: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/blob/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Temperature%20Checker%20with%20a%20DAC.step'
-        },
-        {
-          name: 'Temperature Checker with a DAC.glb — web viewer model',
-          url: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/blob/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Temperature%20Checker%20with%20a%20DAC.glb'
-        }
-      ],
-
       contribution: 'This was assessed as a group engineering project. The work covered the analogue front-end and PIC16F877A design, Assembly firmware, simulation, verification and practical demonstration, with the final submission supported by a technical report and group presentation.',
       githubCard: 'SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner',
       tags: ['Assembly', 'PIC16F877A', 'MPLAB X'],
@@ -1755,16 +1710,53 @@
         { label: 'Documentation & Verification', text: 'Produced engineering documentation, technical-risk assessments and verification plans.' },
         { label: 'Stakeholder Presentations', text: 'Presented the project and key design decisions to engineering stakeholders.' }
       ]
+    },
+    // ======================================================================
+    // TEST DATA - TEMPORARY, FOR LOCAL PREVIEW/TESTING ONLY.
+    // Added on request purely to see the carousel populated with several
+    // roles (arrows, LRU reordering, etc.) styled in the real page. These
+    // are NOT real jobs - delete every entry between this banner and the
+    // matching "END TEST DATA" banner below before this goes live again.
+    // ======================================================================
+    {
+      id: 'TEST-example-current', role: 'Embedded Software Engineer (Graduate)', roleType: 'Full-Time', company: 'Example Aerospace Ltd',
+      logo: 'does-not-exist.jpg', location: 'Bristol, UK · Hybrid', dates: 'Jan 2028 - Present',
+      startDate: '2028-01-01', endDate: '2099-12-31', current: true,
+      summary: 'TEST ENTRY - illustrative future role, not a real job.',
+      bullets: [
+        { label: 'Firmware', text: 'Example bullet describing ongoing firmware responsibilities.' },
+        { label: 'Testing', text: 'Example bullet describing verification work.' }
+      ]
+    },
+    {
+      id: 'TEST-example-rf', role: 'RF Test Engineer', roleType: 'Placement', company: 'Example Systems Group',
+      logo: 'does-not-exist.jpg', location: 'Reading, UK · On-site', dates: 'Sep 2025 - May 2026',
+      startDate: '2025-09-01', endDate: '2026-05-31', current: false,
+      summary: 'TEST ENTRY - illustrative example role, not a real job.',
+      bullets: [{ label: 'Example', text: 'Placeholder bullet point.' }]
+    },
+    {
+      id: 'TEST-example-robotics', role: 'Robotics Engineering Intern', roleType: 'Internship', company: 'Example Robotics Co',
+      logo: 'does-not-exist.jpg', location: 'London, UK · Hybrid', dates: 'Jun 2025 - Aug 2025',
+      startDate: '2025-06-01', endDate: '2025-08-31', current: false,
+      summary: 'TEST ENTRY - illustrative example role, not a real job.',
+      bullets: [{ label: 'Example', text: 'Placeholder bullet point.' }]
+    },
+    {
+      id: 'TEST-example-teaching', role: 'Student Team Leader', roleType: 'Part-Time', company: 'Example University Union',
+      logo: 'does-not-exist.jpg', location: 'London, UK', dates: 'Oct 2024 - Jun 2025',
+      startDate: '2024-10-01', endDate: '2025-06-30', current: false,
+      summary: 'TEST ENTRY - illustrative example role, not a real job.',
+      bullets: [{ label: 'Example', text: 'Placeholder bullet point.' }]
     }
-    // To add a past role: copy the object above, give it a unique id, real
-    // dates (startDate/endDate as 'YYYY-MM-DD', current:false once it's
-    // ended), and it's picked up automatically everywhere - the main
-    // display, the roulette/carousel below it, and the arrow visibility -
-    // with no other code changes needed. Only real, actually-held roles
-    // belong in this array; it deliberately no longer ships with the
-    // placeholder "Test Role" entries used earlier to trial the carousel
-    // with more than one card, since those would misrepresent real work
-    // history on the live site.
+    // ======================================================================
+    // END TEST DATA - remove everything above back to "TEST DATA" banner.
+    // ======================================================================
+    // To add a REAL past role: copy the Leonardo object above, give it a
+    // unique id, real dates (startDate/endDate as 'YYYY-MM-DD', current:false
+    // once it's ended), and it's picked up automatically everywhere - the
+    // main display, the roulette/carousel below it, and the arrow visibility
+    // - with no other code changes needed.
   ];
 
   // Computes a compact "1 yr 4 mos" style duration between two "Mon YYYY"
@@ -2657,7 +2649,7 @@
     // gradients and fine geometry are easier to read. To retheme this,
     // just edit `color` below - everything else adapts automatically.
     return new THREE.MeshPhysicalMaterial({
-      color: 0xb8bcc1,
+      color: 0x8b95a1,
       roughness: 0.4,       // kept in the 0.3–0.6 band so it reads as plastic, not wet or chalky
       metalness: 0.05,
       normalMap: normalMap,
@@ -3029,7 +3021,7 @@
           if (loadedCount >= totalBodies) {
             const sizeVec = new THREE.Vector3();
             groupBounds.getSize(sizeVec);
-            const radius = Math.max(sizeVec.length() * 1.05, 60);
+            const radius = Math.max(sizeVec.length() * 0.6, 40);
             // FRONT-FACING START (see note above init3DViewer): frame the
             // model from straight down the +Z axis - the view cube's FRONT
             // face - instead of an isometric corner, so the model opens
@@ -3466,26 +3458,6 @@
           </div>
           <div id="pcbViewerContainer" class="relative w-full h-[28rem] border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing" style="background:#f3f3f2;"></div>
           <p class="font-mono text-[10px] text-faint mt-2">Click and drag to rotate model · Scroll to zoom · Click the view cube to snap views</p>
-        </div>
-      `;
-    }
-
-    if (p.cadFiles && p.cadFiles.length) {
-      extraAssets += `
-        <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
-          <div class="flex items-center justify-between mb-3">
-            <p class="font-mono text-xs text-dim uppercase tracking-wider">${p.title} - CAD Source Files</p>
-            <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">GitHub</span>
-          </div>
-          <div class="flex flex-col gap-2">
-            ${p.cadFiles.map(file => `
-              <a href="${file.url}" target="_blank" rel="noopener noreferrer"
-                 class="flex items-center justify-between gap-3 border border-line px-3 py-2 text-sm text-dim hover:text-white hover:border-faint transition-colors">
-                <span class="min-w-0 break-words">${file.name}</span>
-                <span class="font-mono text-[10px] uppercase tracking-wider text-faint shrink-0">Open ↗</span>
-              </a>
-            `).join('')}
-          </div>
         </div>
       `;
     }
