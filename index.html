@@ -429,17 +429,15 @@
     .portfolio-shell{ max-width:none !important; width:100% !important; padding-left:0 !important; padding-right:0 !important; }
     .portfolio-grid{ gap:0 !important; }
     #leftSidebar{
-      /* NOTE: position/height/overflow deliberately left unset here - a
-         later rule (see the second #leftSidebar block further down) sets
-         position:relative for this element, so pairing that with a capped
-         height + overflow-y:auto (as a "sticky" version of this rule once
-         did) just clips the sidebar and forces its own internal scrollbar
-         once its content is taller than the viewport - i.e. exactly the
-         "scroll window" bug. Left unfixed/unclipped on purpose so it just
-         flows with the page like the rest of the layout. */
+      position:sticky !important;
+      top:24px !important;
+      align-self:start !important;
+      height:calc(100vh - 48px);
+      overflow-y:auto;
       padding-left:0 !important;
       padding-right:28px;
       border-right:1px solid #27272a;
+      scrollbar-width:thin;
     }
     #centerColumn{ padding-left:32px; padding-right:0; min-width:0; position:relative; }
     #rightSidebar{ padding-left:32px; padding-right:32px; }
@@ -706,24 +704,14 @@
   .pd-nav .pdnav-left button,.pd-nav .pdnav-right,.pd-nav .pdnav-gh-simple{font-size:13px!important;}
   .pd-nav .pdnav-top-btn{font-size:13px;padding:8px 17px;}
   @media (max-width:767px){.footer-about .about-hover-text{width:min(88vw,620px);left:0;}.footer-meta{margin-left:0;text-align:left;align-self:flex-start;}}
-  .footer-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:30px;max-width:1600px;margin:0 auto;flex-wrap:wrap;width:100%;}
+  .footer-inner{display:flex;align-items:center;justify-content:space-between;gap:24px;min-height:30px;}
   .footer-about{max-width:none;}
   .footer-about .about-hover-label{gap:6px;}
   .about-hover-mark{font-size:10px;opacity:.65;transform:translateY(-1px);}
-  /* Quick links row - sits between "About Me" and the copyright, so the
-     footer reads as one connected bar rather than two isolated text
-     fragments stretched apart. */
-  .footer-links{display:flex;align-items:center;gap:8px;}
-  .footer-link{
-    display:flex;align-items:center;justify-content:center;
-    width:26px;height:26px;border:1px solid #27272a;border-radius:4px;
-    color:#8f8f95;background:transparent;transition:color .15s ease,border-color .15s ease;
-  }
-  .footer-link:hover{color:#f1f1ef;border-color:#6b6b70;}
-  .footer-meta{display:flex;align-items:center;justify-content:flex-end;gap:12px;text-align:right;align-self:center;white-space:nowrap;}
+  .footer-meta{display:flex;align-items:center;justify-content:flex-end;gap:12px;margin-left:auto;text-align:right;align-self:center;white-space:nowrap;}
   .footer-meta>span{font-size:9px;color:#8f8f95;text-transform:uppercase;letter-spacing:.08em;}
   .footer-meta-divider{width:1px;height:11px;background:rgba(245,245,245,.22);display:inline-block;}
-  @media (max-width:767px){.footer-inner{align-items:flex-start;flex-direction:column;gap:10px;}.footer-links{order:2;}.footer-meta{order:3;margin-left:0;justify-content:flex-start;text-align:left;gap:12px;white-space:normal;}.footer-meta-divider{height:12px;}}
+  @media (max-width:767px){.footer-inner{align-items:flex-start;flex-direction:column;gap:10px;}.footer-meta{margin-left:0;justify-content:flex-start;text-align:left;gap:12px;white-space:normal;}.footer-meta-divider{height:12px;}}
 
   .bg-symbol,.background-symbol,.side-signal,.side-signals,.electronics-symbol,.signal-line{display:none!important;}
 
@@ -757,23 +745,24 @@
 
   /* ===== Experience roulette: always visible ===== */
   .experience-roulette{visibility:visible!important;opacity:1!important;}
+  /* Only relevant when there are zero alternative roles to switch to (see
+     renderExperiencePlacards) - collapses the strip entirely instead of
+     leaving its padding as empty dead space. Needs !important since the
+     base .experience-roulette rule above forces display:grid unconditionally,
+     which would otherwise override the browser's default [hidden] behaviour. */
+  .experience-roulette[hidden]{ display:none!important; }
 
 </style>
 
 <style id="bottom-right-grey-gradient">
-  /* A single flat grey blob in one corner read as a bit dull/default -
-     softened the falloff with more colour stops for a smoother blend, and
-     added a second, cooler-toned glow in the opposite corner so the page
-     has some depth/balance rather than everything being lit from one spot. */
+  /* Subtle grey gradient anchored to the bottom-right corner. */
   body::after {
     content: "";
     position: fixed;
     inset: 0;
     pointer-events: none;
     z-index: 0;
-    background:
-      radial-gradient(circle at 100% 100%, rgba(190,190,198,.17) 0%, rgba(160,160,170,.10) 20%, rgba(130,130,145,.05) 38%, rgba(120,120,135,.02) 55%, transparent 70%),
-      radial-gradient(circle at 0% 0%, rgba(120,145,180,.11) 0%, rgba(100,120,150,.06) 22%, rgba(90,105,130,.02) 42%, transparent 60%);
+    background: radial-gradient(circle at 100% 100%, rgba(150,150,150,.18) 0%, rgba(150,150,150,.08) 24%, rgba(150,150,150,0) 55%);
   }
   body > * { position: relative; z-index: 1; }
 </style>
@@ -1142,23 +1131,6 @@
           <span class="about-hover-mark" aria-hidden="true">↗</span>
           <span id="aboutMeHover" role="tooltip" class="about-hover-text">Software Engineering with Electronics student at the University of Westminster with hands-on experience across RF/microwave design, PCB design, embedded systems and hardware/software integration. Recently completed a placement at Leonardo, contributing to microwave PCB and RF component design for electronic warfare self-protection systems. Currently working on a final-year dissertation analysing and designing a wireless energy harvester for IoT applications, and actively building a robotic arm through the SCC programme. Open to placements in embedded systems, RF/microwave design, robotics and firmware development.</span>
         </div>
-      </div>
-      <!-- Quick links - repeats the sidebar's contact links here too, plus a
-           back-to-top shortcut, mainly so the footer bar doesn't read as two
-           lonely fragments of text stretched across the page. -->
-      <div class="footer-links">
-        <a href="mailto:suberabdi54@gmail.com" class="footer-link" title="Email" aria-label="Email">
-          <i data-lucide="mail" class="w-3.5 h-3.5"></i>
-        </a>
-        <a href="https://github.com/SuberBAbdi" target="_blank" rel="noopener" class="footer-link" title="GitHub" aria-label="GitHub">
-          <i data-lucide="github" class="w-3.5 h-3.5"></i>
-        </a>
-        <a href="https://www.linkedin.com/in/suber-abdi-889182331/" target="_blank" rel="noopener" class="footer-link" title="LinkedIn" aria-label="LinkedIn">
-          <i data-lucide="linkedin" class="w-3.5 h-3.5"></i>
-        </a>
-        <button type="button" onclick="window.scrollTo({top:0,behavior:'smooth'})" class="footer-link" title="Back to top" aria-label="Back to top">
-          <i data-lucide="arrow-up" class="w-3.5 h-3.5"></i>
-        </button>
       </div>
       <div class="footer-meta">
         <span>Suber Abdi · London, UK</span>
@@ -1738,90 +1710,17 @@
         { label: 'Documentation & Verification', text: 'Produced engineering documentation, technical-risk assessments and verification plans.' },
         { label: 'Stakeholder Presentations', text: 'Presented the project and key design decisions to engineering stakeholders.' }
       ]
-    },
-    {
-      id: 'leonardo-rf-focus',
-      role: 'RF / Microwave Engineering',
-      roleType: 'Role Focus',
-      company: 'Leonardo',
-      logo: 'Logos/leonardo_logo.jpg',
-      location: 'Luton, England, UK · Hybrid',
-      dates: 'Jun 2026 - Present',
-      startDate: '2026-06-01',
-      endDate: '2099-12-31',
-      current: true,
-      summary: 'RF and microwave-focused engineering work within the same Leonardo placement, centred on PCB design, controlled impedance, grounding and component selection.',
-      bullets: [
-        { label: 'RF Design', text: 'Considered controlled impedance, RF grounding and via fencing during PCB development.' },
-        { label: 'Components', text: 'Reviewed component datasheets, land patterns, interfaces and bills of materials.' },
-        { label: 'Verification', text: 'Supported documentation, technical-risk assessments and verification planning.' }
-      ]
-    },
-    {
-      id: 'leonardo-pcb-focus',
-      role: 'Microwave PCB Engineering',
-      roleType: 'Role Focus',
-      company: 'Leonardo',
-      logo: 'Logos/leonardo_logo.jpg',
-      location: 'Luton, England, UK · Hybrid',
-      dates: 'Jun 2026 - Present',
-      startDate: '2026-06-01',
-      endDate: '2099-12-31',
-      current: true,
-      summary: 'PCB-focused engineering work within the same Leonardo placement, covering schematic preparation, footprints, fabrication considerations and power integrity.',
-      bullets: [
-        { label: 'KiCad', text: 'Used KiCad for symbol, footprint, schematic and PCB preparation activities.' },
-        { label: 'Fabrication', text: 'Considered design-for-fabrication requirements alongside board layout decisions.' },
-        { label: 'Power Integrity', text: 'Considered power integrity and grounding as part of the PCB design process.' }
-      ]
-    },
-    {
-      id: 'test-embedded', role: 'Embedded Systems Engineer', roleType: 'Test Role', company: 'Leonardo', logo: 'Logos/leonardo_logo.jpg', location: 'Luton, England, UK · Hybrid', dates: 'Sep 2025 - May 2026', startDate: '2025-09-01', endDate: '2026-05-31', current: false, summary: 'Mock role added for roulette interaction and layout testing.', bullets: [
-        {label:'Firmware',text:'Developed and tested embedded firmware for hardware interfaces.'},{label:'Integration',text:'Integrated sensors, peripherals and control logic.'},{label:'Verification',text:'Created repeatable tests for embedded behaviour.'}
-      ]
-    },
-    {
-      id: 'test-fpga', role: 'FPGA Design Engineer', roleType: 'Test Role', company: 'Leonardo', logo: 'Logos/leonardo_logo.jpg', location: 'Luton, England, UK · Hybrid', dates: 'Jan 2025 - Aug 2025', startDate: '2025-01-01', endDate: '2025-08-31', current: false, summary: 'Mock role added for roulette interaction and layout testing.', bullets: [
-        {label:'RTL',text:'Designed small RTL modules and interface logic.'},{label:'Simulation',text:'Ran simulation checks against expected behaviour.'},{label:'Debug',text:'Investigated timing and functional issues.'}
-      ]
-    },
-    {
-      id: 'test-rf', role: 'RF Test Engineer', roleType: 'Test Role', company: 'Leonardo', logo: 'Logos/leonardo_logo.jpg', location: 'Luton, England, UK · Hybrid', dates: 'Jun 2024 - Dec 2024', startDate: '2024-06-01', endDate: '2024-12-31', current: false, summary: 'Mock role added for roulette interaction and layout testing.', bullets: [
-        {label:'Measurements',text:'Supported RF measurement and test activities.'},{label:'Equipment',text:'Prepared test equipment and repeatable setups.'},{label:'Reporting',text:'Recorded results and summarised verification findings.'}
-      ]
-    },
-    {
-      id: 'test-electronics', role: 'Electronics Design Engineer', roleType: 'Test Role', company: 'Leonardo', logo: 'Logos/leonardo_logo.jpg', location: 'Luton, England, UK · Hybrid', dates: 'Sep 2023 - May 2024', startDate: '2023-09-01', endDate: '2024-05-31', current: false, summary: 'Mock role added for roulette interaction and layout testing.', bullets: [
-        {label:'Schematics',text:'Produced and reviewed electronic schematics.'},{label:'PCB',text:'Supported board layout and component selection.'},{label:'Documentation',text:'Maintained concise design documentation.'}
-      ]
-    },
-    {
-      id: 'test-firmware', role: 'Firmware Engineer', roleType: 'Test Role', company: 'Leonardo', logo: 'Logos/leonardo_logo.jpg', location: 'Luton, England, UK · Hybrid', dates: 'Jan 2023 - Aug 2023', startDate: '2023-01-01', endDate: '2023-08-31', current: false, summary: 'Mock role added for roulette interaction and layout testing.', bullets: [
-        {label:'C / C++',text:'Implemented small firmware features in C and C++.'},{label:'Drivers',text:'Worked with low-level peripheral drivers.'},{label:'Testing',text:'Debugged firmware using structured test cases.'}
-      ]
-    },
-    {
-      id: 'test-robotics', role: 'Robotics Engineer', roleType: 'Test Role', company: 'Leonardo', logo: 'Logos/leonardo_logo.jpg', location: 'Luton, England, UK · Hybrid', dates: 'Jun 2022 - Dec 2022', startDate: '2022-06-01', endDate: '2022-12-31', current: false, summary: 'Mock role added for roulette interaction and layout testing.', bullets: [
-        {label:'Control',text:'Implemented basic motion and control logic.'},{label:'Sensors',text:'Integrated sensor inputs into control loops.'},{label:'Prototype',text:'Supported rapid hardware and software prototyping.'}
-      ]
     }
-    // To add a past role: copy the object above, give it a unique id, and
-    // either set current:false or omit `current` entirely - it will
-    // automatically render collapsed with a "show details" toggle, so
-    // Leonardo stays the only role expanded by default.
+    // To add a past role: copy the object above, give it a unique id, real
+    // dates (startDate/endDate as 'YYYY-MM-DD', current:false once it's
+    // ended), and it's picked up automatically everywhere - the main
+    // display, the roulette/carousel below it, and the arrow visibility -
+    // with no other code changes needed. Only real, actually-held roles
+    // belong in this array; it deliberately no longer ships with the
+    // placeholder "Test Role" entries used earlier to trial the carousel
+    // with more than one card, since those would misrepresent real work
+    // history on the live site.
   ];
-
-  // Randomise the additional test roles on each load while keeping the real
-  // Leonardo role first so the portfolio still opens on the genuine experience.
-  {
-    const primary = experiences[0];
-    const testRoles = experiences.slice(1);
-    for (let i = testRoles.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [testRoles[i], testRoles[j]] = [testRoles[j], testRoles[i]];
-    }
-    experiences.splice(0, experiences.length, primary, ...testRoles);
-  }
 
   // Computes a compact "1 yr 4 mos" style duration between two "Mon YYYY"
   // date tokens (or "Present" for an ongoing role) - used next to dates on
@@ -1973,21 +1872,22 @@
     const roulette = document.getElementById('experienceRoulette');
     if (!wrap) return;
 
-    // The roulette is ALWAYS rendered and visible. There is deliberately no
-    // reveal button, click-to-open state, or collapsed carousel state.
-    if (roulette) {
-      roulette.hidden = false;
-      roulette.removeAttribute('hidden');
-      roulette.style.display = 'grid';
-      roulette.style.visibility = 'visible';
-      roulette.style.opacity = '1';
-    }
-
     const available = getRouletteExperiences();
     const hasOverflow = available.length > 3;
     const maxStart = Math.max(0, available.length - 3);
     rouletteStartIndex = Math.min(Math.max(rouletteStartIndex, 0), maxStart);
     const visible = available.slice(rouletteStartIndex, rouletteStartIndex + 3);
+
+    // The roulette is always visible and needs no reveal/toggle button - but
+    // with zero alternative roles to switch to (e.g. only one real job on
+    // file so far) there's nothing to show, so the strip collapses to zero
+    // height instead of leaving its padding behind as dead space. It comes
+    // back automatically, with no code changes, the moment a second real
+    // role is added to `experiences` above.
+    if (roulette) {
+      roulette.hidden = available.length === 0;
+    }
+    if (available.length === 0) return;
 
     wrap.innerHTML = visible.map(({ entry: e, index: i }) => `
       <button type="button" class="experience-placard" onclick="selectExperience(${i})" aria-label="View ${e.role}">
