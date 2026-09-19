@@ -592,7 +592,7 @@
     #leftCollapsedIndicator{
       position:relative !important;
       inset:auto !important;
-      display:flex !important;
+      display:none;
       width:100%;
       padding:0 !important;
       margin:0 0 18px;
@@ -653,8 +653,30 @@
 
 
 
-  /* ===== Global 90% presentation scale ===== */
-  html{zoom:.9;}
+  /* ===== Responsive presentation scale ===== */
+  html{zoom:1;}
+
+
+  /* ===== Portfolio grid/sidebar refinements ===== */
+  @media (min-width:1024px){
+    .portfolio-grid{grid-template-columns:minmax(0,3fr) minmax(0,6fr) minmax(0,3fr) !important;}
+    #leftSidebar{width:100%; max-width:none; min-width:0; height:auto; max-height:calc(100vh - 48px); overflow-y:auto; box-sizing:border-box;}
+    #centerColumn,#rightSidebar{min-width:0; width:100%; max-width:none; box-sizing:border-box;}
+  }
+  #leftSidebar.is-collapsed{width:100% !important; max-width:none !important; min-width:0 !important;}
+  #leftSidebar.is-collapsed + #centerColumn{min-width:0;}
+  #leftCollapsedIndicator.visible{display:flex !important;}
+  .experience-timeline-node{display:block; width:100%; text-align:left;}
+  .project-showcase-card{width:100%; box-sizing:border-box;}
+  .project-showcase-card:first-child{border-top-width:0 !important;}
+  .project-showcase-card:last-child{border-bottom-width:0 !important; border-radius:0 !important;}
+  .modal-body .modal-section{margin-top:14px; padding-top:12px;}
+  .modal-body .modal-section:first-child{margin-top:0; padding-top:0; border-top:none;}
+  .modal-body .modal-section .modal-label + *{margin-top:4px !important;}
+  .modal-body .cause-copy{margin-top:2px !important;}
+  #partTimeSidebarSection{scroll-margin-top:24px;}
+  #experienceSection{scroll-margin-top:24px;}
+  #experienceSection > .experience-section-head{margin-bottom:0;}
 
   /* ===== Portfolio fixes ===== */
   .experience-meta-grid{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start;width:100%;}
@@ -968,6 +990,7 @@
 
           <p id="projectEmptyState" class="hidden text-sm text-dim font-mono py-6 text-center">No projects match your search/filter.</p>
 
+          <!-- Do not automatically add more projects here when updating code structures -->
           <div id="projectGrid" class="flex flex-col">
             <!-- Populated via JS -->
           </div>
@@ -1058,7 +1081,7 @@
         </div>
       </div>
 
-      <div class="pt-6 border-t border-line">
+      <div id="partTimeSidebarSection" class="pt-6 border-t border-line">
         <div class="flex items-center justify-between">
           <p class="font-mono text-xs uppercase tracking-widest text-faint">Part-Time Experience</p>
           <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openModalCategory('partTime')">View All ↗</button>
@@ -1086,7 +1109,7 @@
         </div>
       </div>
 
-      <div class="pt-6 border-t border-line">
+      <div id="homelabSidebarSection" class="pt-6 border-t border-line">
         <div class="flex items-center justify-between">
           <p class="font-mono text-xs uppercase tracking-widest text-faint">Homelab</p>
           <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openHomelabPage()">Open Page ↗</button>
@@ -1096,19 +1119,19 @@
       <div class="pt-6 border-t border-line">
         <p class="font-mono text-xs uppercase tracking-widest text-faint mb-4">Experience Timeline</p>
         <div class="relative pl-5 border-l border-lineSoft">
-          <button type="button" onclick="openModalCategory('partTime')" class="block text-left relative pb-5 group w-full">
+          <button type="button" onclick="openModalCategory('partTime', 0)" class="experience-timeline-node relative pb-5 group w-full">
             <span class="absolute -left-[22px] top-0.5 w-2.5 h-2.5 rounded-full border border-faint bg-[#0c0c0d] group-hover:bg-white group-hover:border-white transition-colors"></span>
             <span class="font-mono text-[10px] uppercase tracking-widest text-faint">Sep 2026 - Present</span>
             <span class="block text-sm text-white mt-1 group-hover:underline">Part-Time Experience</span>
             <span class="block text-xs text-dim mt-0.5">Student Team Leader · Westminster SU</span>
           </button>
-          <button type="button" onclick="document.getElementById('experienceSection')?.scrollIntoView({behavior:'smooth',block:'start'}); setTimeout(() => { if (typeof renderExperience === 'function') renderExperience(); }, 100);" class="block text-left relative pb-5 group w-full">
+          <button type="button" onclick="document.getElementById('experienceSection')?.scrollIntoView({behavior:'smooth',block:'start'}); setTimeout(() => { document.getElementById('exp-toggle-leonardo')?.focus(); }, 350);" class="experience-timeline-node relative pb-5 group w-full">
             <span class="absolute -left-[22px] top-0.5 w-2.5 h-2.5 rounded-full border border-faint bg-[#0c0c0d] group-hover:bg-white group-hover:border-white transition-colors"></span>
             <span class="font-mono text-[10px] uppercase tracking-widest text-faint">Jun 2026 - Present</span>
             <span class="block text-sm text-white mt-1 group-hover:underline">Leonardo Internship</span>
             <span class="block text-xs text-dim mt-0.5">Microwave Engineer · Luton</span>
           </button>
-          <button type="button" onclick="openModalCategory('partTime')" class="block text-left relative group w-full">
+          <button type="button" onclick="document.getElementById('partTimeSidebarSection')?.scrollIntoView({behavior:'smooth',block:'start'});" class="experience-timeline-node relative group w-full">
             <span class="absolute -left-[22px] top-0.5 w-2.5 h-2.5 rounded-full border border-faint bg-[#0c0c0d] group-hover:bg-white group-hover:border-white transition-colors"></span>
             <span class="font-mono text-[10px] uppercase tracking-widest text-faint">Earlier</span>
             <span class="block text-sm text-white mt-1 group-hover:underline">See Part-Time Experience</span>
@@ -1489,6 +1512,21 @@
       ],
       tags: ['C++', 'Mbed', '3D Printing'],
       githubCard: 'SuberBAbdi/Micro-Mouse',
+      githubDocumentsFolder: 'University Submitted Documents',
+      // Repository document names are intentionally kept here so they can be
+      // swapped without changing the viewer architecture when the repository
+      // filenames are finalised. The resolver also falls back to the folder
+      // listing and embeds every PDF plus the first presentation file it finds.
+      micromouseDocuments: {
+        reportFiles: ['Micro Mouse Report.pdf', 'Micro Mouse Final Report.pdf'],
+        presentationFile: 'Micro Mouse Presentation.pptx'
+      },
+      contributors: [
+        { name: 'Charanjot Sidhu', href: 'https://linkedin.com' },
+        { name: 'Gabriel Narvex', href: null },
+        { name: 'Nicholas Nicolaou', href: 'https://linkedin.com' },
+        { name: 'Victoria Veprek', href: 'https://linkedin.com' }
+      ],
       github: 'https://github.com/SuberBAbdi/Micro-Mouse'
     },
     {
@@ -1547,8 +1585,8 @@
       id: 'radar',
       status: 'Complete · Sep – Oct 2025',
       title: 'Arduino Radar System',
-      overview: 'A hardware radar rig that sweeps an ultrasonic sensor across a field of view and plots detected objects in real time on a Processing (open-source) display.',
-      stack: 'Breadboard, jumper wires, Arduino Nano, HC-SR04 ultrasonic sensor, SG90 servo motor, live visualisation in Processing.',
+      overview: 'An embedded ultrasonic radar platform developed around an Arduino Nano, an HC-SR04 distance sensor and an SG90 servo. The project covers the complete hardware-software workflow: defining the sensing concept, wiring and validating the prototype, implementing the sweep and measurement firmware, integrating serial telemetry, testing repeatability, and documenting the engineering decisions. For the current portfolio roadmap, the project is also being carried forward as a structured development thread from the September 2026 approval milestone through the June 2027 dissertation write-up window, with each stage used to capture requirements, implementation evidence, verification results and final documentation.',
+      stack: 'Arduino Nano, HC-SR04 ultrasonic sensor, SG90 servo motor, breadboard, jumper wires, serial telemetry and C/C++ firmware.',
       challenges: 'Synchronising servo sweep angle with ultrasonic distance readings to plot an accurate, smooth radar sweep in real time.',
       outcome: 'A fully functional radar demo with live on-screen visualisation.',
 
@@ -1587,8 +1625,24 @@
         { date: 'Jun 2027', title: 'Final report & submission', description: 'Write-up of the full design, simulation and testing process for final dissertation submission.' }
       ],
       githubCard: 'SuberBAbdi/Arduino-Radar-System',
-      tags: ['Arduino', 'Ultrasonic Sensing', 'Processing'],
-      github: 'https://github.com/SuberBAbdi/Arduino-Radar-System'
+      tags: ['Arduino', 'Ultrasonic Sensing', 'Embedded'],
+      github: 'https://github.com/SuberBAbdi/Arduino-Radar-System',
+      codeFile: 'https://raw.githubusercontent.com/SuberBAbdi/Arduino-Radar-System/main/code.ino',
+      pinout: [
+        { pin: 'D10', function: 'HC-SR04 TRIG', notes: 'Provisional mapping — confirm against code.ino when added.' },
+        { pin: 'D11', function: 'HC-SR04 ECHO', notes: 'Provisional mapping — confirm against code.ino when added.' },
+        { pin: 'D12', function: 'SG90 Servo Signal', notes: 'Provisional mapping — confirm against code.ino when added.' },
+        { pin: '5V', function: 'Sensor / Servo supply', notes: 'Shared 5 V rail; verify servo current requirements.' },
+        { pin: 'GND', function: 'Common ground', notes: 'Common reference for Nano, sensor and servo.' }
+      ],
+      timeline: [
+        { date: 'Sep 2026', title: 'Project approval & scope', description: 'Initial approval, requirements capture and definition of the sensing, control and verification objectives.' },
+        { date: 'Oct–Nov 2026', title: 'Hardware bring-up', description: 'Validate the Arduino Nano, ultrasonic sensor and servo wiring, then establish repeatable sensor and actuator tests.' },
+        { date: 'Dec 2026–Feb 2027', title: 'Firmware & integration', description: 'Implement sweep control, distance acquisition, serial telemetry and fault-handling behaviour, followed by integration testing.' },
+        { date: 'Mar–Apr 2027', title: 'Verification & refinement', description: 'Characterise detection behaviour, tune timing and sweep parameters, and record evidence against the project requirements.' },
+        { date: 'May 2027', title: 'Documentation', description: 'Consolidate implementation notes, test evidence, design decisions and limitations into the dissertation structure.' },
+        { date: 'Jun 2027', title: 'Final dissertation write-up', description: 'Complete the final technical narrative, evaluation, conclusions and submission-ready documentation.' }
+      ]
     },
     {
       id: 'dfmini',
@@ -1851,7 +1905,7 @@
       if (true) { // The selected role always opens expanded; selecting from the roulette must never leave it contracted.
         const detailId = `exp-detail-${e.id}`;
         return `
-          <div>
+          <div id="experience-entry-${e.id}">
             <div class="flex gap-3 items-start">
               ${logoHtml}
               <button type="button" id="exp-toggle-${e.id}" class="experience-row-toggle flex-1 min-w-0 text-left focus-ring group cursor-pointer" onclick="toggleExperienceDetail('${e.id}')" aria-expanded="true" aria-controls="${detailId}" style="display:table; width:100%; border-collapse:collapse;">
@@ -1931,6 +1985,7 @@
   }
 
   renderExperience();
+  requestAnimationFrame(alignHomelabToExperience);
   // Recalculate live durations when the page becomes visible again and once an hour.
   document.addEventListener('visibilitychange', () => { if (!document.hidden) renderExperience(); });
   setInterval(() => { if (!document.hidden) renderExperience(); }, 60 * 60 * 1000);
@@ -1952,6 +2007,7 @@
       setTimeout(() => {
         profileContent.classList.add('hidden');
         collapsedIndicator.classList.remove('hidden');
+        collapsedIndicator.classList.add('visible');
         collapsedIndicator.classList.add('opacity-0', '-translate-x-2');
         // Double rAF forces the browser to register the "faded out" starting
         // state before we remove it, so the transition below actually animates
@@ -1961,12 +2017,11 @@
         }));
       }, 300);
       
-      leftAside.classList.replace('lg:col-span-3', 'lg:col-span-1');
-      if (isProjectOpen) {
-        centerCol.classList.replace('lg:col-span-9', 'lg:col-span-11');
-      } else {
-        centerCol.classList.replace('lg:col-span-6', 'lg:col-span-8');
-      }
+      leftAside.classList.add('is-collapsed');
+      // Do not mutate the grid column classes here. The sidebar collapses its
+      // contents only; keeping the grid tracks intact prevents the surrounding
+      // container from widening and also preserves the mobile toggle.
+      leftAside.dataset.collapsed = 'true';
       toggleBtn.classList.remove('top-4', 'right-0');
       toggleBtn.classList.add('top-0', 'left-1/2', '-translate-x-1/2');
       toggleBtn.innerHTML = `<i data-lucide="panel-left-open" class="w-5 h-5"></i>`;
@@ -1976,6 +2031,7 @@
       collapsedIndicator.classList.add('opacity-0', '-translate-x-2');
       setTimeout(() => {
         collapsedIndicator.classList.add('hidden');
+        collapsedIndicator.classList.remove('visible');
         collapsedIndicator.classList.remove('opacity-0', '-translate-x-2');
       }, 300);
 
@@ -1985,12 +2041,8 @@
         profileContent.classList.remove('opacity-0', 'pointer-events-none', '-translate-x-2');
       }));
       
-      leftAside.classList.replace('lg:col-span-1', 'lg:col-span-3');
-      if (isProjectOpen) {
-        centerCol.classList.replace('lg:col-span-11', 'lg:col-span-9');
-      } else {
-        centerCol.classList.replace('lg:col-span-8', 'lg:col-span-6');
-      }
+      leftAside.classList.remove('is-collapsed');
+      leftAside.dataset.collapsed = 'false';
       // BUGFIX: must re-add the button's expanded-state position classes here,
       // otherwise after a collapse->expand cycle the button loses its
       // top-4/right-0 placement and can float over/cover the profile content.
@@ -2263,6 +2315,20 @@
     }, 120); // small delay so moving focus within the bar doesn't collapse it
   }
 
+  function alignHomelabToExperience() {
+    if (window.innerWidth < 1024) return;
+    const experience = document.getElementById('experienceSection');
+    const homelab = document.getElementById('homelabSidebarSection');
+    if (!experience || !homelab) return;
+    homelab.style.marginTop = '';
+    const expBottom = experience.getBoundingClientRect().bottom;
+    const homeBottom = homelab.getBoundingClientRect().bottom;
+    const delta = expBottom - homeBottom;
+    if (delta > 0) homelab.style.marginTop = `${delta}px`;
+  }
+
+  window.addEventListener('resize', () => requestAnimationFrame(alignHomelabToExperience));
+
   function renderProjectGrid() {
     const grid = document.getElementById('projectGrid');
     const toggleContainer = document.getElementById('projectToggleContainer');
@@ -2282,7 +2348,7 @@
     emptyState.classList.toggle('hidden', filtered.length > 0);
 
     grid.innerHTML = visible.map((p, i) => `
-      <div class="case-card group focus-ring px-3 py-4 border-t border-l border-r border-line ${i === visible.length - 1 ? 'border-b rounded-b-sm' : ''}" tabindex="0" role="button"
+      <div class="case-card project-showcase-card group focus-ring w-full px-3 py-4 border-l border-r border-line ${i === visible.length - 1 ? 'border-b rounded-b-sm' : ''} ${i === 0 ? 'border-t-0' : 'border-t'}" tabindex="0" role="button"
            aria-label="View ${p.title}" onclick="openProject('${p.id}')"
            title="${p.hoverDescription ? p.hoverDescription.replace(/"/g,'&quot;') : ''}"
            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProject('${p.id}');}">
@@ -3365,7 +3431,16 @@ async function loadGithubProjectDocument(kind) {
       setValue(field('contributors'), Array.isArray(data.contributors) ? data.contributors.length.toLocaleString() : (Number.isFinite(data.contributorCount) ? data.contributorCount.toLocaleString() : '—'));
 
       const tooltipEl = field('tooltip');
-      const contributors = Array.isArray(data.contributors) ? data.contributors : [];
+      const contributorSource = Array.isArray(data.collaborators) ? data.collaborators : (Array.isArray(data.contributors) ? data.contributors : []);
+      const contributors = contributorSource.filter(c => {
+        const commits = Number.isFinite(c.contributions) ? c.contributions : (Number.isFinite(c.commits) ? c.commits : 0);
+        const hasAccess = c.access === true || !!c.permission || !!c.permissions || c.role === 'collaborator';
+        return commits > 0 || hasAccess;
+      }).sort((a,b) => {
+        const ac = Number.isFinite(a.contributions) ? a.contributions : (Number.isFinite(a.commits) ? a.commits : 0);
+        const bc = Number.isFinite(b.contributions) ? b.contributions : (Number.isFinite(b.commits) ? b.commits : 0);
+        return bc - ac || String(a.login || '').localeCompare(String(b.login || ''));
+      });
       if (tooltipEl) {
         tooltipEl.innerHTML = contributors.length ? `
           <div class="gtc-tooltip-head"><span class="gtc-tooltip-title">Collaborators</span><span class="gtc-tooltip-count">${contributors.length.toLocaleString()} found</span></div>
@@ -3373,15 +3448,23 @@ async function loadGithubProjectDocument(kind) {
             const login = String(c.login || 'unknown').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
             const href = String(c.html_url || '#').replace(/"/g, '&quot;');
             const avatar = String(c.avatar_url || '').replace(/"/g, '&quot;');
-            const contributions = Number.isFinite(c.contributions) ? c.contributions : 0;
-            return `<li><a class="gtc-contributor" href="${href}" target="_blank" rel="noopener"><img class="gtc-avatar" src="${avatar}" alt="${login} avatar" loading="lazy"><span class="gtc-contributor-main"><span class="gtc-login">@${login}</span><span class="gtc-contributions">${contributions.toLocaleString()} commit${contributions === 1 ? '' : 's'}</span></span></a></li>`;
+            const contributions = Number.isFinite(c.contributions) ? c.contributions : (Number.isFinite(c.commits) ? c.commits : 0);
+            const accessLabel = (c.access === true || c.permission || c.permissions || c.role === 'collaborator') && contributions === 0 ? 'repository access · 0 commits' : `${contributions.toLocaleString()} commit${contributions === 1 ? '' : 's'}`;
+            return `<li><a class="gtc-contributor" href="${href}" target="_blank" rel="noopener"><img class="gtc-avatar" src="${avatar}" alt="${login} avatar" loading="lazy"><span class="gtc-contributor-main"><span class="gtc-login">@${login}</span><span class="gtc-contributions">${accessLabel}</span></span></a></li>`;
           }).join('')}</ul>` : '<span class="gtc-error">No collaborator data published yet</span>';
       }
       try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch (_) {}
       return true;
     }
 
-    // Local browser cache is only a fallback for a failed local JSON fetch.
+    // Developer note: projects.json should expose zero-commit repository users
+  // through `collaborators` (login, html_url, contributions/commits, and either
+  // access=true or permission/permissions). The renderer intentionally keeps
+  // those access-only users instead of dropping them as the old contributors
+  // array did. This requires a small build-script/JSON schema update if the
+  // current scheduled GitHub export only writes commit contributors.
+
+  // Local browser cache is only a fallback for a failed local JSON fetch.
     const cached = readLocalCache();
     if (cached) render(cached);
 
@@ -3409,6 +3492,39 @@ async function loadGithubProjectDocument(kind) {
       nav.classList.toggle('pd-nav-scrolled', !entry.isIntersecting);
     }, { threshold: 0 });
     projectDetailNavObserver.observe(sentinel);
+  }
+
+  async function loadMicromouseDocuments(project = null) {
+    const root = document.getElementById('micromouseDocumentsViewer');
+    if (!root) return;
+    const apiUrl = 'https://api.github.com/repos/SuberBAbdi/Micro-Mouse/contents/University%20Submitted%20Documents';
+    try {
+      const res = await fetch(apiUrl, { headers: { Accept: 'application/vnd.github+json' } });
+      if (!res.ok) throw new Error(`GitHub documents ${res.status}`);
+      const files = await res.json();
+      let docs = Array.isArray(files) ? files.filter(f => f && f.download_url && /\.(pdf|pptx?|odp)$/i.test(f.name || '')) : [];
+      if (!docs.length) throw new Error('No supported documents found');
+      const expected = project?.micromouseDocuments || {};
+      const expectedNames = [...(expected.reportFiles || []), expected.presentationFile].filter(Boolean);
+      docs.sort((a,b) => {
+        const ai = expectedNames.findIndex(n => n.toLowerCase() === String(a.name || '').toLowerCase());
+        const bi = expectedNames.findIndex(n => n.toLowerCase() === String(b.name || '').toLowerCase());
+        const ar = ai === -1 ? 999 : ai;
+        const br = bi === -1 ? 999 : bi;
+        return ar - br || String(a.name || '').localeCompare(String(b.name || ''));
+      });
+      root.innerHTML = docs.map((f, i) => {
+        const name = String(f.name || 'Document').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+        const isPdf = /\.pdf$/i.test(f.name || '');
+        const src = isPdf ? f.download_url : `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(f.download_url)}`;
+        return `<div class="border border-line rounded-sm overflow-hidden bg-[#18181b]">
+          <div class="px-3 py-2 border-b border-line flex items-center justify-between gap-3"><span class="font-mono text-[10px] uppercase tracking-wider text-faint truncate">${name}</span><span class="font-mono text-[9px] uppercase text-faint">${isPdf ? 'PDF' : 'Presentation'}</span></div>
+          <iframe src="${src}" title="${name}" class="w-full h-[650px] border-0" loading="lazy"></iframe>
+        </div>`;
+      }).join('');
+    } catch (err) {
+      root.innerHTML = '<p class="text-sm text-dim">Repository documents could not be loaded in the browser. The viewer is configured to read PDFs and PowerPoint files from the University Submitted Documents folder.</p>';
+    }
   }
 
   function openProject(id) {
@@ -3613,10 +3729,23 @@ async function loadGithubProjectDocument(kind) {
       `;
     }
 
+    if (p.githubDocumentsFolder && p.id === 'micromouse') {
+      extraAssets += `
+        <div class="mt-8 border border-line bg-panel rounded-sm p-4">
+          <div class="flex items-center justify-between gap-3 mb-3">
+            <p class="font-mono text-xs text-dim uppercase tracking-wider">Project Documents</p>
+            <span class="font-mono text-[10px] uppercase tracking-wider text-faint">Inline viewer</span>
+          </div>
+          <div id="micromouseDocumentsViewer" class="flex flex-col gap-4">
+            <p class="text-sm text-faint">Loading repository documents…</p>
+          </div>
+        </div>`;
+    }
+
     if (p.report || p.codeFile || p.presentation || p.images) {
       extraAssets += `<div class="mt-8 flex flex-col gap-3 w-full">`;
       
-      if (p.report) {
+      if (p.report && p.id !== 'micromouse') {
         const reportIsExternal = /^https?:\/\//i.test(p.report);
         const reportIsGithubFolder = typeof p.report === 'string' && p.report.indexOf('github-folder:') === 0;
         extraAssets += reportIsGithubFolder ? `
@@ -3652,17 +3781,14 @@ async function loadGithubProjectDocument(kind) {
       if (p.codeFile) {
         extraAssets += `
         <div class="flex items-center justify-between p-3.5 bg-panel border border-line hover:border-faint transition-colors rounded-sm">
-          <a href="${p.codeFile}" target="_blank" rel="noopener" class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors flex-1">
-            <i data-lucide="code" class="w-4 h-4 text-dim"></i>
-            <span>View Code (.m) ↗</span>
-          </a>
-          <a href="${p.codeFile}" download title="Download Code" class="focus-ring p-2 text-faint hover:text-white hover:bg-line rounded-sm transition-colors flex items-center justify-center">
-            <i data-lucide="download" class="w-4 h-4"></i>
+          <a href="${p.codeFile}" ${p.id === 'radar' ? 'download="code.ino"' : 'target="_blank" rel="noopener"'} class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors flex-1">
+            <i data-lucide="download" class="w-4 h-4 text-dim"></i>
+            <span>${p.id === 'radar' ? 'Download code.ino' : 'View / Download Code ↗'}</span>
           </a>
         </div>`;
       }
 
-      if (p.presentation) {
+      if (p.presentation && p.id !== 'micromouse') {
         if (p.presentationEmbed && typeof p.presentation === 'string' && p.presentation.indexOf('github-folder:') === 0) {
           extraAssets += `
           <div class="flex items-center justify-between p-3.5 bg-panel border border-line hover:border-faint transition-colors rounded-sm">
@@ -3726,6 +3852,25 @@ async function loadGithubProjectDocument(kind) {
 
 
       <p class="text-base text-[#d2d2d0] mt-6 leading-relaxed max-w-2xl">${p.overview}</p>
+
+      ${p.pinout ? `
+      <div class="mt-7 border border-line bg-panel rounded-sm overflow-hidden">
+        <div class="px-4 py-3 border-b border-line">
+          <p class="font-mono text-xs text-dim uppercase tracking-wider">Microcontroller Pinout</p>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead><tr class="border-b border-lineSoft"><th class="px-4 py-2 font-mono text-[10px] uppercase tracking-wider text-faint">Pin</th><th class="px-4 py-2 font-mono text-[10px] uppercase tracking-wider text-faint">Function</th><th class="px-4 py-2 font-mono text-[10px] uppercase tracking-wider text-faint">Notes</th></tr></thead>
+            <tbody>${p.pinout.map(r => `<tr class="border-b border-lineSoft last:border-b-0"><td class="px-4 py-2 text-white font-mono text-xs">${r.pin}</td><td class="px-4 py-2 text-dim">${r.function}</td><td class="px-4 py-2 text-faint text-xs">${r.notes || ''}</td></tr>`).join('')}</tbody>
+          </table>
+        </div>
+      </div>` : ''}
+
+      ${p.contributors ? `
+      <div class="mt-7 border border-line bg-panel rounded-sm p-4">
+        <p class="font-mono text-xs text-dim uppercase tracking-wider mb-3">Contributors</p>
+        <div class="flex flex-wrap gap-2">${[...p.contributors].sort((a,b) => a.name.localeCompare(b.name)).map(c => c.href ? `<a href="${c.href}" target="_blank" rel="noopener" class="tag hover:text-white hover:border-faint">${c.name} ↗</a>` : `<span class="tag">${c.name}</span>`).join('')}</div>
+      </div>` : ''}
 
       ${p.sections ? `
       <!-- Custom section layout: used instead of the default Technical Stack /
@@ -3810,6 +3955,9 @@ async function loadGithubProjectDocument(kind) {
 
     if (p.githubCard) {
       initGithubTerminalCard('ghCard-' + p.id, p.githubCard);
+    }
+    if (p.id === 'micromouse') {
+      setTimeout(() => loadMicromouseDocuments(p), 50);
     }
 
     if (p.has3DModel) {
@@ -4276,8 +4424,8 @@ const CATEGORY_DATA = {
              (not a separate modal-section) so there's no odd divider gap
              between a one-line label and the paragraph that follows it. -->
         <div class="modal-section">
-          <p class="font-mono text-xs uppercase text-faint mb-3">Cause: <span class="text-dim normal-case">Children</span></p>
-          <p>Supported and supervised children in a dynamic summer community programme, ensuring a safe, engaging, and well-organised environment.</p>
+          <p class="font-mono text-xs uppercase text-faint mb-1">Cause: <span class="text-dim normal-case">Children</span></p>
+          <p class="cause-copy">Supported and supervised children in a dynamic summer community programme, ensuring a safe, engaging, and well-organised environment.</p>
           <ul class="bullet-list mt-3 text-sm text-dim space-y-2">
             <li><strong class="text-[#d2d2d0] font-medium">Activity Coordination:</strong> Led and coordinated diverse recreational activities, including sports and painting, for children aged 8 to 14.</li>
             <li><strong class="text-[#d2d2d0] font-medium">Child Support:</strong> Supervised and looked after participants to ensure safety, teamwork, and positive engagement throughout the playscheme.</li>
@@ -4568,7 +4716,24 @@ function showCategoryDetail(categoryKey, index) {
 // and anywhere else that already knows which item it wants).
 function openModalCategory(categoryKey, index) {
   const cat = CATEGORY_DATA[categoryKey];
-  if (!cat || !cat.length) return;
+  if (!cat || !cat.length) {
+    if (categoryKey === 'awards') {
+      currentCategoryKey = categoryKey;
+      const overlay = document.getElementById('modalOverlay');
+      overlay.classList.add('open');
+      document.body.classList.add('modal-open');
+      document.getElementById('modalEyebrow').textContent = 'Awards';
+      document.getElementById('modalTitle').textContent = 'Awards';
+      setModalLogo(null);
+      document.getElementById('modalCategoryNav').classList.add('hidden');
+      document.getElementById('modalBody').innerHTML = '<div class="modal-section"><p class="text-sm text-dim">No awards have been added yet.</p></div>';
+      document.getElementById('modalPanel').className = 'modal-panel modal-md';
+      document.getElementById('modalHead').style.borderBottom = '';
+      setTimeout(() => overlay.classList.add('shown'), 10);
+      return;
+    }
+    return;
+  }
 
   currentCategoryKey = categoryKey;
 
