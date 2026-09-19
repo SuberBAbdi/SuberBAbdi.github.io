@@ -738,6 +738,72 @@
 
   .bg-symbol,.background-symbol,.side-signal,.side-signals,.electronics-symbol,.signal-line{display:none!important;}
 
+
+  /* ===== Restored desktop-first front page =====
+     Keep the original three-column portfolio presentation on tablets and
+     desktops. Only genuinely narrow phone widths collapse to the mobile
+     reading order. This prevents the web page from looking like the mobile
+     version when the browser viewport is between 768px and 1023px. */
+  @media (min-width:768px){
+    .portfolio-grid{
+      display:grid !important;
+      grid-template-columns:minmax(0,3fr) minmax(0,6fr) minmax(0,3fr) !important;
+      gap:2rem !important;
+      align-items:start !important;
+    }
+    #leftSidebar{
+      grid-column:span 3 !important;
+      grid-row:auto !important;
+      width:100% !important;
+      min-width:0 !important;
+      max-width:none !important;
+    }
+    #centerColumn{
+      grid-column:span 6 !important;
+      grid-row:auto !important;
+      width:100% !important;
+      min-width:0 !important;
+      max-width:none !important;
+    }
+    #rightSidebar{
+      grid-column:span 3 !important;
+      grid-row:auto !important;
+      width:100% !important;
+      min-width:0 !important;
+      max-width:none !important;
+    }
+    #feedView{
+      width:100% !important;
+    }
+  }
+
+  @media (max-width:767px){
+    .portfolio-grid{
+      display:flex !important;
+      flex-direction:column !important;
+      gap:2rem !important;
+    }
+    #leftSidebar,#centerColumn,#rightSidebar{
+      width:100% !important;
+      max-width:100% !important;
+      min-width:0 !important;
+    }
+  }
+
+  /* The collapse control belongs to the sidebar rather than the grid track.
+     Keeping the track width stable means closing the sidebar never makes the
+     neighbouring content jump or widen. */
+  @media (min-width:768px){
+    #leftSidebar.is-collapsed{
+      width:100% !important;
+      min-width:0 !important;
+      max-width:none !important;
+    }
+    #leftSidebar.is-collapsed + #centerColumn{
+      min-width:0 !important;
+    }
+  }
+
 </style>
 
 <style id="bottom-right-grey-gradient">
@@ -3545,6 +3611,12 @@ async function loadGithubProjectDocument(kind) {
     // reference to a previous project's active overlay would be stale.
     activeInteractiveOverlay = null;
 
+    // Determine the 3D viewer type before any project asset markup is built.
+    // This must be available to every project branch below; declaring it later
+    // caused a ReferenceError for projects with `pcbModel`, preventing the
+    // project-detail page from opening at all.
+    const useGLBViewer = Array.isArray(p.glbBodies) && p.glbBodies.length > 0;
+
     let extraAssets = '';
 
     // ---- Contribution note - rendered near the bottom of the page (see the
@@ -3627,7 +3699,6 @@ async function loadGithubProjectDocument(kind) {
     }
 
     if (p.has3DModel) {
-      const useGLBViewer = Array.isArray(p.glbBodies) && p.glbBodies.length > 0;
       extraAssets += `
         <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
           <div class="flex items-center justify-between mb-3">
