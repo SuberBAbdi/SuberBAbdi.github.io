@@ -10,6 +10,7 @@
 
 <!-- Three.js Libraries for 3D Model Rendering -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
@@ -715,43 +716,6 @@
 
   .bg-symbol,.background-symbol,.side-signal,.side-signals,.electronics-symbol,.signal-line{display:none!important;}
 
-
-  /* ===== Experience roulette ===== */
-  .experience-section-head{position:relative;}
-  .experience-section{display:flex;flex-direction:column;min-height:calc(100vh - 300px);}
-  .experience-main-list{flex:0 0 auto;}
-  .experience-roulette{display:grid;grid-template-columns:44px minmax(0,1fr) 44px;align-items:center;gap:6px;margin-top:auto;margin-bottom:auto;padding:20px 0;transition:all .24s ease;}
-  .experience-roulette-arrow{display:flex;align-items:center;justify-content:center;border:0;background:transparent;color:#b8b8bd;min-height:72px;padding:0;transition:transform .18s ease,color .18s ease,opacity .18s ease;cursor:pointer;}
-  .experience-roulette-arrow svg{width:34px;height:34px;stroke-width:1.7;}
-  .experience-roulette-arrow[hidden]{display:none!important;}
-  .experience-roulette-arrow:hover{color:#fff;transform:scale(1.16);}
-  .experience-placards{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;min-width:0;overflow:hidden;}
-  .experience-placard{min-width:0;text-align:left;padding:7px 9px;border:1px solid #2b2b2f;background:#111113;color:#fff;min-height:52px;transition:transform .22s ease,opacity .22s ease,border-color .22s ease,background .22s ease;cursor:pointer;}
-  .experience-placard:hover{border-color:#5a5a60;background:#171719;}
-  .experience-placard.is-active{border-color:rgba(245,245,245,.72);background:#18181a;box-shadow:inset 0 -2px 0 #f5f5f5;}
-  .experience-placard-title{display:block;font:600 11px/1.25 Arial,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .experience-placard-company{display:block;margin-top:3px;color:#8f8f95;font:10px/1.25 Arial,sans-serif;text-transform:uppercase;letter-spacing:.05em;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .experience-placard-top{display:flex;align-items:center;gap:7px;min-width:0;}
-  .experience-placard-logo{width:22px;height:22px;object-fit:cover;border-radius:2px;border:1px solid #2b2b2f;background:#141416;flex:0 0 auto;}
-  .experience-placard-meta{display:block;margin-top:4px;color:#8f8f95;font:9px/1.2 Arial,sans-serif;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;}
-  .experience-main-list{overflow:hidden;}
-  @media (max-width:767px){
-    .experience-roulette{grid-template-columns:34px minmax(0,1fr) 34px;gap:2px;}
-    .experience-roulette-arrow{min-height:58px;}
-    .experience-roulette-arrow svg{width:28px;height:28px;}
-    .experience-placards{grid-template-columns:repeat(3,minmax(0,1fr));}
-    .experience-placard{padding:6px 7px;}
-  }
-
-  /* ===== Experience roulette: always visible ===== */
-  .experience-roulette{visibility:visible!important;opacity:1!important;}
-  /* Only relevant when there are zero alternative roles to switch to (see
-     renderExperiencePlacards) - collapses the strip entirely instead of
-     leaving its padding as empty dead space. Needs !important since the
-     base .experience-roulette rule above forces display:grid unconditionally,
-     which would otherwise override the browser's default [hidden] behaviour. */
-  .experience-roulette[hidden]{ display:none!important; }
-
 </style>
 
 <style id="bottom-right-grey-gradient">
@@ -1019,11 +983,6 @@
           <div id="experienceList" class="flex flex-col gap-7 experience-main-list">
             <!-- Populated via JS: renderExperience() -->
           </div>
-          <div id="experienceRoulette" class="experience-roulette" aria-label="Experience selector" style="display:grid;">
-            <button type="button" id="experienceRoulettePrev" class="experience-roulette-arrow" onclick="moveExperienceRoulette(-1)" aria-label="Previous experience" hidden><i data-lucide="arrow-left"></i></button>
-            <div id="experiencePlacards" class="experience-placards"></div>
-            <button type="button" id="experienceRouletteNext" class="experience-roulette-arrow" onclick="moveExperienceRoulette(1)" aria-label="Next experience" hidden><i data-lucide="arrow-right"></i></button>
-          </div>
         </div>
 
       </div>
@@ -1117,6 +1076,44 @@
         <div class="flex items-center justify-between">
           <p class="font-mono text-xs uppercase tracking-widest text-faint">Following</p>
           <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openModalCategory('following')">View All ↗</button>
+        </div>
+      </div>
+
+      <div class="pt-6 border-t border-line">
+        <div class="flex items-center justify-between">
+          <p class="font-mono text-xs uppercase tracking-widest text-faint">Awards</p>
+          <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openModalCategory('awards')">View All ↗</button>
+        </div>
+      </div>
+
+      <div class="pt-6 border-t border-line">
+        <div class="flex items-center justify-between">
+          <p class="font-mono text-xs uppercase tracking-widest text-faint">Homelab</p>
+          <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openHomelabPage()">Open Page ↗</button>
+        </div>
+      </div>
+
+      <div class="pt-6 border-t border-line">
+        <p class="font-mono text-xs uppercase tracking-widest text-faint mb-4">Experience Timeline</p>
+        <div class="relative pl-5 border-l border-lineSoft">
+          <button type="button" onclick="openModalCategory('partTime')" class="block text-left relative pb-5 group w-full">
+            <span class="absolute -left-[22px] top-0.5 w-2.5 h-2.5 rounded-full border border-faint bg-[#0c0c0d] group-hover:bg-white group-hover:border-white transition-colors"></span>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-faint">Sep 2026 - Present</span>
+            <span class="block text-sm text-white mt-1 group-hover:underline">Part-Time Experience</span>
+            <span class="block text-xs text-dim mt-0.5">Student Team Leader · Westminster SU</span>
+          </button>
+          <button type="button" onclick="document.getElementById('experienceSection')?.scrollIntoView({behavior:'smooth',block:'start'}); setTimeout(() => { if (typeof renderExperience === 'function') renderExperience(); }, 100);" class="block text-left relative pb-5 group w-full">
+            <span class="absolute -left-[22px] top-0.5 w-2.5 h-2.5 rounded-full border border-faint bg-[#0c0c0d] group-hover:bg-white group-hover:border-white transition-colors"></span>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-faint">Jun 2026 - Present</span>
+            <span class="block text-sm text-white mt-1 group-hover:underline">Leonardo Internship</span>
+            <span class="block text-xs text-dim mt-0.5">Microwave Engineer · Luton</span>
+          </button>
+          <button type="button" onclick="openModalCategory('partTime')" class="block text-left relative group w-full">
+            <span class="absolute -left-[22px] top-0.5 w-2.5 h-2.5 rounded-full border border-faint bg-[#0c0c0d] group-hover:bg-white group-hover:border-white transition-colors"></span>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-faint">Earlier</span>
+            <span class="block text-sm text-white mt-1 group-hover:underline">See Part-Time Experience</span>
+            <span class="block text-xs text-dim mt-0.5">Westminster SU · Krispy Kreme · Pabulum</span>
+          </button>
         </div>
       </div>
     </aside>
@@ -1676,10 +1673,27 @@
         }
       ],
 
-      report: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/tree/main/University%20Submitted%20Documents',
-      presentation: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/tree/main/University%20Submitted%20Documents',
-      presentationEmbed: false,
+      // The viewer resolves the PDF/PPTX files from this repository folder at
+      // runtime, so the user views the actual documents in-site rather than
+      // being sent to the GitHub directory.
+      report: 'github-folder:University Submitted Documents',
+      presentation: 'github-folder:University Submitted Documents',
+      presentationEmbed: true,
       contribution: 'This was assessed as a group engineering project. The work covered the analogue front-end and PIC16F877A design, Assembly firmware, simulation, verification and practical demonstration, with the final submission supported by a technical report and group presentation.',
+      cadFiles: [
+        {
+          name: 'Temperature Checker with a DAC.glb — PCB / Full Assembly',
+          url: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/blob/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Temperature%20Checker%20with%20a%20DAC.glb'
+        },
+        {
+          name: 'Cover Body.glb — Cover',
+          url: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/blob/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Cover%20Body.glb'
+        },
+        {
+          name: 'Lower Body.glb — Lower Body',
+          url: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/blob/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Lower%20Body.glb'
+        }
+      ],
       githubCard: 'SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner',
       tags: ['Assembly', 'PIC16F877A', 'MPLAB X'],
       github: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner'
@@ -1687,7 +1701,7 @@
   ];
 
   // ==== Work Experience (main page "Experience" list) ====
-  // The selected role is expanded by default; the roulette switches between roles/focus cards.
+  // The selected role is expanded by default.
   const experiences = [
     {
       id: 'leonardo',
@@ -1711,46 +1725,6 @@
         { label: 'Stakeholder Presentations', text: 'Presented the project and key design decisions to engineering stakeholders.' }
       ]
     },
-    // ======================================================================
-    // TEST DATA - TEMPORARY, FOR LOCAL PREVIEW/TESTING ONLY.
-    // Added on request purely to see the carousel populated with several
-    // roles (arrows, LRU reordering, etc.) styled in the real page. These
-    // are NOT real jobs - delete every entry between this banner and the
-    // matching "END TEST DATA" banner below before this goes live again.
-    // ======================================================================
-    {
-      id: 'TEST-example-current', role: 'Embedded Software Engineer (Graduate)', roleType: 'Full-Time', company: 'Example Aerospace Ltd',
-      logo: 'does-not-exist.jpg', location: 'Bristol, UK · Hybrid', dates: 'Jan 2028 - Present',
-      startDate: '2028-01-01', endDate: '2099-12-31', current: true,
-      summary: 'TEST ENTRY - illustrative future role, not a real job.',
-      bullets: [
-        { label: 'Firmware', text: 'Example bullet describing ongoing firmware responsibilities.' },
-        { label: 'Testing', text: 'Example bullet describing verification work.' }
-      ]
-    },
-    {
-      id: 'TEST-example-rf', role: 'RF Test Engineer', roleType: 'Placement', company: 'Example Systems Group',
-      logo: 'does-not-exist.jpg', location: 'Reading, UK · On-site', dates: 'Sep 2025 - May 2026',
-      startDate: '2025-09-01', endDate: '2026-05-31', current: false,
-      summary: 'TEST ENTRY - illustrative example role, not a real job.',
-      bullets: [{ label: 'Example', text: 'Placeholder bullet point.' }]
-    },
-    {
-      id: 'TEST-example-robotics', role: 'Robotics Engineering Intern', roleType: 'Internship', company: 'Example Robotics Co',
-      logo: 'does-not-exist.jpg', location: 'London, UK · Hybrid', dates: 'Jun 2025 - Aug 2025',
-      startDate: '2025-06-01', endDate: '2025-08-31', current: false,
-      summary: 'TEST ENTRY - illustrative example role, not a real job.',
-      bullets: [{ label: 'Example', text: 'Placeholder bullet point.' }]
-    },
-    {
-      id: 'TEST-example-teaching', role: 'Student Team Leader', roleType: 'Part-Time', company: 'Example University Union',
-      logo: 'does-not-exist.jpg', location: 'London, UK', dates: 'Oct 2024 - Jun 2025',
-      startDate: '2024-10-01', endDate: '2025-06-30', current: false,
-      summary: 'TEST ENTRY - illustrative example role, not a real job.',
-      bullets: [{ label: 'Example', text: 'Placeholder bullet point.' }]
-    }
-    // ======================================================================
-    // END TEST DATA - remove everything above back to "TEST DATA" banner.
     // ======================================================================
     // To add a REAL past role: copy the Leonardo object above, give it a
     // unique id, real dates (startDate/endDate as 'YYYY-MM-DD', current:false
@@ -1846,125 +1820,6 @@
   function liveOngoingDuration(startStr) { return durationLabel(startStr, 'Present'); }
 
   let activeExperienceIndex = 0;
-  let rouletteStartIndex = 0;
-  // Roulette history/order: newest selected alternative is always placed on the LEFT.
-  // The current role is never shown in the roulette. When a role is selected, the
-  // role that was just active is returned to the front of this queue. This keeps
-  // the left side as the most recently used role and the right side as the oldest.
-  let rouletteOrder = null;
-
-  function experienceShortTitle(role) {
-    const cleaned = String(role || '').replace(/\(Internship\)/i, '').trim();
-    const words = cleaned.split(/\s+/);
-    return words.slice(0, 3).join(' ');
-  }
-
-  /*
-   * FUTURE-PROOF EXPERIENCE ROULETTE
-   * ---------------------------------
-   * The currently selected experience is intentionally EXCLUDED from the
-   * roulette. This means the cards always represent roles the visitor can
-   * switch TO, rather than repeating the role already shown above.
-   *
-   * Only three cards are rendered at once. If there are more than three
-   * OTHER roles available, the arrow controls become visible automatically.
-   * When adding real experience entries to `experiences`, no roulette code
-   * needs to be changed: the list and arrow visibility are calculated from
-   * the number of entries automatically.
-   */
-  function getRouletteExperiences() {
-    const all = experiences.map((entry, index) => ({ entry, index }));
-    const validIndexes = new Set(all.map(item => item.index));
-
-    // Build the queue once from the experience data. Newest roles are initially
-    // placed first; after the visitor starts switching, selection history controls
-    // the order so the most recently selected role is always on the LEFT.
-    if (!Array.isArray(rouletteOrder)) {
-      rouletteOrder = all
-        .filter(item => item.index !== activeExperienceIndex)
-        .sort((a, b) => {
-          const da = parseISODate(a.entry.startDate)?.getTime() || 0;
-          const db = parseISODate(b.entry.startDate)?.getTime() || 0;
-          return db - da;
-        })
-        .map(item => item.index);
-    }
-
-    // Future-proofing: if real roles are added/removed later, automatically
-    // reconcile the stored queue without needing to edit roulette code.
-    rouletteOrder = rouletteOrder.filter(index => validIndexes.has(index) && index !== activeExperienceIndex);
-    all.forEach(item => {
-      if (item.index !== activeExperienceIndex && !rouletteOrder.includes(item.index)) {
-        rouletteOrder.push(item.index);
-      }
-    });
-
-    return rouletteOrder.map(index => ({ entry: experiences[index], index }));
-  }
-
-  function renderExperiencePlacards() {
-    const wrap = document.getElementById('experiencePlacards');
-    const prev = document.getElementById('experienceRoulettePrev');
-    const next = document.getElementById('experienceRouletteNext');
-    const roulette = document.getElementById('experienceRoulette');
-    if (!wrap) return;
-
-    const available = getRouletteExperiences();
-    const hasOverflow = available.length > 3;
-    const maxStart = Math.max(0, available.length - 3);
-    rouletteStartIndex = Math.min(Math.max(rouletteStartIndex, 0), maxStart);
-    const visible = available.slice(rouletteStartIndex, rouletteStartIndex + 3);
-
-    // The roulette is always visible and needs no reveal/toggle button - but
-    // with zero alternative roles to switch to (e.g. only one real job on
-    // file so far) there's nothing to show, so the strip collapses to zero
-    // height instead of leaving its padding behind as dead space. It comes
-    // back automatically, with no code changes, the moment a second real
-    // role is added to `experiences` above.
-    if (roulette) {
-      roulette.hidden = available.length === 0;
-    }
-    if (available.length === 0) return;
-
-    wrap.innerHTML = visible.map(({ entry: e, index: i }) => `
-      <button type="button" class="experience-placard" onclick="selectExperience(${i})" aria-label="View ${e.role}">
-        <span class="experience-placard-top">
-          <img class="experience-placard-logo" src="${e.logo}" alt="${e.company} logo" onerror="handleLogoError(this)">
-          <span class="experience-placard-title">${experienceShortTitle(e.role)}</span>
-        </span>
-        <span class="experience-placard-company">${e.company} · ${e.roleType || 'Role'}</span>
-        <span class="experience-placard-meta">${displayDateRange((e.dates||'').split(' - ')[0], (e.dates||'').split(' - ')[1], e.current, e)}</span>
-      </button>
-    `).join('');
-
-    // Navigation exists only when there are MORE THAN THREE alternative roles.
-    if (prev) prev.hidden = !hasOverflow || rouletteStartIndex <= 0;
-    if (next) next.hidden = !hasOverflow || rouletteStartIndex >= maxStart;
-  }
-
-  function selectExperience(index) {
-    if (!experiences.length || index === activeExperienceIndex) return;
-    const previousIndex = activeExperienceIndex;
-
-    // Return the role that was just displayed to the LEFT of the roulette.
-    if (!Array.isArray(rouletteOrder)) rouletteOrder = [];
-    rouletteOrder = rouletteOrder.filter(i => i !== index && i !== previousIndex);
-    rouletteOrder.unshift(previousIndex);
-
-    activeExperienceIndex = Math.max(0, Math.min(index, experiences.length - 1));
-    rouletteStartIndex = 0;
-    renderExperience();
-  }
-
-  function moveExperienceRoulette(direction) {
-    const available = getRouletteExperiences();
-    if (available.length <= 3) return;
-    const maxStart = Math.max(0, available.length - 3);
-    rouletteStartIndex = Math.max(0, Math.min(rouletteStartIndex + direction, maxStart));
-    renderExperiencePlacards();
-    lucide.createIcons();
-  }
-
   function renderExperience() {
     const container = document.getElementById('experienceList');
     if (!container) return;
@@ -2060,7 +1915,6 @@
         </div>
       `;
     }).join('') : '';
-    renderExperiencePlacards();
     lucide.createIcons();
   }
 
@@ -2525,6 +2379,46 @@
   // directly like they can PDFs, so this routes through Microsoft's public
   // Office web viewer, which needs a publicly reachable, URL-encoded source -
   // it'll only render once the real .pptx file is actually uploaded to the repo.
+
+async function loadGithubProjectDocument(kind) {
+  const apiUrl = 'https://api.github.com/repos/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/contents/University%20Submitted%20Documents';
+  try {
+    const response = await fetch(apiUrl, { headers: { 'Accept': 'application/vnd.github+json' } });
+    if (!response.ok) throw new Error('GitHub API returned ' + response.status);
+    const files = await response.json();
+    const list = Array.isArray(files) ? files : [];
+
+    let file = null;
+    if (kind === 'report') {
+      file = list.find(f => /\.(pdf)$/i.test(f.name));
+    } else {
+      file = list.find(f => /\.(pptx|ppt)$/i.test(f.name));
+    }
+    if (!file || !file.download_url) {
+      throw new Error('No matching ' + kind + ' document was found.');
+    }
+
+    if (kind === 'report') {
+      const container = document.getElementById('githubReportViewerContainer');
+      const iframe = document.getElementById('githubReportIframe');
+      if (!container || !iframe) return;
+      iframe.src = file.download_url;
+      container.classList.remove('hidden');
+      container.scrollIntoView({behavior:'smooth', block:'nearest'});
+    } else {
+      const container = document.getElementById('githubPresentationViewerContainer');
+      const iframe = document.getElementById('githubPresentationIframe');
+      if (!container || !iframe) return;
+      iframe.src = 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(file.download_url);
+      container.classList.remove('hidden');
+      container.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }
+  } catch (error) {
+    console.error('Could not load DAC document:', error);
+    alert('The document could not be loaded in the site. Please check the University Submitted Documents folder and try again.');
+  }
+}
+
   function togglePresentationViewer(url) {
     const container = document.getElementById('presentationViewerContainer');
     const iframe = document.getElementById('presentationIframe');
@@ -2923,6 +2817,140 @@
     if (cfg) cfg.visible = visible;
     const mesh = inst.bodies[bodyId];
     if (mesh) mesh.visible = visible;
+  }
+
+
+  function initGLBViewer(containerId, glbBodies) {
+    const container = document.getElementById(containerId);
+    if (!container || !Array.isArray(glbBodies) || !glbBodies.length || !THREE.GLTFLoader) return;
+
+    container.innerHTML = '';
+    const inst = {
+      animationId: null,
+      bodies: {},
+      bodiesConfig: glbBodies.map(b => ({...b, visible: b.visible !== false}))
+    };
+    viewer3DInstances[containerId] = inst;
+
+    const width = container.clientWidth || 800;
+    const height = container.clientHeight || 576;
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xf3f3f2);
+
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.01, 5000);
+    camera.position.set(0, 0, 150);
+    camera.up.set(0, 1, 0);
+    camera.lookAt(0, 0, 0);
+    camera.userData.homePosition = camera.position.clone();
+
+    const renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(width, height);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    container.appendChild(renderer.domElement);
+
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x777777, 1.35));
+    const key = new THREE.DirectionalLight(0xffffff, 1.25);
+    key.position.set(3, 5, 6);
+    scene.add(key);
+    const fill = new THREE.DirectionalLight(0xffffff, 0.55);
+    fill.position.set(-4, 2, -3);
+    scene.add(fill);
+
+    const group = new THREE.Group();
+    scene.add(group);
+
+    const controls = THREE.OrbitControls ? new THREE.OrbitControls(camera, renderer.domElement) : null;
+    if (controls) {
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.06;
+      controls.minDistance = 0.05;
+      controls.maxDistance = 5000;
+    }
+
+    const loading = document.createElement('div');
+    loading.className = 'stl-loading absolute inset-0 flex items-center justify-center font-mono text-xs pointer-events-none';
+    loading.style.background = 'rgba(243,243,242,.72)';
+    loading.style.color = '#555554';
+    loading.textContent = 'LOADING 3D CAD MODEL...';
+    container.appendChild(loading);
+
+    const loader = new THREE.GLTFLoader();
+    const bounds = new THREE.Box3();
+    let loaded = 0;
+    let anyLoaded = false;
+
+    const finish = () => {
+      loaded++;
+      if (loaded < inst.bodiesConfig.length) return;
+
+      if (anyLoaded) {
+        const size = new THREE.Vector3();
+        bounds.getSize(size);
+        const centre = new THREE.Vector3();
+        bounds.getCenter(centre);
+        const distance = Math.max(size.length() * 0.95, 20);
+        camera.position.set(centre.x, centre.y, centre.z + distance);
+        camera.lookAt(centre);
+        camera.userData.homePosition = camera.position.clone();
+        camera.userData.homeTarget = centre.clone();
+        if (controls) controls.target.copy(centre);
+        if (loading) loading.remove();
+      } else {
+        loading.textContent = '3D CAD model could not be loaded';
+      }
+      renderLayerDropdown(containerId);
+    };
+
+    inst.bodiesConfig.forEach(cfg => {
+      loader.load(
+        cfg.path,
+        gltf => {
+          const root = gltf.scene;
+          root.name = cfg.name;
+          root.visible = cfg.visible;
+          root.traverse(obj => {
+            if (!obj.isMesh) return;
+            obj.castShadow = true;
+            obj.receiveShadow = true;
+            // Preserve authored GLB materials. Only tune roughness/metalness
+            // where the source uses standard PBR materials.
+            if (obj.material && obj.material.isMeshStandardMaterial) {
+              obj.material.roughness = Math.max(obj.material.roughness ?? 0.45, 0.3);
+              obj.material.metalness = Math.min(obj.material.metalness ?? 0.05, 0.18);
+            }
+          });
+          inst.bodies[cfg.id] = root;
+          root.updateMatrixWorld(true);
+          bounds.expandByObject(root);
+          group.add(root);
+          anyLoaded = true;
+          finish();
+        },
+        undefined,
+        () => finish()
+      );
+    });
+
+    const renderViewCube = initViewCube(camera, controls, container);
+
+    function animate() {
+      inst.animationId = requestAnimationFrame(animate);
+      if (controls) controls.update();
+      renderer.render(scene, camera);
+      renderViewCube();
+    }
+    animate();
+
+    const resize = () => {
+      if (!container) return;
+      const w = container.clientWidth || 800;
+      const h = container.clientHeight || 576;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    };
+    window.addEventListener('resize', resize);
   }
 
   function init3DViewer(containerId, stlBodies) {
@@ -3447,7 +3475,7 @@
           <div class="flex items-center justify-between mb-3">
             <p class="font-mono text-xs text-dim uppercase tracking-wider">${p.title} - PCB 3D Model</p>
             <div class="flex items-center gap-2">
-              <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">3D STL View</span>
+              <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">${useGLBViewer ? '3D GLB View' : '3D STL View'}</span>
               <div class="relative">
                 <button id="layerToggleBtn-pcbViewerContainer" onclick="toggleLayerDropdown(event,'pcbViewerContainer')" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Toggle model layers" aria-label="Toggle model layers">
                   <i data-lucide="layers" class="w-3.5 h-3.5"></i>
@@ -3462,7 +3490,28 @@
       `;
     }
 
+    if (p.cadFiles && p.cadFiles.length) {
+      extraAssets += `
+        <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
+          <div class="flex items-center justify-between mb-3">
+            <p class="font-mono text-xs text-dim uppercase tracking-wider">${p.title} - CAD Source Files</p>
+            <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">GLB / CAD</span>
+          </div>
+          <div class="flex flex-col gap-2">
+            ${p.cadFiles.map(file => `
+              <a href="${file.url}" target="_blank" rel="noopener noreferrer"
+                 class="flex items-center justify-between gap-3 border border-line px-3 py-2 text-sm text-dim hover:text-white hover:border-faint transition-colors">
+                <span class="min-w-0 break-words">${file.name}</span>
+                <span class="font-mono text-[10px] uppercase tracking-wider text-faint shrink-0">Open ↗</span>
+              </a>
+            `).join('')}
+          </div>
+        </div>
+      `;
+    }
+
     if (p.has3DModel) {
+      const useGLBViewer = Array.isArray(p.glbBodies) && p.glbBodies.length > 0;
       extraAssets += `
         <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
           <div class="flex items-center justify-between mb-3">
@@ -3569,7 +3618,17 @@
       
       if (p.report) {
         const reportIsExternal = /^https?:\/\//i.test(p.report);
-        extraAssets += reportIsExternal ? `
+        const reportIsGithubFolder = typeof p.report === 'string' && p.report.indexOf('github-folder:') === 0;
+        extraAssets += reportIsGithubFolder ? `
+        <div class="flex items-center justify-between p-3.5 bg-panel border border-line hover:border-faint transition-colors rounded-sm">
+          <button onclick="loadGithubProjectDocument('report')" class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors text-left flex-1 cursor-pointer">
+            <i data-lucide="file-text" class="w-4 h-4 text-dim"></i>
+            <span>View Report ↗</span>
+          </button>
+        </div>
+        <div id="githubReportViewerContainer" class="hidden w-full border border-line rounded-sm bg-[#18181b] overflow-hidden">
+          <iframe id="githubReportIframe" src="" class="w-full h-[650px] border-0"></iframe>
+        </div>` : reportIsExternal ? `
         <div class="flex items-center justify-between p-3.5 bg-panel border border-line hover:border-faint transition-colors rounded-sm">
           <a href="${p.report}" target="_blank" rel="noopener" class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors text-left flex-1">
             <i data-lucide="file-text" class="w-4 h-4 text-dim"></i>
@@ -3604,7 +3663,18 @@
       }
 
       if (p.presentation) {
-        if (p.presentationEmbed) {
+        if (p.presentationEmbed && typeof p.presentation === 'string' && p.presentation.indexOf('github-folder:') === 0) {
+          extraAssets += `
+          <div class="flex items-center justify-between p-3.5 bg-panel border border-line hover:border-faint transition-colors rounded-sm">
+            <button onclick="loadGithubProjectDocument('presentation')" class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors text-left flex-1 cursor-pointer">
+              <i data-lucide="monitor-play" class="w-4 h-4 text-dim"></i>
+              <span>View Presentation ↗</span>
+            </button>
+          </div>
+          <div id="githubPresentationViewerContainer" class="hidden w-full border border-line rounded-sm bg-[#18181b] overflow-hidden">
+            <iframe id="githubPresentationIframe" src="" class="w-full h-[650px] border-0"></iframe>
+          </div>`;
+        } else if (p.presentationEmbed) {
           // "Viewable in web" presentation - mirrors the report's inline
           // PDF pattern above, but through Microsoft's Office web viewer,
           // since browsers can't render .pptx natively the way they can PDFs.
@@ -3744,7 +3814,11 @@
 
     if (p.has3DModel) {
       setTimeout(() => {
-        init3DViewer('stlViewerContainer', p.stlBodies || []);
+        if (p.glbBodies && p.glbBodies.length) {
+          initGLBViewer('stlViewerContainer', p.glbBodies);
+        } else {
+          init3DViewer('stlViewerContainer', p.stlBodies || []);
+        }
         addClickToInteractOverlay('stlViewerContainer', 'Click to Interact');
       }, 50);
     }
@@ -3984,6 +4058,64 @@ function initFollowingAccordion() {
 }
 
 
+
+function openHomelabPage() {
+  const detailView = document.getElementById('projectDetailView');
+  const feedView = document.getElementById('feedView');
+  const centerCol = document.getElementById('centerColumn');
+  const rightSidebar = document.getElementById('rightSidebar');
+  if (!detailView || !feedView) return;
+
+  // Stop any project viewer still running before switching to the blank page.
+  Object.keys(viewer3DInstances).forEach((key) => {
+    const inst = viewer3DInstances[key];
+    if (inst.animationId) cancelAnimationFrame(inst.animationId);
+  });
+  viewer3DInstances = {};
+
+  feedView.style.display = 'none';
+  detailView.classList.add('open');
+
+  if (centerCol) {
+    if (typeof leftSidebarOpen !== 'undefined' && leftSidebarOpen) {
+      centerCol.classList.replace('lg:col-span-6', 'lg:col-span-9');
+    } else {
+      centerCol.classList.replace('lg:col-span-8', 'lg:col-span-11');
+    }
+  }
+  if (rightSidebar) {
+    rightSidebar.classList.add('hidden');
+  }
+
+  detailView.innerHTML = `
+    <div id="projectDetailNavSentinel" style="height:1px;"></div>
+    <div id="projectDetailNav" class="pd-nav mb-6">
+      <div class="pdnav-left">
+        <button onclick="closeProject()" class="focus-ring inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white transition-colors">
+          <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Portfolio
+        </button>
+      </div>
+      <div class="pdnav-center">
+        <button class="pdnav-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Scroll to top">↑ Top</button>
+      </div>
+      <div class="pdnav-right"></div>
+    </div>
+
+    <div class="max-w-4xl">
+      <p class="font-mono text-xs text-faint uppercase tracking-wider">Homelab</p>
+      <h2 class="font-display font-extrabold text-4xl sm:text-5xl text-white mt-2">Homelab</h2>
+      <p class="text-base text-dim mt-4">This page is reserved for the homelab section.</p>
+      <div class="mt-8 border border-dashed border-line bg-panel rounded-sm min-h-[22rem] flex items-center justify-center">
+        <span class="font-mono text-xs uppercase tracking-widest text-faint">Content coming soon</span>
+      </div>
+    </div>
+  `;
+
+  window.scrollTo({top:0, behavior:'smooth'});
+  if (window.lucide) lucide.createIcons();
+  history.replaceState(null, '', '#homelab');
+}
+
 const CATEGORY_DATA = {
   // ---- Licences & Certifications ----
   // `group` clusters entries under a shared heading in the table-of-contents
@@ -4204,6 +4336,10 @@ const CATEGORY_DATA = {
       `
     }
   ],
+  // Awards is intentionally blank for now, but uses the same category/modal
+  // structure as Licences & Certifications so entries can be added later.
+  awards: [],
+
   following: [
     {
       size: 'modal-md',
@@ -4353,6 +4489,7 @@ const CATEGORY_LABELS = {
   volunteering: 'Volunteering',
   partTime: 'Part-Time Experience',
   certifications: 'Licences & Certifications',
+  awards: 'Awards',
   following: 'Following'
 };
 
