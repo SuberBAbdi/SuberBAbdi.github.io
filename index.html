@@ -433,8 +433,9 @@
       position:sticky !important;
       top:24px !important;
       align-self:start !important;
-      height:calc(100vh - 48px);
-      overflow-y:auto;
+      height:auto;
+      max-height:none;
+      overflow:visible;
       padding-left:0 !important;
       padding-right:28px;
       border-right:1px solid #27272a;
@@ -658,13 +659,13 @@
 
 
   /* ===== Responsive presentation scale ===== */
-  html{zoom:1;}
+  html{zoom:0.9;}
 
 
   /* ===== Portfolio grid/sidebar refinements ===== */
   @media (min-width:1024px){
     .portfolio-grid{grid-template-columns:repeat(12,minmax(0,1fr)) !important;}
-    #leftSidebar{width:100%; max-width:none; min-width:0; height:auto; max-height:calc(100vh - 48px); overflow-y:auto; box-sizing:border-box;}
+    #leftSidebar{width:100%; max-width:none; min-width:0; height:auto; max-height:none; overflow:visible; box-sizing:border-box;}
     #centerColumn,#rightSidebar{min-width:0; width:100%; max-width:none; box-sizing:border-box;}
   }
   #leftSidebar.is-collapsed{width:100% !important; max-width:none !important; min-width:0 !important;}
@@ -823,6 +824,30 @@
     #leftSidebar.is-collapsed + #centerColumn{
       min-width:0 !important;
     }
+  }
+
+
+  /* Sidebar toggle must remain a fixed square and remain visible after collapse.
+     The page itself, not the sidebar, owns vertical scrolling. */
+  #leftToggleBtn{
+    width:40px !important;
+    min-width:40px !important;
+    max-width:40px !important;
+    height:40px !important;
+    min-height:40px !important;
+    max-height:40px !important;
+    aspect-ratio:1 / 1 !important;
+    flex:0 0 40px !important;
+    display:flex !important;
+    visibility:visible !important;
+    opacity:1 !important;
+    z-index:100 !important;
+    box-sizing:border-box !important;
+  }
+  #leftSidebar.is-collapsed #leftToggleBtn{
+    display:flex !important;
+    visibility:visible !important;
+    opacity:1 !important;
   }
 
 </style>
@@ -2395,11 +2420,13 @@
     // The timeline's own top border should sit on the same horizontal line
     // as the bottom border of the main Experience heading.  Use the live
     // element positions so the alignment survives responsive resizing.
+    // Reset the previous correction before measuring so repeated resize/zoom
+    // passes do not accumulate offsets. The divider above the timeline is then
+    // placed exactly on the bottom border of the main Experience heading.
+    timeline.style.marginTop = '0px';
     const desiredTop = expHead.getBoundingClientRect().bottom;
-    const currentMargin = parseFloat(getComputedStyle(timeline).marginTop) || 0;
     const delta = desiredTop - timeline.getBoundingClientRect().top;
-    const next = Math.max(0, currentMargin + delta);
-    timeline.style.marginTop = next + 'px';
+    timeline.style.marginTop = Math.max(0, delta) + 'px';
   }
 
   window.addEventListener('resize', () => {
@@ -2645,6 +2672,9 @@ async function loadGithubProjectDocument(kind) {
   const feedView = document.getElementById('feedView');
   const detailView = document.getElementById('projectDetailView');
   const detailContent = document.getElementById('projectDetailContent');
+  // Immutable copy of the normal project-detail shell. Homelab is rendered
+  // inside this shell so leaving Homelab can never destroy project controls.
+  const projectDetailTemplate = detailView ? detailView.innerHTML : '';
 
   // Registry of every 3D viewer currently rendered on the page, keyed by
   // its container id. A project page can now show more than one 3D
@@ -3610,6 +3640,12 @@ async function loadGithubProjectDocument(kind) {
     const p = projects.find(x => x.id === id);
     if (!p) return;
 
+    // Restore the normal project-detail shell if the previous page was
+    // Homelab. This keeps Homelab completely independent from projects.
+    if (!document.getElementById('projectDetailContent') && projectDetailTemplate) {
+      detailView.innerHTML = projectDetailTemplate;
+    }
+
     // Cancel and clear every 3D viewer left running from a previously open
     // project page (there can be more than one now - see viewer3DInstances)
     // before building the new one.
@@ -4007,9 +4043,11 @@ async function loadGithubProjectDocument(kind) {
     
     const centerCol = document.getElementById('centerColumn');
     if(leftSidebarOpen) {
-        centerCol.classList.replace('lg:col-span-6', 'lg:col-span-9');
+        centerCol.classList.remove('lg:col-span-6', 'lg:col-span-8', 'lg:col-span-9', 'lg:col-span-11');
+        centerCol.classList.add('lg:col-span-9');
     } else {
-        centerCol.classList.replace('lg:col-span-8', 'lg:col-span-11');
+        centerCol.classList.remove('lg:col-span-6', 'lg:col-span-8', 'lg:col-span-9', 'lg:col-span-11');
+        centerCol.classList.add('lg:col-span-9');
     }
 
     feedView.style.display = 'none';
@@ -4083,14 +4121,13 @@ async function loadGithubProjectDocument(kind) {
     detailView.classList.add('closing');
     setTimeout(() => {
       detailView.classList.remove('open', 'closing');
+      // Always restore the canonical project shell after leaving Homelab or a project.
+      if (projectDetailTemplate) detailView.innerHTML = projectDetailTemplate;
       feedView.style.display = 'flex';
 
       const centerCol = document.getElementById('centerColumn');
-      if (leftSidebarOpen) {
-        centerCol.classList.replace('lg:col-span-9', 'lg:col-span-6');
-      } else {
-        centerCol.classList.replace('lg:col-span-11', 'lg:col-span-8');
-      }
+      centerCol.classList.remove('lg:col-span-6', 'lg:col-span-8', 'lg:col-span-9', 'lg:col-span-11');
+      centerCol.classList.add(leftSidebarOpen ? 'lg:col-span-6' : 'lg:col-span-8');
 
       const rightSidebarEl = document.getElementById('rightSidebar');
       rightSidebarEl.classList.remove('hidden');
@@ -4299,29 +4336,20 @@ function openHomelabPage() {
     rightSidebar.classList.add('hidden');
   }
 
-  detailView.innerHTML = `
-    <div id="projectDetailNavSentinel" style="height:1px;"></div>
-    <div id="projectDetailNav" class="pd-nav mb-6">
-      <div class="pdnav-left">
-        <button onclick="closeProject()" class="focus-ring inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white transition-colors">
-          <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Portfolio
-        </button>
-      </div>
-      <div class="pdnav-center">
-        <button class="pdnav-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Scroll to top">↑ Top</button>
-      </div>
-      <div class="pdnav-right"></div>
-    </div>
-
-    <div class="max-w-4xl">
-      <h2 class="font-display font-extrabold text-4xl sm:text-5xl text-white">Homelab</h2>
-      <p class="text-base text-dim mt-4">This page is reserved for the homelab section.</p>
-      <div class="mt-8 border border-dashed border-line bg-panel rounded-sm min-h-[22rem] flex items-center justify-center">
-        <span class="font-mono text-xs uppercase tracking-widest text-faint">Content coming soon</span>
-      </div>
-    </div>
-  `;
-
+  // Restore the normal detail shell, then render Homelab only inside the
+  // content region. This prevents the Homelab page from uncoupling projects.
+  detailView.innerHTML = projectDetailTemplate;
+  const homelabContent = document.getElementById('projectDetailContent');
+  if (homelabContent) {
+    homelabContent.innerHTML = `
+      <div class="max-w-4xl">
+        <h2 class="font-display font-extrabold text-4xl sm:text-5xl text-white">Homelab</h2>
+        <p class="text-base text-dim mt-4">This page is reserved for the homelab section.</p>
+        <div class="mt-8 border border-dashed border-line bg-panel rounded-sm min-h-[22rem] flex items-center justify-center">
+          <span class="font-mono text-xs uppercase tracking-widest text-faint">Content coming soon</span>
+        </div>
+      </div>`;
+  }
   window.scrollTo({top:0, behavior:'smooth'});
   if (window.lucide) lucide.createIcons();
   history.replaceState(null, '', '#homelab');
