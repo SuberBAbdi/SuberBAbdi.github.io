@@ -10,21 +10,9 @@
 
 <!-- Three.js Libraries for 3D Model Rendering -->
 <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
-<!-- Renders PDFs to <canvas> instead of framing them in an <iframe> - some
-     hosts (e.g. GitHub's raw file CDN) send X-Frame-Options: deny, which
-     silently blocks iframe embedding even though the file itself loads
-     fine over a plain fetch/XHR. See renderPdfInline / togglePdfViewer. -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
-<script>
-  if (window['pdfjs-dist/build/pdf']) {
-    window['pdfjs-dist/build/pdf'].GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  } else if (window.pdfjsLib) {
-    window.pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-  }
-</script>
 
 <script>
   tailwind.config = {
@@ -599,12 +587,14 @@
       right:auto !important;
       margin:0 0 14px auto;
       display:flex;
-      width:max-content;
+      width:40px !important;
+      min-width:40px !important;
+      height:40px !important;
     }
     #leftCollapsedIndicator{
       position:relative !important;
       inset:auto !important;
-      display:flex !important;
+      display:none;
       width:100%;
       padding:0 !important;
       margin:0 0 18px;
@@ -623,6 +613,8 @@
       transform:none !important;
     }
     #leftProfileContent{margin-top:0 !important;}
+    #leftCollapsedIndicator.visible{display:flex !important;}
+    #leftToggleBtn{width:40px !important; min-width:40px !important; height:40px !important; padding:0 !important;}
   }
 
   @media (max-width: 639px){
@@ -665,8 +657,42 @@
 
 
 
-  /* ===== Global 90% presentation scale ===== */
-  html{zoom:.9;}
+  /* ===== Responsive presentation scale ===== */
+  html{zoom:1;}
+
+
+  /* ===== Portfolio grid/sidebar refinements ===== */
+  @media (min-width:1024px){
+    .portfolio-grid{grid-template-columns:repeat(12,minmax(0,1fr)) !important;}
+    #leftSidebar{width:100%; max-width:none; min-width:0; height:auto; max-height:calc(100vh - 48px); overflow-y:auto; box-sizing:border-box;}
+    #centerColumn,#rightSidebar{min-width:0; width:100%; max-width:none; box-sizing:border-box;}
+  }
+  #leftSidebar.is-collapsed{width:100% !important; max-width:none !important; min-width:0 !important;}
+  #leftSidebar.is-collapsed + #centerColumn{min-width:0;}
+  #leftCollapsedIndicator.visible{display:flex !important;}
+  .experience-timeline-node{display:block; width:100%; text-align:left; position:relative; padding-left:22px; padding-bottom:22px;}
+  .experience-timeline-list{position:relative;}
+  .experience-timeline-node:last-child{padding-bottom:0;}
+  .experience-timeline-node:not(:last-child)::after{content:""; position:absolute; left:4px; top:11px; bottom:-1px; width:1px; background:var(--lineSoft,#303033); pointer-events:none;}
+  .experience-timeline-marker{position:absolute; left:0; top:2px; width:10px; height:10px; border-radius:999px; border:1px solid currentColor; box-sizing:border-box; z-index:2;}
+  .experience-timeline-current{color:#22c55e; background:#22c55e;}
+  .experience-timeline-ended{color:#ef4444; background:#ef4444;}
+  .project-showcase-card{width:100%; box-sizing:border-box;}
+  #projectGrid{min-height:216px;}
+  .project-showcase-card:first-child{border-top-width:1px !important;}
+  .project-showcase-card:last-child{border-bottom-width:0 !important; border-radius:0 !important;}
+  .modal-body .modal-section{margin-top:14px; padding-top:12px;}
+  .modal-body .modal-section:first-child{margin-top:0; padding-top:0; border-top:none;}
+  .modal-body .modal-section .modal-label + *{margin-top:4px !important;}
+  .modal-body .cause-copy{margin-top:2px !important;}
+  #partTimeSidebarSection{scroll-margin-top:24px;}
+  /* Awards and Homelab are adjacent modules: keep their separation compact and consistent. */
+  #rightSidebar > #homelabSidebarSection{margin-top:0 !important;}
+  #rightSidebar > #experienceTimelineSidebar{margin-top:0 !important; padding-top:24px !important;}
+  #rightSidebar > #homelabSidebarSection + div{margin-top:0 !important;}
+
+  #experienceSection{scroll-margin-top:24px;}
+  #experienceSection > .experience-section-head{margin-bottom:0;}
 
   /* ===== Portfolio fixes ===== */
   .experience-meta-grid{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:start;width:100%;}
@@ -728,7 +754,76 @@
 
   .bg-symbol,.background-symbol,.side-signal,.side-signals,.electronics-symbol,.signal-line{display:none!important;}
 
-  .experience-section-head{position:relative;}
+
+  /* ===== Restored desktop-first front page =====
+     Keep the original three-column portfolio presentation on tablets and
+     desktops. Only genuinely narrow phone widths collapse to the mobile
+     reading order. This prevents the web page from looking like the mobile
+     version when the browser viewport is between 768px and 1023px. */
+  @media (min-width:768px){
+    /* Keep the original 12-column desktop grid. The earlier 3/6/3 track
+       override was incorrect because the markup still uses Tailwind's
+       col-span-3 / col-span-6 classes; with only 3 grid tracks those spans
+       consumed the entire row and made desktop look like mobile. */
+    .portfolio-grid{
+      display:grid !important;
+      grid-template-columns:repeat(12,minmax(0,1fr)) !important;
+      column-gap:2rem !important;
+      row-gap:2rem !important;
+      align-items:start !important;
+    }
+    #leftSidebar{
+      grid-column:span 3 !important;
+      grid-row:auto !important;
+      width:100% !important;
+      min-width:0 !important;
+      max-width:none !important;
+    }
+    #centerColumn{
+      grid-column:span 6 !important;
+      grid-row:auto !important;
+      width:100% !important;
+      min-width:0 !important;
+      max-width:none !important;
+    }
+    #rightSidebar{
+      grid-column:span 3 !important;
+      grid-row:auto !important;
+      width:100% !important;
+      min-width:0 !important;
+      max-width:none !important;
+    }
+    #feedView{
+      width:100% !important;
+    }
+  }
+
+  @media (max-width:767px){
+    .portfolio-grid{
+      display:flex !important;
+      flex-direction:column !important;
+      gap:2rem !important;
+    }
+    #leftSidebar,#centerColumn,#rightSidebar{
+      width:100% !important;
+      max-width:100% !important;
+      min-width:0 !important;
+    }
+  }
+
+  /* The collapse control belongs to the sidebar rather than the grid track.
+     Keeping the track width stable means closing the sidebar never makes the
+     neighbouring content jump or widen. */
+  @media (min-width:768px){
+    #leftSidebar.is-collapsed{
+      width:100% !important;
+      min-width:0 !important;
+      max-width:none !important;
+    }
+    #leftSidebar.is-collapsed + #centerColumn{
+      min-width:0 !important;
+    }
+  }
 
 </style>
 
@@ -824,7 +919,7 @@
     <!-- ================= LEFT: PROFILE ================= -->
     <aside id="leftSidebar" class="lg:col-span-3 lg:sticky lg:top-8 transition-all duration-300 ease-in-out origin-left relative pt-16 lg:pt-0">
       
-      <button onclick="toggleLeftSidebar()" aria-label="Toggle Profile" class="focus-ring absolute top-4 right-0 p-2.5 bg-line border border-faint text-white hover:bg-ink hover:text-base hover:border-ink transition-all duration-300 flex items-center justify-center z-10 shadow-lg rounded-sm" id="leftToggleBtn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="panel-left-close" aria-hidden="true" class="lucide lucide-panel-left-close w-5 h-5"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M15 3v18"></path><path d="m8 9-3 3 3 3"></path></svg></button>
+      <button onclick="toggleLeftSidebar()" aria-label="Toggle Profile" class="focus-ring absolute top-4 right-0 w-10 h-10 p-0 bg-line border border-faint text-white hover:bg-ink hover:text-base hover:border-ink transition-all duration-300 flex items-center justify-center z-10 shadow-lg rounded-sm" id="leftToggleBtn"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" data-lucide="panel-left-close" aria-hidden="true" class="lucide lucide-panel-left-close w-5 h-5"><rect width="18" height="18" x="3" y="3" rx="2"></rect><path d="M15 3v18"></path><path d="m8 9-3 3 3 3"></path></svg></button>
 
       <div id="leftCollapsedIndicator" class="hidden absolute top-14 inset-x-0 pt-2 flex flex-col items-center gap-4 transition-all duration-300 ease-in-out">
         <span class="writing-mode-vertical font-mono text-xs uppercase tracking-widest text-dim hover:text-white transition-colors cursor-pointer select-none" onclick="toggleLeftSidebar()">
@@ -886,18 +981,20 @@
 
         <div class="mt-8 pt-6 border-t border-line">
           <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Toolchain</p>
-          <!-- Quick view: highest-relevance tools given the current Leonardo
-               RF/microwave placement + embedded coursework. Full list (20
-               items) lives in the "toolchain" entry of SINGLE_MODALS below -
-               keep the "See More (+N)" count in sync with however many of
-               that full list aren't shown here. -->
           <div class="flex flex-wrap gap-1.5" id="toolchain-container">
             <span class="tag">C / C++</span>
-            <span class="tag">Python</span>
+            <span class="tag">Assembly</span>
+            <span class="tag">MATLAB</span>
             <span class="tag">KiCad</span>
-            <span class="tag">Keysight ADS</span>
+            <span class="tag">Arduino</span>
+            <span class="tag">Mbed / Keil</span>
+            <span class="tag">SPI / I2C</span>
+            <span class="tag">MPLAB X</span>
             <span class="tag">Verilog / VHDL</span>
-            <button class="tag hover:text-white hover:border-dim transition-colors cursor-pointer focus-ring" onclick="openModal('toolchain')">See More (+15)</button>
+            <span class="tag">Xilinx Vivado</span>
+            <span class="tag">Fusion 360</span>
+            <span class="tag">Microsoft Excel</span>
+            <span class="tag">Azure</span>
           </div>
         </div>
 
@@ -982,6 +1079,7 @@
 
           <p id="projectEmptyState" class="hidden text-sm text-dim font-mono py-6 text-center">No projects match your search/filter.</p>
 
+          <!-- Do not automatically add more projects here when updating code structures -->
           <div id="projectGrid" class="flex flex-col">
             <!-- Populated via JS -->
           </div>
@@ -1045,20 +1143,6 @@
     <!-- ================= RIGHT: LINKEDIN MODULES ================= -->
     <aside id="rightSidebar" class="lg:col-span-3 flex flex-col gap-8 transition-all duration-300 ease-in-out">
       <div class="pt-6">
-        <p class="font-mono text-xs uppercase tracking-widest text-faint mb-3">Top Skills</p>
-        <!-- Quick view: broadest/most-endorsed skills. Full list (9 items)
-             lives in the "skills" entry of SINGLE_MODALS below - keep the
-             "See More (+N)" count in sync with the full list. -->
-        <div class="flex flex-wrap gap-1.5">
-          <span class="tag">Communication</span>
-          <span class="tag">RF Design</span>
-          <span class="tag">Embedded Systems</span>
-          <span class="tag">Microcontrollers</span>
-          <button class="tag hover:text-white hover:border-dim transition-colors cursor-pointer focus-ring" onclick="openModal('skills')">See More (+5)</button>
-        </div>
-      </div>
-
-      <div class="pt-6 border-t border-line">
         <div class="flex items-center justify-between">
           <p class="font-mono text-xs uppercase tracking-widest text-faint">Licences & Certifications</p>
           <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openModalCategory('certifications')">View All ↗</button>
@@ -1072,7 +1156,7 @@
         </div>
       </div>
 
-      <div class="pt-6 border-t border-line">
+      <div id="partTimeSidebarSection" class="pt-6 border-t border-line">
         <div class="flex items-center justify-between">
           <p class="font-mono text-xs uppercase tracking-widest text-faint">Part-Time Experience</p>
           <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openModalCategory('partTime')">View All ↗</button>
@@ -1093,10 +1177,6 @@
         </div>
       </div>
 
-      <!-- Same structure/pop-up pattern as Licenses & Certifications - see
-           CATEGORY_DATA.awards below. Empty for now; add entries there the
-           same way certifications are added and this becomes populated
-           automatically, TOC/grouping included. -->
       <div class="pt-6 border-t border-line">
         <div class="flex items-center justify-between">
           <p class="font-mono text-xs uppercase tracking-widest text-faint">Awards</p>
@@ -1104,18 +1184,31 @@
         </div>
       </div>
 
-      <!-- Unlike Awards above, this opens as a full page (the same
-           openProject() page view used for Projects) rather than a pop-up -
-           see the 'homelab' entry in the `projects` array, which is
-           deliberately excluded from the homepage grid/search and the "All
-           Projects" pop-up via `hiddenFromGrid`, so it only ever appears
-           when reached from this link. -->
-      <div class="pt-6 border-t border-line">
+      <div id="homelabSidebarSection" class="pt-6 border-t border-line">
         <div class="flex items-center justify-between">
           <p class="font-mono text-xs uppercase tracking-widest text-faint">Homelab</p>
-          <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openProject('homelab')">View ↗</button>
+          <button class="font-mono text-[10px] uppercase tracking-wider text-faint hover:text-white transition-colors focus-ring cursor-pointer" onclick="openHomelabPage()">Open Page ↗</button>
         </div>
       </div>
+
+      <div id="experienceTimelineSidebar" class="pt-6 border-t border-line">
+        <p class="font-mono text-xs uppercase tracking-widest text-faint mb-4">Experience Timeline</p>
+        <div class="experience-timeline-list">
+          <button type="button" onclick="document.getElementById('experienceSection')?.scrollIntoView({behavior:'smooth',block:'start'});" class="experience-timeline-node group w-full">
+            <span class="experience-timeline-marker experience-timeline-current" aria-hidden="true"></span>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-faint">Sep 2026 - Present</span>
+            <span class="block text-sm text-white mt-1 group-hover:underline">Graduate Job Search</span>
+            <span class="block text-xs text-dim mt-0.5">Graduate software &amp; electronics roles</span>
+          </button>
+          <button type="button" onclick="document.getElementById('experienceSection')?.scrollIntoView({behavior:'smooth',block:'start'}); setTimeout(() => { document.getElementById('exp-toggle-leonardo')?.focus(); }, 350);" class="experience-timeline-node group w-full">
+            <span class="experience-timeline-marker experience-timeline-ended" aria-hidden="true"></span>
+            <span class="font-mono text-[10px] uppercase tracking-widest text-faint">Jun 2026 - Sep 2026</span>
+            <span class="block text-sm text-white mt-1 group-hover:underline">Leonardo Internship</span>
+            <span class="block text-xs text-dim mt-0.5">Microwave Engineer · Luton</span>
+          </button>
+        </div>
+      </div>
+
     </aside>
 
   </div>
@@ -1489,6 +1582,21 @@
       ],
       tags: ['C++', 'Mbed', '3D Printing'],
       githubCard: 'SuberBAbdi/Micro-Mouse',
+      githubDocumentsFolder: 'University Submitted Documents',
+      // Repository document names are intentionally kept here so they can be
+      // swapped without changing the viewer architecture when the repository
+      // filenames are finalised. The resolver also falls back to the folder
+      // listing and embeds every PDF plus the first presentation file it finds.
+      micromouseDocuments: {
+        reportFiles: ['Micro Mouse Report.pdf', 'Micro Mouse Final Report.pdf'],
+        presentationFile: 'Micro Mouse Presentation.pptx'
+      },
+      contributors: [
+        { name: 'Charanjot Sidhu', href: 'https://linkedin.com' },
+        { name: 'Gabriel Narvex', href: null },
+        { name: 'Nicholas Nicolaou', href: 'https://linkedin.com' },
+        { name: 'Victoria Veprek', href: 'https://linkedin.com' }
+      ],
       github: 'https://github.com/SuberBAbdi/Micro-Mouse'
     },
     {
@@ -1547,8 +1655,8 @@
       id: 'radar',
       status: 'Complete · Sep – Oct 2025',
       title: 'Arduino Radar System',
-      overview: 'A hardware radar rig that sweeps an ultrasonic sensor across a field of view and plots detected objects in real time on a Processing (open-source) display.',
-      stack: 'Breadboard, jumper wires, Arduino Nano, HC-SR04 ultrasonic sensor, SG90 servo motor, live visualisation in Processing.',
+      overview: 'An embedded ultrasonic radar platform developed around an Arduino Nano, an HC-SR04 distance sensor and an SG90 servo. The project covers the complete hardware-software workflow: defining the sensing concept, wiring and validating the prototype, implementing the sweep and measurement firmware, integrating serial telemetry, testing repeatability, and documenting the engineering decisions. For the current portfolio roadmap, the project is also being carried forward as a structured development thread from the September 2026 approval milestone through the June 2027 dissertation write-up window, with each stage used to capture requirements, implementation evidence, verification results and final documentation.',
+      stack: 'Arduino Nano, HC-SR04 ultrasonic sensor, SG90 servo motor, breadboard, jumper wires, serial telemetry and C/C++ firmware.',
       challenges: 'Synchronising servo sweep angle with ultrasonic distance readings to plot an accurate, smooth radar sweep in real time.',
       outcome: 'A fully functional radar demo with live on-screen visualisation.',
 
@@ -1587,8 +1695,24 @@
         { date: 'Jun 2027', title: 'Final report & submission', description: 'Write-up of the full design, simulation and testing process for final dissertation submission.' }
       ],
       githubCard: 'SuberBAbdi/Arduino-Radar-System',
-      tags: ['Arduino', 'Ultrasonic Sensing', 'Processing'],
-      github: 'https://github.com/SuberBAbdi/Arduino-Radar-System'
+      tags: ['Arduino', 'Ultrasonic Sensing', 'Embedded'],
+      github: 'https://github.com/SuberBAbdi/Arduino-Radar-System',
+      codeFile: 'https://raw.githubusercontent.com/SuberBAbdi/Arduino-Radar-System/main/code.ino',
+      pinout: [
+        { pin: 'D10', function: 'HC-SR04 TRIG', notes: 'Provisional mapping — confirm against code.ino when added.' },
+        { pin: 'D11', function: 'HC-SR04 ECHO', notes: 'Provisional mapping — confirm against code.ino when added.' },
+        { pin: 'D12', function: 'SG90 Servo Signal', notes: 'Provisional mapping — confirm against code.ino when added.' },
+        { pin: '5V', function: 'Sensor / Servo supply', notes: 'Shared 5 V rail; verify servo current requirements.' },
+        { pin: 'GND', function: 'Common ground', notes: 'Common reference for Nano, sensor and servo.' }
+      ],
+      timeline: [
+        { date: 'Sep 2026', title: 'Project approval & scope', description: 'Initial approval, requirements capture and definition of the sensing, control and verification objectives.' },
+        { date: 'Oct–Nov 2026', title: 'Hardware bring-up', description: 'Validate the Arduino Nano, ultrasonic sensor and servo wiring, then establish repeatable sensor and actuator tests.' },
+        { date: 'Dec 2026–Feb 2027', title: 'Firmware & integration', description: 'Implement sweep control, distance acquisition, serial telemetry and fault-handling behaviour, followed by integration testing.' },
+        { date: 'Mar–Apr 2027', title: 'Verification & refinement', description: 'Characterise detection behaviour, tune timing and sweep parameters, and record evidence against the project requirements.' },
+        { date: 'May 2027', title: 'Documentation', description: 'Consolidate implementation notes, test evidence, design decisions and limitations into the dissertation structure.' },
+        { date: 'Jun 2027', title: 'Final dissertation write-up', description: 'Complete the final technical narrative, evaluation, conclusions and submission-ready documentation.' }
+      ]
     },
     {
       id: 'dfmini',
@@ -1642,6 +1766,12 @@
       id: 'dac',
       status: 'Complete · Mar – May 2025',
       title: 'DAC with PIC16F877A',
+      has3DModel: true,
+      glbBodies: [
+        { id: 'full-assembly', name: 'PCB / Full Assembly', path: 'https://raw.githubusercontent.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Temperature%20Checker%20with%20a%20DAC.glb', visible: true },
+        { id: 'cover-body', name: 'Cover', path: 'https://raw.githubusercontent.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Cover%20Body.glb', visible: true },
+        { id: 'lower-body', name: 'Lower Body', path: 'https://raw.githubusercontent.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Lower%20Body.glb', visible: true }
+      ],
       hoverDescription: 'A PIC16F877A temperature scanner and DAC project combining analogue front-end design, ADC sampling, Assembly firmware, LCD output and hardware verification.',
       overview: 'A PIC16F877A temperature scanner and DAC project combining analogue front-end design, ADC sampling, Assembly firmware, LCD output and hardware verification.',
       // NOTE: this project intentionally skips stack/challenges/outcome and
@@ -1673,53 +1803,21 @@
         }
       ],
 
-      // Both files are actually PDFs (not a true .pptx) - hosted in a
-      // separate repo, so these are raw.githubusercontent.com URLs rather
-      // than repo page links. Viewed inline via pdf.js (see togglePdfViewer/
-      // togglePresentationPdfViewer) rather than an <iframe>, since GitHub's
-      // raw file host sends X-Frame-Options: deny and refuses to be framed
-      // no matter what - fetch()-based rendering isn't affected by that header.
-      report: 'https://raw.githubusercontent.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/main/University%20Submitted%20Documents/Microcontroller%20Project%20Report.pdf',
-      presentation: 'https://raw.githubusercontent.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/main/University%20Submitted%20Documents/Microcontroller%20Project%20Presentation.pdf',
-      // 3D CAD viewer - GLB bodies (not the .stl also present in the repo,
-      // per request) with the same toggleable-layer dropdown used elsewhere
-      // (see the `format:'glb'` branch in init3DViewer). Files live in a
-      // separate repo, hence the full raw.githubusercontent.com paths -
-      // note the literal trailing space in "3D and 2D Models " below, which
-      // matches the folder's actual name in that repo.
-      has3DModel: true,
-      stlBodies: [
-        { id: 'full-assembly', name: 'Full Assembly', format: 'glb', path: 'https://raw.githubusercontent.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Temperature%20Checker%20with%20a%20DAC.glb', visible: true },
-        { id: 'cover-body', name: 'Cover Body', format: 'glb', path: 'https://raw.githubusercontent.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Cover%20Body.glb', visible: false },
-        { id: 'lower-body', name: 'Lower Body', format: 'glb', path: 'https://raw.githubusercontent.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Lower%20Body.glb', visible: false }
-      ],
-      presentationEmbed: false,
+      // The viewer resolves the PDF/PPTX files from this repository folder at
+      // runtime, so the user views the actual documents in-site rather than
+      // being sent to the GitHub directory.
+      report: 'github-folder:University Submitted Documents',
+      presentation: 'github-folder:University Submitted Documents',
+      presentationEmbed: true,
       contribution: 'This was assessed as a group engineering project. The work covered the analogue front-end and PIC16F877A design, Assembly firmware, simulation, verification and practical demonstration, with the final submission supported by a technical report and group presentation.',
       githubCard: 'SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner',
       tags: ['Assembly', 'PIC16F877A', 'MPLAB X'],
       github: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner'
-    },
-    {
-      // Reached only via the "Homelab" link in the right sidebar
-      // (openProject('homelab')) - hiddenFromGrid keeps it out of the
-      // homepage grid, the tag/search filter results, and the "All
-      // Projects" pop-up, since it isn't really a project to browse
-      // alongside the others.
-      id: 'homelab',
-      hiddenFromGrid: true,
-      status: 'Homelab · Coming Soon',
-      title: 'Homelab',
-      overview: 'Details coming soon.',
-      stack: 'To be added.',
-      challenges: 'To be added.',
-      outcome: 'To be added.',
-      tags: [],
-      github: null
     }
   ];
 
   // ==== Work Experience (main page "Experience" list) ====
-  // The selected role is expanded by default; the roulette switches between roles/focus cards.
+  // The selected role is expanded by default.
   const experiences = [
     {
       id: 'leonardo',
@@ -1729,10 +1827,10 @@
       // Logo lives in the repo's Logos/ folder (https://github.com/SuberBAbdi/SuberBAbdi.github.io/tree/main/Logos)
       logo: 'Logos/leonardo_logo.jpg',
       location: 'Luton, England, UK · Hybrid',
-      dates: 'Jun 2026 - Present',
+      dates: 'Jun 2026 - Sep 2026',
       startDate: '2026-06-01',
-      endDate: '2099-12-31',
-      current: true, // legacy fallback; live date logic below determines the actual current state
+      endDate: '2026-09-30',
+      current: false, // explicitly ended in September; prevents live-date logic from changing the displayed range
       summary: 'Contributed to the development of an internal multi-channel microwave electronics prototype within a multi-disciplinary team, from requirements and architecture through to schematic and PCB design.',
       bullets: [
         { label: 'Prototype Development', text: 'Supported an internal multi-channel microwave electronics prototype from requirements and architecture through schematic and PCB development.' },
@@ -1742,14 +1840,13 @@
         { label: 'Documentation & Verification', text: 'Produced engineering documentation, technical-risk assessments and verification plans.' },
         { label: 'Stakeholder Presentations', text: 'Presented the project and key design decisions to engineering stakeholders.' }
       ]
-    }
-    // To add a past role: copy the object above, give it a unique id, real
-    // dates (startDate/endDate as 'YYYY-MM-DD', current:false once it's
-    // ended), and it's picked up automatically - the main display's
-    // "Collapse/Expand" affordance handles any additional entries with no
-    // other code changes needed. (The role-switching carousel that used to
-    // sit below this list has been removed entirely, along with its test
-    // data - this is now a plain, single-column list of roles.)
+    },
+    // ======================================================================
+    // To add a REAL past role: copy the Leonardo object above, give it a
+    // unique id, real dates (startDate/endDate as 'YYYY-MM-DD', current:false
+    // once it's ended), and it's picked up automatically everywhere - the
+    // main display, the roulette/carousel below it, and the arrow visibility
+    // - with no other code changes needed.
   ];
 
   // Computes a compact "1 yr 4 mos" style duration between two "Mon YYYY"
@@ -1822,6 +1919,7 @@
   }
 
   function isDateRangeCurrent(entry) {
+    if (entry && entry.current === false) return false;
     const today = new Date();
     const start = parseISODate(entry.startDate);
     const end = parseISODate(entry.endDate);
@@ -1839,7 +1937,6 @@
   function liveOngoingDuration(startStr) { return durationLabel(startStr, 'Present'); }
 
   let activeExperienceIndex = 0;
-
   function renderExperience() {
     const container = document.getElementById('experienceList');
     if (!container) return;
@@ -1871,7 +1968,7 @@
       if (true) { // The selected role always opens expanded; selecting from the roulette must never leave it contracted.
         const detailId = `exp-detail-${e.id}`;
         return `
-          <div>
+          <div id="experience-entry-${e.id}">
             <div class="flex gap-3 items-start">
               ${logoHtml}
               <button type="button" id="exp-toggle-${e.id}" class="experience-row-toggle flex-1 min-w-0 text-left focus-ring group cursor-pointer" onclick="toggleExperienceDetail('${e.id}')" aria-expanded="true" aria-controls="${detailId}" style="display:table; width:100%; border-collapse:collapse;">
@@ -1951,6 +2048,7 @@
   }
 
   renderExperience();
+  requestAnimationFrame(alignHomelabToExperience);
   // Recalculate live durations when the page becomes visible again and once an hour.
   document.addEventListener('visibilitychange', () => { if (!document.hidden) renderExperience(); });
   setInterval(() => { if (!document.hidden) renderExperience(); }, 60 * 60 * 1000);
@@ -1972,6 +2070,7 @@
       setTimeout(() => {
         profileContent.classList.add('hidden');
         collapsedIndicator.classList.remove('hidden');
+        collapsedIndicator.classList.add('visible');
         collapsedIndicator.classList.add('opacity-0', '-translate-x-2');
         // Double rAF forces the browser to register the "faded out" starting
         // state before we remove it, so the transition below actually animates
@@ -1981,12 +2080,11 @@
         }));
       }, 300);
       
-      leftAside.classList.replace('lg:col-span-3', 'lg:col-span-1');
-      if (isProjectOpen) {
-        centerCol.classList.replace('lg:col-span-9', 'lg:col-span-11');
-      } else {
-        centerCol.classList.replace('lg:col-span-6', 'lg:col-span-8');
-      }
+      leftAside.classList.add('is-collapsed');
+      // Do not mutate the grid column classes here. The sidebar collapses its
+      // contents only; keeping the grid tracks intact prevents the surrounding
+      // container from widening and also preserves the mobile toggle.
+      leftAside.dataset.collapsed = 'true';
       toggleBtn.classList.remove('top-4', 'right-0');
       toggleBtn.classList.add('top-0', 'left-1/2', '-translate-x-1/2');
       toggleBtn.innerHTML = `<i data-lucide="panel-left-open" class="w-5 h-5"></i>`;
@@ -1996,6 +2094,7 @@
       collapsedIndicator.classList.add('opacity-0', '-translate-x-2');
       setTimeout(() => {
         collapsedIndicator.classList.add('hidden');
+        collapsedIndicator.classList.remove('visible');
         collapsedIndicator.classList.remove('opacity-0', '-translate-x-2');
       }, 300);
 
@@ -2005,12 +2104,8 @@
         profileContent.classList.remove('opacity-0', 'pointer-events-none', '-translate-x-2');
       }));
       
-      leftAside.classList.replace('lg:col-span-1', 'lg:col-span-3');
-      if (isProjectOpen) {
-        centerCol.classList.replace('lg:col-span-11', 'lg:col-span-9');
-      } else {
-        centerCol.classList.replace('lg:col-span-8', 'lg:col-span-6');
-      }
+      leftAside.classList.remove('is-collapsed');
+      leftAside.dataset.collapsed = 'false';
       // BUGFIX: must re-add the button's expanded-state position classes here,
       // otherwise after a collapse->expand cycle the button loses its
       // top-4/right-0 placement and can float over/cover the profile content.
@@ -2033,7 +2128,7 @@
     'RF & Wireless': ['RF Design', 'Antenna Filters', 'IoT Power'],
     'Embedded & Firmware': ['Embedded', 'Assembly', 'PIC16F877A', 'MPLAB X', 'Mbed', 'Arduino', 'Audio'],
     'FPGA & Processor Design': ['RISC-V', 'FPGA', 'Verilog/VHDL'],
-    'Robotics & Hardware': ['Robotics', '3D Printing', 'Ultrasonic Sensing', 'Processing'],
+    'Robotics & Hardware': ['Robotics', '3D Printing', 'Ultrasonic Sensing'],
     'Software & Analysis': ['C++', 'MATLAB', 'Image Processing', 'Documentation']
   };
 
@@ -2074,10 +2169,6 @@
   //   tagFilterMode.
   function getFilteredProjects() {
     return projects.filter(p => {
-      // Excluded entirely from the homepage grid/search/tag-filter results -
-      // e.g. Homelab, which is only ever reached via its own sidebar link
-      // (see openProject('homelab')), not browsed like a normal project.
-      if (p.hiddenFromGrid) return false;
       if (!matchesProjectSearchText(p)) return false;
       const tags = p.tags || [];
       if (activeTags.size > 0) {
@@ -2287,6 +2378,35 @@
     }, 120); // small delay so moving focus within the bar doesn't collapse it
   }
 
+  function alignHomelabToExperience() {
+    // Homelab keeps its natural height so the Experience Timeline sits
+    // directly underneath it with no artificial blank spacer.
+    const homelab = document.getElementById('homelabSidebarSection');
+    if (!homelab) return;
+    homelab.style.marginTop = '';
+    homelab.style.paddingBottom = '';
+  }
+
+  function alignExperienceTimelineWithMainExperience(){
+    const timeline = document.getElementById('experienceTimelineSidebar');
+    const expHead = document.querySelector('#experienceSection .experience-section-head .scan-header');
+    const rightSidebar = document.getElementById('rightSidebar');
+    if (!timeline || !expHead || !rightSidebar || window.innerWidth < 768) return;
+    // The timeline's own top border should sit on the same horizontal line
+    // as the bottom border of the main Experience heading.  Use the live
+    // element positions so the alignment survives responsive resizing.
+    const desiredTop = expHead.getBoundingClientRect().bottom;
+    const currentMargin = parseFloat(getComputedStyle(timeline).marginTop) || 0;
+    const delta = desiredTop - timeline.getBoundingClientRect().top;
+    const next = Math.max(0, currentMargin + delta);
+    timeline.style.marginTop = next + 'px';
+  }
+
+  window.addEventListener('resize', () => {
+    requestAnimationFrame(alignHomelabToExperience);
+    requestAnimationFrame(alignExperienceTimelineWithMainExperience);
+  });
+
   function renderProjectGrid() {
     const grid = document.getElementById('projectGrid');
     const toggleContainer = document.getElementById('projectToggleContainer');
@@ -2306,7 +2426,7 @@
     emptyState.classList.toggle('hidden', filtered.length > 0);
 
     grid.innerHTML = visible.map((p, i) => `
-      <div class="case-card group focus-ring px-3 py-4 border-t border-l border-r border-line ${i === visible.length - 1 ? 'border-b rounded-b-sm' : ''}" tabindex="0" role="button"
+      <div class="case-card project-showcase-card group focus-ring w-full px-3 py-4 border-l border-r border-line ${i === visible.length - 1 ? 'border-b rounded-b-sm' : ''} border-t" tabindex="0" role="button"
            aria-label="View ${p.title}" onclick="openProject('${p.id}')"
            title="${p.hoverDescription ? p.hoverDescription.replace(/"/g,'&quot;') : ''}"
            onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openProject('${p.id}');}">
@@ -2353,7 +2473,7 @@
     document.getElementById('modalTitle').textContent = 'All Projects';
     document.getElementById('modalBody').innerHTML = `
       <div class="flex flex-col divide-y divide-lineSoft border-t border-b border-lineSoft">
-        ${projects.filter(p => !p.hiddenFromGrid).map(p => `
+        ${projects.map(p => `
           <button onclick="goToProjectFromModal('${p.id}')" class="w-full text-left py-3 flex items-center gap-3 group focus-ring">
             <div class="min-w-0 flex-1">
               <p class="font-mono text-xs text-dim uppercase tracking-wider">${p.status}</p>
@@ -2383,69 +2503,20 @@
   }
 
   renderProjectGrid();
+  requestAnimationFrame(alignExperienceTimelineWithMainExperience);
 
-  // Renders every page of a PDF into stacked <canvas> elements inside
-  // `container`, via fetch + pdf.js - NOT an <iframe>, since some hosts
-  // (GitHub's raw file CDN among them) send X-Frame-Options: deny and
-  // silently refuse to render inside a frame no matter what. A plain
-  // fetch()/XHR is unaffected by that header, so this works for both
-  // same-origin files and any CORS-enabled external host.
-  const pdfRenderCache = {}; // url -> true once rendered, so re-opening doesn't re-fetch/re-render
-  async function renderPdfInline(containerId, url) {
-    const container = document.getElementById(containerId);
-    if (!container) return;
-    if (pdfRenderCache[containerId] === url) return; // already rendered, nothing to do
-
-    container.innerHTML = '<p class="font-mono text-xs text-faint uppercase tracking-wider p-4 text-center">Loading PDF…</p>';
-    const lib = window.pdfjsLib || window['pdfjs-dist/build/pdf'];
-    if (!lib) {
-      container.innerHTML = '<p class="font-mono text-xs text-faint uppercase tracking-wider p-4 text-center">PDF viewer failed to load.</p>';
-      return;
-    }
-
-    try {
-      const pdf = await lib.getDocument(url).promise;
-      container.innerHTML = '';
-      for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-        const page = await pdf.getPage(pageNum);
-        const viewport = page.getViewport({ scale: 1.4 });
-        const canvas = document.createElement('canvas');
-        canvas.className = 'w-full h-auto block';
-        canvas.style.cssText = 'max-width:100%; margin:0 auto 8px; display:block; background:#fff;';
-        canvas.width = viewport.width;
-        canvas.height = viewport.height;
-        container.appendChild(canvas);
-        await page.render({ canvasContext: canvas.getContext('2d'), viewport }).promise;
-      }
-      pdfRenderCache[containerId] = url;
-    } catch (err) {
-      container.innerHTML = '<p class="font-mono text-xs text-faint uppercase tracking-wider p-4 text-center">Couldn\'t load this PDF for inline viewing - try the download link instead.</p>';
-    }
-  }
-
-  function togglePdfViewer(url, containerId, canvasHostId) {
-    // Backward-compatible defaults so any existing call sites (or hard-coded
-    // markup) that only pass `url` keep working against the original ids.
-    containerId = containerId || 'pdfViewerContainer';
-    canvasHostId = canvasHostId || 'pdfCanvasHost';
-    const container = document.getElementById(containerId);
-    if (!container) return;
+  function togglePdfViewer(url) {
+    const container = document.getElementById('pdfViewerContainer');
+    const iframe = document.getElementById('pdfIframe');
+    if (!container || !iframe) return;
 
     if (container.classList.contains('hidden')) {
+      iframe.src = /\.pdf($|#)/i.test(url) ? url + (url.includes('#') ? '&' : '#') + 'zoom=page-width' : url;
       container.classList.remove('hidden');
-      renderPdfInline(canvasHostId, url);
     } else {
       container.classList.add('hidden');
+      iframe.src = '';
     }
-  }
-
-  // Same idea as togglePdfViewer above, but for a project's `presentation`
-  // slot specifically when that file is itself a PDF (e.g. a slide deck
-  // exported to PDF) rather than a true .pptx - see the presentation
-  // rendering branch in openProject for when this is used instead of the
-  // Office-embed viewer.
-  function togglePresentationPdfViewer(url) {
-    togglePdfViewer(url, 'presentationViewerContainer', 'presentationCanvasHost');
   }
 
   // Inline "viewable in web" presentation toggle - used when a project sets
@@ -2453,13 +2524,53 @@
   // directly like they can PDFs, so this routes through Microsoft's public
   // Office web viewer, which needs a publicly reachable, URL-encoded source -
   // it'll only render once the real .pptx file is actually uploaded to the repo.
+
+async function loadGithubProjectDocument(kind) {
+  const apiUrl = 'https://api.github.com/repos/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/contents/University%20Submitted%20Documents';
+  try {
+    const response = await fetch(apiUrl, { headers: { 'Accept': 'application/vnd.github+json' } });
+    if (!response.ok) throw new Error('GitHub API returned ' + response.status);
+    const files = await response.json();
+    const list = Array.isArray(files) ? files : [];
+
+    let file = null;
+    if (kind === 'report') {
+      file = list.find(f => /\.(pdf)$/i.test(f.name));
+    } else {
+      file = list.find(f => /\.(pptx|ppt)$/i.test(f.name)) || list.find(f => /\.pdf$/i.test(f.name));
+    }
+    if (!file || !file.download_url) {
+      throw new Error('No matching ' + kind + ' document was found.');
+    }
+
+    if (kind === 'report') {
+      const container = document.getElementById('githubReportViewerContainer');
+      const iframe = document.getElementById('githubReportIframe');
+      if (!container || !iframe) return;
+      iframe.src = file.download_url + (file.download_url.includes('#') ? '&' : '#') + 'zoom=page-width';
+      container.classList.remove('hidden');
+      container.scrollIntoView({behavior:'smooth', block:'nearest'});
+    } else {
+      const container = document.getElementById('githubPresentationViewerContainer');
+      const iframe = document.getElementById('githubPresentationIframe');
+      if (!container || !iframe) return;
+      iframe.src = 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(file.download_url) + '&wdAr=1';
+      container.classList.remove('hidden');
+      container.scrollIntoView({behavior:'smooth', block:'nearest'});
+    }
+  } catch (error) {
+    console.error('Could not load DAC document:', error);
+    alert('The document could not be loaded in the site. Please check the University Submitted Documents folder and try again.');
+  }
+}
+
   function togglePresentationViewer(url) {
     const container = document.getElementById('presentationViewerContainer');
     const iframe = document.getElementById('presentationIframe');
     if (!container || !iframe) return;
 
     if (container.classList.contains('hidden')) {
-      iframe.src = 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(url);
+      iframe.src = 'https://view.officeapps.live.com/op/embed.aspx?src=' + encodeURIComponent(url) + '&wdAr=1';
       container.classList.remove('hidden');
     } else {
       container.classList.add('hidden');
@@ -2825,11 +2936,10 @@
     });
   });
 
-  // Derives a human-readable label from a model filename when a body entry
-  // doesn't set `name` explicitly, e.g. 'PCB_Rev2.stl' -> 'PCB Rev2' (also
-  // strips .glb, since bodies can be either format - see init3DViewer).
+  // Derives a human-readable label from an STL filename when a stlBodies
+  // entry doesn't set `name` explicitly, e.g. 'PCB_Rev2.stl' -> 'PCB Rev2'.
   function deriveNameFromPath(path) {
-    const filename = (path || '').split('/').pop().replace(/\.(stl|glb)$/i, '');
+    const filename = (path || '').split('/').pop().replace(/\.stl$/i, '');
     return filename.replace(/[_-]+/g, ' ').trim() || 'Body';
   }
 
@@ -2852,6 +2962,140 @@
     if (cfg) cfg.visible = visible;
     const mesh = inst.bodies[bodyId];
     if (mesh) mesh.visible = visible;
+  }
+
+
+  function initGLBViewer(containerId, glbBodies) {
+    const container = document.getElementById(containerId);
+    if (!container || !Array.isArray(glbBodies) || !glbBodies.length || !THREE.GLTFLoader) return;
+
+    container.innerHTML = '';
+    const inst = {
+      animationId: null,
+      bodies: {},
+      bodiesConfig: glbBodies.map(b => ({...b, visible: b.visible !== false}))
+    };
+    viewer3DInstances[containerId] = inst;
+
+    const width = container.clientWidth || 800;
+    const height = container.clientHeight || 576;
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(0xf3f3f2);
+
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.01, 5000);
+    camera.position.set(0, 0, 150);
+    camera.up.set(0, 1, 0);
+    camera.lookAt(0, 0, 0);
+    camera.userData.homePosition = camera.position.clone();
+
+    const renderer = new THREE.WebGLRenderer({antialias:true});
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(width, height);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    container.appendChild(renderer.domElement);
+
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x777777, 1.35));
+    const key = new THREE.DirectionalLight(0xffffff, 1.25);
+    key.position.set(3, 5, 6);
+    scene.add(key);
+    const fill = new THREE.DirectionalLight(0xffffff, 0.55);
+    fill.position.set(-4, 2, -3);
+    scene.add(fill);
+
+    const group = new THREE.Group();
+    scene.add(group);
+
+    const controls = THREE.OrbitControls ? new THREE.OrbitControls(camera, renderer.domElement) : null;
+    if (controls) {
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.06;
+      controls.minDistance = 0.05;
+      controls.maxDistance = 5000;
+    }
+
+    const loading = document.createElement('div');
+    loading.className = 'stl-loading absolute inset-0 flex items-center justify-center font-mono text-xs pointer-events-none';
+    loading.style.background = 'rgba(243,243,242,.72)';
+    loading.style.color = '#555554';
+    loading.textContent = 'LOADING 3D CAD MODEL...';
+    container.appendChild(loading);
+
+    const loader = new THREE.GLTFLoader();
+    const bounds = new THREE.Box3();
+    let loaded = 0;
+    let anyLoaded = false;
+
+    const finish = () => {
+      loaded++;
+      if (loaded < inst.bodiesConfig.length) return;
+
+      if (anyLoaded) {
+        const size = new THREE.Vector3();
+        bounds.getSize(size);
+        const centre = new THREE.Vector3();
+        bounds.getCenter(centre);
+        const distance = Math.max(size.length() * 0.95, 20);
+        camera.position.set(centre.x, centre.y, centre.z + distance);
+        camera.lookAt(centre);
+        camera.userData.homePosition = camera.position.clone();
+        camera.userData.homeTarget = centre.clone();
+        if (controls) controls.target.copy(centre);
+        if (loading) loading.remove();
+      } else {
+        loading.textContent = '3D CAD model could not be loaded';
+      }
+      renderLayerDropdown(containerId);
+    };
+
+    inst.bodiesConfig.forEach(cfg => {
+      loader.load(
+        cfg.path,
+        gltf => {
+          const root = gltf.scene;
+          root.name = cfg.name;
+          root.visible = cfg.visible;
+          root.traverse(obj => {
+            if (!obj.isMesh) return;
+            obj.castShadow = true;
+            obj.receiveShadow = true;
+            // Preserve authored GLB materials. Only tune roughness/metalness
+            // where the source uses standard PBR materials.
+            if (obj.material && obj.material.isMeshStandardMaterial) {
+              obj.material.roughness = Math.max(obj.material.roughness ?? 0.45, 0.3);
+              obj.material.metalness = Math.min(obj.material.metalness ?? 0.05, 0.18);
+            }
+          });
+          inst.bodies[cfg.id] = root;
+          root.updateMatrixWorld(true);
+          bounds.expandByObject(root);
+          group.add(root);
+          anyLoaded = true;
+          finish();
+        },
+        undefined,
+        () => finish()
+      );
+    });
+
+    const renderViewCube = initViewCube(camera, controls, container);
+
+    function animate() {
+      inst.animationId = requestAnimationFrame(animate);
+      if (controls) controls.update();
+      renderer.render(scene, camera);
+      renderViewCube();
+    }
+    animate();
+
+    const resize = () => {
+      if (!container) return;
+      const w = container.clientWidth || 800;
+      const h = container.clientHeight || 576;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    };
+    window.addEventListener('resize', resize);
   }
 
   function init3DViewer(containerId, stlBodies) {
@@ -2931,79 +3175,9 @@
     const groupBounds = new THREE.Box3();
     let anyLoaded = false;
 
-    // Called once every body (STL or GLB) has either loaded or failed -
-    // frames the camera on whatever loaded, clears the loading overlay, and
-    // (re)builds the layer-toggle dropdown. Shared by both loader branches
-    // below so GLB and STL bodies in the same viewer finish consistently.
-    function finishLoadingIfDone() {
-      if (loadedCount < totalBodies) return;
-      if (anyLoaded) {
-        const sizeVec = new THREE.Vector3();
-        groupBounds.getSize(sizeVec);
-        const radius = Math.max(sizeVec.length() * 0.6, 40);
-        // FRONT-FACING START (see note above init3DViewer): frame the
-        // model from straight down the +Z axis - the view cube's FRONT
-        // face - instead of an isometric corner, so the model opens
-        // "locked" to a known, cube-matching orientation every time.
-        camera.position.set(0, 0, radius);
-        camera.up.set(0, 1, 0);
-        camera.lookAt(0, 0, 0);
-        // Record this as "home" so the view cube's Home button can return here.
-        camera.userData.homePosition = camera.position.clone();
-      }
-      const overlay = container.querySelector('.stl-loading');
-      if (overlay) {
-        if (anyLoaded) { overlay.remove(); }
-        else { overlay.textContent = '3D CAD Model Placeholder (file preview)'; }
-      }
-      renderLayerDropdown(containerId);
-    }
-
-    const stlLoader = new THREE.STLLoader();
-    // GLTFLoader is only used if a body actually needs it - guards against
-    // the case where the CDN script (see the <head> <script> tags) hasn't
-    // loaded for some reason, without breaking any STL-only viewer.
-    const gltfLoader = (typeof THREE.GLTFLoader === 'function') ? new THREE.GLTFLoader() : null;
-
+    const loader = new THREE.STLLoader();
     inst.bodiesConfig.forEach((bodyCfg) => {
-      const isGlb = bodyCfg.format === 'glb' || /\.glb$/i.test(bodyCfg.path || '');
-
-      if (isGlb) {
-        if (!gltfLoader) { loadedCount++; finishLoadingIfDone(); return; }
-        gltfLoader.load(
-          bodyCfg.path,
-          function (gltf) {
-            const object = gltf.scene || (gltf.scenes && gltf.scenes[0]);
-            if (!object) { loadedCount++; finishLoadingIfDone(); return; }
-
-            // Centre the loaded object the same way geometry.center() does
-            // for STL below, so GLB and STL bodies in the same viewer share
-            // one consistent origin.
-            const box = new THREE.Box3().setFromObject(object);
-            const center = box.getCenter(new THREE.Vector3());
-            object.position.sub(center);
-            object.visible = bodyCfg.visible;
-
-            inst.bodies[bodyCfg.id] = object;
-            modelGroup.add(object);
-
-            const recenteredBox = new THREE.Box3().setFromObject(object);
-            groupBounds.union(recenteredBox);
-            anyLoaded = true;
-
-            loadedCount++;
-            finishLoadingIfDone();
-          },
-          undefined,
-          function () {
-            loadedCount++;
-            finishLoadingIfDone();
-          }
-        );
-        return;
-      }
-
-      stlLoader.load(
+      loader.load(
         bodyCfg.path,
         function (geometry) {
           geometry.center();
@@ -3017,12 +3191,35 @@
           anyLoaded = true;
 
           loadedCount++;
-          finishLoadingIfDone();
+          if (loadedCount >= totalBodies) {
+            const sizeVec = new THREE.Vector3();
+            groupBounds.getSize(sizeVec);
+            const radius = Math.max(sizeVec.length() * 0.6, 40);
+            // FRONT-FACING START (see note above init3DViewer): frame the
+            // model from straight down the +Z axis - the view cube's FRONT
+            // face - instead of an isometric corner, so the model opens
+            // "locked" to a known, cube-matching orientation every time.
+            camera.position.set(0, 0, radius);
+            camera.up.set(0, 1, 0);
+            camera.lookAt(0, 0, 0);
+            // Record this as "home" so the view cube's Home button can return here.
+            camera.userData.homePosition = camera.position.clone();
+            const overlay = container.querySelector('.stl-loading');
+            if (overlay) overlay.remove();
+            renderLayerDropdown(containerId);
+          }
         },
         undefined,
         function () {
           loadedCount++;
-          finishLoadingIfDone();
+          const overlay = container.querySelector('.stl-loading');
+          if (loadedCount >= totalBodies) {
+            if (overlay) {
+              overlay.textContent = anyLoaded ? '' : '3D CAD Model Placeholder (STL file preview)';
+              if (!anyLoaded) { /* keep overlay visible */ } else { overlay.remove(); }
+            }
+            renderLayerDropdown(containerId);
+          }
         }
       );
     });
@@ -3313,7 +3510,16 @@
       setValue(field('contributors'), Array.isArray(data.contributors) ? data.contributors.length.toLocaleString() : (Number.isFinite(data.contributorCount) ? data.contributorCount.toLocaleString() : '—'));
 
       const tooltipEl = field('tooltip');
-      const contributors = Array.isArray(data.contributors) ? data.contributors : [];
+      const contributorSource = Array.isArray(data.collaborators) ? data.collaborators : (Array.isArray(data.contributors) ? data.contributors : []);
+      const contributors = contributorSource.filter(c => {
+        const commits = Number.isFinite(c.contributions) ? c.contributions : (Number.isFinite(c.commits) ? c.commits : 0);
+        const hasAccess = c.access === true || !!c.permission || !!c.permissions || c.role === 'collaborator';
+        return commits > 0 || hasAccess;
+      }).sort((a,b) => {
+        const ac = Number.isFinite(a.contributions) ? a.contributions : (Number.isFinite(a.commits) ? a.commits : 0);
+        const bc = Number.isFinite(b.contributions) ? b.contributions : (Number.isFinite(b.commits) ? b.commits : 0);
+        return bc - ac || String(a.login || '').localeCompare(String(b.login || ''));
+      });
       if (tooltipEl) {
         tooltipEl.innerHTML = contributors.length ? `
           <div class="gtc-tooltip-head"><span class="gtc-tooltip-title">Collaborators</span><span class="gtc-tooltip-count">${contributors.length.toLocaleString()} found</span></div>
@@ -3321,15 +3527,23 @@
             const login = String(c.login || 'unknown').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
             const href = String(c.html_url || '#').replace(/"/g, '&quot;');
             const avatar = String(c.avatar_url || '').replace(/"/g, '&quot;');
-            const contributions = Number.isFinite(c.contributions) ? c.contributions : 0;
-            return `<li><a class="gtc-contributor" href="${href}" target="_blank" rel="noopener"><img class="gtc-avatar" src="${avatar}" alt="${login} avatar" loading="lazy"><span class="gtc-contributor-main"><span class="gtc-login">@${login}</span><span class="gtc-contributions">${contributions.toLocaleString()} commit${contributions === 1 ? '' : 's'}</span></span></a></li>`;
+            const contributions = Number.isFinite(c.contributions) ? c.contributions : (Number.isFinite(c.commits) ? c.commits : 0);
+            const accessLabel = (c.access === true || c.permission || c.permissions || c.role === 'collaborator') && contributions === 0 ? 'repository access · 0 commits' : `${contributions.toLocaleString()} commit${contributions === 1 ? '' : 's'}`;
+            return `<li><a class="gtc-contributor" href="${href}" target="_blank" rel="noopener"><img class="gtc-avatar" src="${avatar}" alt="${login} avatar" loading="lazy"><span class="gtc-contributor-main"><span class="gtc-login">@${login}</span><span class="gtc-contributions">${accessLabel}</span></span></a></li>`;
           }).join('')}</ul>` : '<span class="gtc-error">No collaborator data published yet</span>';
       }
       try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch (_) {}
       return true;
     }
 
-    // Local browser cache is only a fallback for a failed local JSON fetch.
+    // Developer note: projects.json should expose zero-commit repository users
+  // through `collaborators` (login, html_url, contributions/commits, and either
+  // access=true or permission/permissions). The renderer intentionally keeps
+  // those access-only users instead of dropping them as the old contributors
+  // array did. This requires a small build-script/JSON schema update if the
+  // current scheduled GitHub export only writes commit contributors.
+
+  // Local browser cache is only a fallback for a failed local JSON fetch.
     const cached = readLocalCache();
     if (cached) render(cached);
 
@@ -3359,6 +3573,39 @@
     projectDetailNavObserver.observe(sentinel);
   }
 
+  async function loadMicromouseDocuments(project = null) {
+    const root = document.getElementById('micromouseDocumentsViewer');
+    if (!root) return;
+    const apiUrl = 'https://api.github.com/repos/SuberBAbdi/Micro-Mouse/contents/University%20Submitted%20Documents';
+    try {
+      const res = await fetch(apiUrl, { headers: { Accept: 'application/vnd.github+json' } });
+      if (!res.ok) throw new Error(`GitHub documents ${res.status}`);
+      const files = await res.json();
+      let docs = Array.isArray(files) ? files.filter(f => f && f.download_url && /\.(pdf|pptx?|odp)$/i.test(f.name || '')) : [];
+      if (!docs.length) throw new Error('No supported documents found');
+      const expected = project?.micromouseDocuments || {};
+      const expectedNames = [...(expected.reportFiles || []), expected.presentationFile].filter(Boolean);
+      docs.sort((a,b) => {
+        const ai = expectedNames.findIndex(n => n.toLowerCase() === String(a.name || '').toLowerCase());
+        const bi = expectedNames.findIndex(n => n.toLowerCase() === String(b.name || '').toLowerCase());
+        const ar = ai === -1 ? 999 : ai;
+        const br = bi === -1 ? 999 : bi;
+        return ar - br || String(a.name || '').localeCompare(String(b.name || ''));
+      });
+      root.innerHTML = docs.map((f, i) => {
+        const name = String(f.name || 'Document').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch]));
+        const isPdf = /\.pdf$/i.test(f.name || '');
+        const src = isPdf ? f.download_url : `https://view.officeapps.live.com/op/embed.aspx?src=${encodeURIComponent(f.download_url)}`;
+        return `<div class="border border-line rounded-sm overflow-hidden bg-[#18181b]">
+          <div class="px-3 py-2 border-b border-line flex items-center justify-between gap-3"><span class="font-mono text-[10px] uppercase tracking-wider text-faint truncate">${name}</span><span class="font-mono text-[9px] uppercase text-faint">${isPdf ? 'PDF' : 'Presentation'}</span></div>
+          <iframe src="${src}" title="${name}" class="w-full h-[650px] border-0" loading="lazy"></iframe>
+        </div>`;
+      }).join('');
+    } catch (err) {
+      root.innerHTML = '<p class="text-sm text-dim">Repository documents could not be loaded in the browser. The viewer is configured to read PDFs and PowerPoint files from the University Submitted Documents folder.</p>';
+    }
+  }
+
   function openProject(id) {
     const p = projects.find(x => x.id === id);
     if (!p) return;
@@ -3376,6 +3623,12 @@
     // The old viewer containers are about to be rebuilt/replaced, so any
     // reference to a previous project's active overlay would be stale.
     activeInteractiveOverlay = null;
+
+    // Determine the 3D viewer type before any project asset markup is built.
+    // This must be available to every project branch below; declaring it later
+    // caused a ReferenceError for projects with `pcbModel`, preventing the
+    // project-detail page from opening at all.
+    const useGLBViewer = Array.isArray(p.glbBodies) && p.glbBodies.length > 0;
 
     let extraAssets = '';
 
@@ -3423,7 +3676,7 @@
           <div class="flex items-center justify-between mb-3">
             <p class="font-mono text-xs text-dim uppercase tracking-wider">${p.title} - PCB 3D Model</p>
             <div class="flex items-center gap-2">
-              <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">3D STL View</span>
+              <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">${useGLBViewer ? '3D GLB View' : '3D STL View'}</span>
               <div class="relative">
                 <button id="layerToggleBtn-pcbViewerContainer" onclick="toggleLayerDropdown(event,'pcbViewerContainer')" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Toggle model layers" aria-label="Toggle model layers">
                   <i data-lucide="layers" class="w-3.5 h-3.5"></i>
@@ -3444,7 +3697,7 @@
           <div class="flex items-center justify-between mb-3">
             <p class="font-mono text-xs text-dim uppercase tracking-wider">Interactive 3D Cad Model View</p>
             <div class="flex items-center gap-2">
-              <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">3D STL View</span>
+              <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">${useGLBViewer ? '3D GLB View' : '3D STL View'}</span>
               <div class="relative">
                 <button id="layerToggleBtn-stlViewerContainer" onclick="toggleLayerDropdown(event,'stlViewerContainer')" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Toggle model layers" aria-label="Toggle model layers">
                   <i data-lucide="layers" class="w-3.5 h-3.5"></i>
@@ -3540,11 +3793,41 @@
       `;
     }
 
+    if (p.githubDocumentsFolder && p.id === 'micromouse') {
+      extraAssets += `
+        <div class="mt-8 border border-line bg-panel rounded-sm p-4">
+          <div class="flex items-center justify-between gap-3 mb-3">
+            <p class="font-mono text-xs text-dim uppercase tracking-wider">Project Documents</p>
+            <span class="font-mono text-[10px] uppercase tracking-wider text-faint">Inline viewer</span>
+          </div>
+          <div id="micromouseDocumentsViewer" class="flex flex-col gap-4">
+            <p class="text-sm text-faint">Loading repository documents…</p>
+          </div>
+        </div>`;
+    }
+
     if (p.report || p.codeFile || p.presentation || p.images) {
       extraAssets += `<div class="mt-8 flex flex-col gap-3 w-full">`;
       
-      if (p.report) {
-        extraAssets += `
+      if (p.report && p.id !== 'micromouse') {
+        const reportIsExternal = /^https?:\/\//i.test(p.report);
+        const reportIsGithubFolder = typeof p.report === 'string' && p.report.indexOf('github-folder:') === 0;
+        extraAssets += reportIsGithubFolder ? `
+        <div class="flex items-center justify-between p-3.5 bg-panel border border-line hover:border-faint transition-colors rounded-sm">
+          <button onclick="loadGithubProjectDocument('report')" class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors text-left flex-1 cursor-pointer">
+            <i data-lucide="file-text" class="w-4 h-4 text-dim"></i>
+            <span>View Report ↗</span>
+          </button>
+        </div>
+        <div id="githubReportViewerContainer" class="hidden w-full border border-line rounded-sm bg-[#18181b] overflow-hidden">
+          <iframe id="githubReportIframe" src="" class="w-full h-[720px] border-0"></iframe>
+        </div>` : reportIsExternal ? `
+        <div class="flex items-center justify-between p-3.5 bg-panel border border-line hover:border-faint transition-colors rounded-sm">
+          <a href="${p.report}" target="_blank" rel="noopener" class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors text-left flex-1">
+            <i data-lucide="file-text" class="w-4 h-4 text-dim"></i>
+            <span>View Report ↗</span>
+          </a>
+        </div>` : `
         <div class="flex items-center justify-between p-3.5 bg-panel border border-line hover:border-faint transition-colors rounded-sm">
           <button onclick="togglePdfViewer('${p.report}')" class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors text-left flex-1 cursor-pointer">
             <i data-lucide="file-text" class="w-4 h-4 text-dim"></i>
@@ -3554,44 +3837,32 @@
             <i data-lucide="download" class="w-4 h-4"></i>
           </a>
         </div>
-        <div id="pdfViewerContainer" class="hidden w-full border border-line rounded-sm bg-[#18181b] overflow-y-auto p-3" style="max-height:800px;">
-          <div id="pdfCanvasHost"></div>
+        <div id="pdfViewerContainer" class="hidden w-full border border-line rounded-sm bg-[#18181b] overflow-hidden">
+          <iframe id="pdfIframe" src="" class="w-full h-[720px] border-0"></iframe>
         </div>`;
       }
 
       if (p.codeFile) {
         extraAssets += `
         <div class="flex items-center justify-between p-3.5 bg-panel border border-line hover:border-faint transition-colors rounded-sm">
-          <a href="${p.codeFile}" target="_blank" rel="noopener" class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors flex-1">
-            <i data-lucide="code" class="w-4 h-4 text-dim"></i>
-            <span>View Code (.m) ↗</span>
-          </a>
-          <a href="${p.codeFile}" download title="Download Code" class="focus-ring p-2 text-faint hover:text-white hover:bg-line rounded-sm transition-colors flex items-center justify-center">
-            <i data-lucide="download" class="w-4 h-4"></i>
+          <a href="${p.codeFile}" ${p.id === 'radar' ? 'download="code.ino"' : 'target="_blank" rel="noopener"'} class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors flex-1">
+            <i data-lucide="download" class="w-4 h-4 text-dim"></i>
+            <span>${p.id === 'radar' ? 'Download code.ino' : 'View / Download Code ↗'}</span>
           </a>
         </div>`;
       }
 
-      if (p.presentation) {
-        const presentationIsPdf = /\.pdf(\?|$)/i.test(p.presentation);
-        if (presentationIsPdf) {
-          // The file itself is a PDF (e.g. slides exported to PDF) rather
-          // than a true .pptx - render it the same way as Report above
-          // (fetch + pdf.js canvases), which works regardless of hosting,
-          // instead of routing it through the Office web viewer below
-          // (which expects an actual PowerPoint file, not a PDF).
+      if (p.presentation && p.id !== 'micromouse') {
+        if (p.presentationEmbed && typeof p.presentation === 'string' && p.presentation.indexOf('github-folder:') === 0) {
           extraAssets += `
           <div class="flex items-center justify-between p-3.5 bg-panel border border-line hover:border-faint transition-colors rounded-sm">
-            <button onclick="togglePresentationPdfViewer('${p.presentation}')" class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors text-left flex-1 cursor-pointer">
+            <button onclick="loadGithubProjectDocument('presentation')" class="focus-ring flex items-center gap-2.5 text-sm text-dim hover:text-white font-medium transition-colors text-left flex-1 cursor-pointer">
               <i data-lucide="monitor-play" class="w-4 h-4 text-dim"></i>
               <span>View Presentation ↗</span>
             </button>
-            <a href="${p.presentation}" download title="Download Presentation" class="focus-ring p-2 text-faint hover:text-white hover:bg-line rounded-sm transition-colors flex items-center justify-center">
-              <i data-lucide="download" class="w-4 h-4"></i>
-            </a>
           </div>
-          <div id="presentationViewerContainer" class="hidden w-full border border-line rounded-sm bg-[#18181b] overflow-y-auto p-3" style="max-height:800px;">
-            <div id="presentationCanvasHost"></div>
+          <div id="githubPresentationViewerContainer" class="hidden w-full border border-line rounded-sm bg-[#18181b] overflow-hidden">
+            <iframe id="githubPresentationIframe" src="" class="w-full h-[720px] border-0"></iframe>
           </div>`;
         } else if (p.presentationEmbed) {
           // "Viewable in web" presentation - mirrors the report's inline
@@ -3608,7 +3879,7 @@
             </a>
           </div>
           <div id="presentationViewerContainer" class="hidden w-full border border-line rounded-sm bg-[#18181b] overflow-hidden">
-            <iframe id="presentationIframe" src="" class="w-full h-[650px] border-0"></iframe>
+            <iframe id="presentationIframe" src="" class="w-full h-[720px] border-0"></iframe>
           </div>`;
         } else {
           extraAssets += `
@@ -3645,6 +3916,25 @@
 
 
       <p class="text-base text-[#d2d2d0] mt-6 leading-relaxed max-w-2xl">${p.overview}</p>
+
+      ${p.pinout ? `
+      <div class="mt-7 border border-line bg-panel rounded-sm overflow-hidden">
+        <div class="px-4 py-3 border-b border-line">
+          <p class="font-mono text-xs text-dim uppercase tracking-wider">Microcontroller Pinout</p>
+        </div>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm">
+            <thead><tr class="border-b border-lineSoft"><th class="px-4 py-2 font-mono text-[10px] uppercase tracking-wider text-faint">Pin</th><th class="px-4 py-2 font-mono text-[10px] uppercase tracking-wider text-faint">Function</th><th class="px-4 py-2 font-mono text-[10px] uppercase tracking-wider text-faint">Notes</th></tr></thead>
+            <tbody>${p.pinout.map(r => `<tr class="border-b border-lineSoft last:border-b-0"><td class="px-4 py-2 text-white font-mono text-xs">${r.pin}</td><td class="px-4 py-2 text-dim">${r.function}</td><td class="px-4 py-2 text-faint text-xs">${r.notes || ''}</td></tr>`).join('')}</tbody>
+          </table>
+        </div>
+      </div>` : ''}
+
+      ${p.contributors ? `
+      <div class="mt-7 border border-line bg-panel rounded-sm p-4">
+        <p class="font-mono text-xs text-dim uppercase tracking-wider mb-3">Contributors</p>
+        <div class="flex flex-wrap gap-2">${[...p.contributors].sort((a,b) => a.name.localeCompare(b.name)).map(c => c.href ? `<a href="${c.href}" target="_blank" rel="noopener" class="tag hover:text-white hover:border-faint">${c.name} ↗</a>` : `<span class="tag">${c.name}</span>`).join('')}</div>
+      </div>` : ''}
 
       ${p.sections ? `
       <!-- Custom section layout: used instead of the default Technical Stack /
@@ -3730,10 +4020,17 @@
     if (p.githubCard) {
       initGithubTerminalCard('ghCard-' + p.id, p.githubCard);
     }
+    if (p.id === 'micromouse') {
+      setTimeout(() => loadMicromouseDocuments(p), 50);
+    }
 
     if (p.has3DModel) {
       setTimeout(() => {
-        init3DViewer('stlViewerContainer', p.stlBodies || []);
+        if (p.glbBodies && p.glbBodies.length) {
+          initGLBViewer('stlViewerContainer', p.glbBodies);
+        } else {
+          init3DViewer('stlViewerContainer', p.stlBodies || []);
+        }
         addClickToInteractOverlay('stlViewerContainer', 'Click to Interact');
       }, 50);
     }
@@ -3973,16 +4270,64 @@ function initFollowingAccordion() {
 }
 
 
-const CATEGORY_DATA = {
-  // ---- Awards ----
-  // Empty for now - add entries using exactly the same shape as a
-  // certification (see the Licences & Certifications block below: size,
-  // eyebrow, title, body, plus optional `logo`/`group`). The "View All"
-  // button and pop-up/TOC machinery already work with zero entries (see
-  // openModalCategory's empty-state handling), so nothing else needs to
-  // change here when the first award is added.
-  awards: [],
 
+function openHomelabPage() {
+  const detailView = document.getElementById('projectDetailView');
+  const feedView = document.getElementById('feedView');
+  const centerCol = document.getElementById('centerColumn');
+  const rightSidebar = document.getElementById('rightSidebar');
+  if (!detailView || !feedView) return;
+
+  // Stop any project viewer still running before switching to the blank page.
+  Object.keys(viewer3DInstances).forEach((key) => {
+    const inst = viewer3DInstances[key];
+    if (inst.animationId) cancelAnimationFrame(inst.animationId);
+  });
+  viewer3DInstances = {};
+
+  feedView.style.display = 'none';
+  detailView.classList.add('open');
+
+  if (centerCol) {
+    if (typeof leftSidebarOpen !== 'undefined' && leftSidebarOpen) {
+      centerCol.classList.replace('lg:col-span-6', 'lg:col-span-9');
+    } else {
+      centerCol.classList.replace('lg:col-span-8', 'lg:col-span-11');
+    }
+  }
+  if (rightSidebar) {
+    rightSidebar.classList.add('hidden');
+  }
+
+  detailView.innerHTML = `
+    <div id="projectDetailNavSentinel" style="height:1px;"></div>
+    <div id="projectDetailNav" class="pd-nav mb-6">
+      <div class="pdnav-left">
+        <button onclick="closeProject()" class="focus-ring inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white transition-colors">
+          <i data-lucide="arrow-left" class="w-3.5 h-3.5"></i> Back to Portfolio
+        </button>
+      </div>
+      <div class="pdnav-center">
+        <button class="pdnav-top-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})" aria-label="Scroll to top">↑ Top</button>
+      </div>
+      <div class="pdnav-right"></div>
+    </div>
+
+    <div class="max-w-4xl">
+      <h2 class="font-display font-extrabold text-4xl sm:text-5xl text-white">Homelab</h2>
+      <p class="text-base text-dim mt-4">This page is reserved for the homelab section.</p>
+      <div class="mt-8 border border-dashed border-line bg-panel rounded-sm min-h-[22rem] flex items-center justify-center">
+        <span class="font-mono text-xs uppercase tracking-widest text-faint">Content coming soon</span>
+      </div>
+    </div>
+  `;
+
+  window.scrollTo({top:0, behavior:'smooth'});
+  if (window.lucide) lucide.createIcons();
+  history.replaceState(null, '', '#homelab');
+}
+
+const CATEGORY_DATA = {
   // ---- Licences & Certifications ----
   // `group` clusters entries under a shared heading in the table-of-contents
   // view (see renderCategoryTOC) - e.g. every University of Westminster
@@ -4142,8 +4487,8 @@ const CATEGORY_DATA = {
              (not a separate modal-section) so there's no odd divider gap
              between a one-line label and the paragraph that follows it. -->
         <div class="modal-section">
-          <p class="font-mono text-xs uppercase text-faint mb-3">Cause: <span class="text-dim normal-case">Children</span></p>
-          <p>Supported and supervised children in a dynamic summer community programme, ensuring a safe, engaging, and well-organised environment.</p>
+          <p class="font-mono text-xs uppercase text-faint mb-1">Cause: <span class="text-dim normal-case">Children</span></p>
+          <p class="cause-copy">Supported and supervised children in a dynamic summer community programme, ensuring a safe, engaging, and well-organised environment.</p>
           <ul class="bullet-list mt-3 text-sm text-dim space-y-2">
             <li><strong class="text-[#d2d2d0] font-medium">Activity Coordination:</strong> Led and coordinated diverse recreational activities, including sports and painting, for children aged 8 to 14.</li>
             <li><strong class="text-[#d2d2d0] font-medium">Child Support:</strong> Supervised and looked after participants to ensure safety, teamwork, and positive engagement throughout the playscheme.</li>
@@ -4202,6 +4547,10 @@ const CATEGORY_DATA = {
       `
     }
   ],
+  // Awards is intentionally blank for now, but uses the same category/modal
+  // structure as Licences & Certifications so entries can be added later.
+  awards: [],
+
   following: [
     {
       size: 'modal-md',
@@ -4240,41 +4589,6 @@ const SINGLE_MODALS = {
             <summary class="font-display font-semibold text-sm text-white outline-none list-none flex justify-between items-center">Sensors and Signals<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-dim group-open:rotate-180 transition-transform"><path d="m6 9 6 6 6-6"/></svg></summary>
             <div class="text-sm text-dim mt-2 pt-2 border-t border-lineSoft leading-relaxed"><p>This module provides a foundational understanding of sensing systems and signal processing, emphasizing the integration of smart sensors and microelectromechanical systems (MEMS) with digital computer systems. Students explore the operational principles of standard transducers, including temperature, pressure, light, and motion sensors, alongside key signal processing concepts such as sampling, aliasing, Fourier transforms, filtering, and image analysis. Crucially, the course introduces analog-to-digital and digital-to-analog conversion principles alongside the ethical, legal, and environmental implications of capturing personal or sensitive sensory data.</p><p class="mt-3">Mastery of sensor technologies and signal conditioning is vital for bridging physical phenomena with software execution in modern engineering. By equipping students with both mathematical tools for frequency-domain analysis and practical image processing capabilities, this module serves as a mandatory precursor to advanced embedded design. It directly prepares students for industrial roles in IoT, robotics, and computer vision by developing the capability to select, interface, and process complex sensor data responsibly.</p><button type="button" onclick="closeModal(); setTimeout(() => openProject('anpr'), 210);" class="mt-3 inline-flex items-center gap-2 font-mono text-[10px] uppercase tracking-wider text-dim hover:text-white transition-colors focus-ring"><i data-lucide="scan-line" class="w-3.5 h-3.5"></i> Related Project: Number Plate Recognition System ↗</button></div>
           </details>
-        </div>
-      </div>
-    `
-  },
-  toolchain: {
-    size: 'modal-md',
-    eyebrow: 'Skills & Tools',
-    title: 'Complete Toolchain',
-    // Full toolchain list, pulled together from every project + module +
-    // work experience on the site. Add a new tool here whenever a new
-    // project/module introduces one - the sidebar quick view above only
-    // needs updating if it should be promoted into the top 5 shown there.
-    body: `
-      <div class="modal-section">
-        <div class="flex flex-wrap gap-2">
-            <span class="tag">C / C++</span>
-            <span class="tag">Python</span>
-            <span class="tag">Assembly</span>
-            <span class="tag">MATLAB</span>
-            <span class="tag">KiCad</span>
-            <span class="tag">Arduino</span>
-            <span class="tag">PIC16F877A</span>
-            <span class="tag">Mbed / Keil</span>
-            <span class="tag">Keysight ADS</span>
-            <span class="tag">SPI / I2C</span>
-            <span class="tag">PICSim / MPLAB X</span>
-            <span class="tag">Verilog / VHDL</span>
-            <span class="tag">Xilinx Vivado</span>
-            <span class="tag">RISC-V GCC Toolchain</span>
-            <span class="tag">Linux Kernel Programming</span>
-            <span class="tag">Fusion 360</span>
-            <span class="tag">Processing</span>
-            <span class="tag">Microsoft Excel</span>
-            <span class="tag">Azure</span>
-            <span class="tag">Confluence</span>
         </div>
       </div>
     `
@@ -4351,8 +4665,8 @@ const CATEGORY_LABELS = {
   volunteering: 'Volunteering',
   partTime: 'Part-Time Experience',
   certifications: 'Licences & Certifications',
-  following: 'Following',
-  awards: 'Awards'
+  awards: 'Awards',
+  following: 'Following'
 };
 
 // Renders the table-of-contents body for a category: a flat list of
@@ -4365,12 +4679,6 @@ const CATEGORY_LABELS = {
 // title markup can include spans/links meant only for the detail view).
 function renderCategoryTOC(categoryKey) {
   const list = CATEGORY_DATA[categoryKey] || [];
-
-  // Friendly empty state (e.g. Awards, which ships with zero entries) -
-  // rather than an empty bordered box with nothing in it.
-  if (list.length === 0) {
-    return `<p class="text-sm text-dim font-mono py-8 text-center">Nothing added yet - check back soon.</p>`;
-  }
 
   function tocRow(item, idx) {
     const plainTitle = item.shortTitle || item.title.replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim();
@@ -4431,13 +4739,29 @@ function showCategoryDetail(categoryKey, index) {
 }
 
 // index omitted -> show the table-of-contents first for multi-item
-// categories (or go straight to the only item if there's just one, or a
-// friendly empty state if there are none yet - e.g. Awards).
+// categories (or go straight to the only item if there's just one).
 // index provided -> jump directly to that item (used by showCategoryDetail
 // and anywhere else that already knows which item it wants).
 function openModalCategory(categoryKey, index) {
   const cat = CATEGORY_DATA[categoryKey];
-  if (!cat) return;
+  if (!cat || !cat.length) {
+    if (categoryKey === 'awards') {
+      currentCategoryKey = categoryKey;
+      const overlay = document.getElementById('modalOverlay');
+      overlay.classList.add('open');
+      document.body.classList.add('modal-open');
+      document.getElementById('modalEyebrow').textContent = 'Awards';
+      document.getElementById('modalTitle').textContent = 'Awards';
+      setModalLogo(null);
+      document.getElementById('modalCategoryNav').classList.add('hidden');
+      document.getElementById('modalBody').innerHTML = '<div class="modal-section"><p class="text-sm text-dim">No awards have been added yet.</p></div>';
+      document.getElementById('modalPanel').className = 'modal-panel modal-md';
+      document.getElementById('modalHead').style.borderBottom = '';
+      setTimeout(() => overlay.classList.add('shown'), 10);
+      return;
+    }
+    return;
+  }
 
   currentCategoryKey = categoryKey;
 
@@ -4446,16 +4770,14 @@ function openModalCategory(categoryKey, index) {
   document.body.classList.add('modal-open');
   setTimeout(() => overlay.classList.add('shown'), 10);
 
-  if (typeof index === 'number' && cat.length > 0) {
+  if (typeof index === 'number') {
     currentCategoryIndex = Math.max(0, Math.min(index, cat.length - 1));
     renderCategoryModalItem();
-  } else if (cat.length === 1) {
+  } else if (cat.length > 1) {
+    renderCategoryTOCView(categoryKey);
+  } else {
     currentCategoryIndex = 0;
     renderCategoryModalItem();
-  } else {
-    // Covers both "more than one entry" (real TOC) and "zero entries"
-    // (renderCategoryTOC's own empty-state message) with the same call.
-    renderCategoryTOCView(categoryKey);
   }
 }
 
