@@ -442,7 +442,7 @@
       scrollbar-width:thin;
     }
     #centerColumn{ padding-left:32px; padding-right:0; min-width:0; position:relative; }
-    #rightSidebar{ padding-left:32px; padding-right:32px; }
+    #rightSidebar{ padding-left:32px; padding-right:32px; padding-top:0; transform:translateY(160px); }
   }
   @media (max-width:1023px){
     #leftSidebar{ position:relative; }
@@ -2106,9 +2106,13 @@
       }, 300);
       
       leftAside.classList.add('is-collapsed');
-      // Do not mutate the grid column classes here. The sidebar collapses its
-      // contents only; keeping the grid tracks intact prevents the surrounding
-      // container from widening and also preserves the mobile toggle.
+      // Collapse the left grid track itself so the remaining columns reclaim
+      // the space, matching the earlier desktop behaviour.
+      leftAside.classList.remove('lg:col-span-3');
+      leftAside.classList.add('lg:col-span-1');
+      centerCol.classList.remove('lg:col-span-6', 'lg:col-span-8', 'lg:col-span-9', 'lg:col-span-11');
+      const projectOpenNow = document.getElementById('projectDetailView').classList.contains('open');
+      centerCol.classList.add(projectOpenNow ? 'lg:col-span-11' : 'lg:col-span-8');
       leftAside.dataset.collapsed = 'true';
       toggleBtn.classList.remove('top-4', 'right-0');
       toggleBtn.classList.add('top-0', 'left-1/2', '-translate-x-1/2');
@@ -2130,6 +2134,11 @@
       }));
       
       leftAside.classList.remove('is-collapsed');
+      leftAside.classList.remove('lg:col-span-1');
+      leftAside.classList.add('lg:col-span-3');
+      centerCol.classList.remove('lg:col-span-6', 'lg:col-span-8', 'lg:col-span-9', 'lg:col-span-11');
+      const projectOpenNow = document.getElementById('projectDetailView').classList.contains('open');
+      centerCol.classList.add(projectOpenNow ? 'lg:col-span-9' : 'lg:col-span-6');
       leftAside.dataset.collapsed = 'false';
       // BUGFIX: must re-add the button's expanded-state position classes here,
       // otherwise after a collapse->expand cycle the button loses its
@@ -4326,11 +4335,8 @@ function openHomelabPage() {
   detailView.classList.add('open');
 
   if (centerCol) {
-    if (typeof leftSidebarOpen !== 'undefined' && leftSidebarOpen) {
-      centerCol.classList.replace('lg:col-span-6', 'lg:col-span-9');
-    } else {
-      centerCol.classList.replace('lg:col-span-8', 'lg:col-span-11');
-    }
+    centerCol.classList.remove('lg:col-span-6', 'lg:col-span-8', 'lg:col-span-9', 'lg:col-span-11');
+    centerCol.classList.add(leftSidebarOpen ? 'lg:col-span-9' : 'lg:col-span-11');
   }
   if (rightSidebar) {
     rightSidebar.classList.add('hidden');
