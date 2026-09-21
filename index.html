@@ -442,7 +442,7 @@
       scrollbar-width:thin;
     }
     #centerColumn{ padding-left:32px; padding-right:0; min-width:0; position:relative; }
-    #rightSidebar{ padding-left:32px; padding-right:32px; padding-top:0; transform:translateY(160px); }
+    #rightSidebar{ padding-left:32px; padding-right:32px; padding-top:0; transform:translateY(0); }
   }
   @media (max-width:1023px){
     #leftSidebar{ position:relative; }
@@ -660,13 +660,31 @@
 
   /* ===== Responsive presentation scale ===== */
   html{zoom:0.9;}
+  /* `zoom:0.9` scales the rendered document, so restore the visual viewport
+     height to the full browser height and keep the footer on the bottom edge. */
+  body{min-height:111.111111vh !important;}
 
 
   /* ===== Portfolio grid/sidebar refinements ===== */
   @media (min-width:1024px){
     .portfolio-grid{grid-template-columns:repeat(12,minmax(0,1fr)) !important;}
-    #leftSidebar{width:100%; max-width:none; min-width:0; height:auto; max-height:none; overflow:visible; box-sizing:border-box;}
-    #centerColumn,#rightSidebar{min-width:0; width:100%; max-width:none; box-sizing:border-box;}
+    #leftSidebar{
+      grid-column:span 3 !important;
+      width:100%; max-width:none; min-width:0; height:auto; max-height:none; overflow:visible; box-sizing:border-box;
+    }
+    #centerColumn{
+      grid-column:span 6 !important;
+      min-width:0; width:100%; max-width:none; box-sizing:border-box;
+    }
+    #rightSidebar{
+      grid-column:span 3 !important;
+      min-width:0; width:100%; max-width:none; box-sizing:border-box;
+    }
+    /* When the profile is collapsed, give its released grid space back to the
+       main content. This is the same 1 / 8 / 3 desktop arrangement as before. */
+    #leftSidebar.is-collapsed{grid-column:span 1 !important;}
+    #leftSidebar.is-collapsed + #centerColumn{grid-column:span 8 !important;}
+    #leftSidebar.is-collapsed + #centerColumn.project-detail-expanded{grid-column:span 11 !important;}
   }
   #leftSidebar.is-collapsed{width:100% !important; max-width:none !important; min-width:0 !important;}
   #leftSidebar.is-collapsed + #centerColumn{min-width:0;}
@@ -1793,9 +1811,9 @@
       title: 'DAC with PIC16F877A',
       has3DModel: true,
       glbBodies: [
-        { id: 'full-assembly', name: 'PCB / Full Assembly', path: 'https://raw.githubusercontent.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Temperature%20Checker%20with%20a%20DAC.glb', visible: true },
-        { id: 'cover-body', name: 'Cover', path: 'https://raw.githubusercontent.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Cover%20Body.glb', visible: true },
-        { id: 'lower-body', name: 'Lower Body', path: 'https://raw.githubusercontent.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Lower%20Body.glb', visible: true }
+        { id: 'full-assembly', name: 'PCB / Full Assembly', path: 'https://raw.githubusercontent.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Temperature%20Checker%20with%20a%20DAC.glb', fallbackUrl: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/raw/refs/heads/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Temperature%20Checker%20with%20a%20DAC.glb', visible: true },
+        { id: 'cover-body', name: 'Cover', path: 'https://raw.githubusercontent.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Cover%20Body.glb', fallbackUrl: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/raw/refs/heads/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Cover%20Body.glb', visible: true },
+        { id: 'lower-body', name: 'Lower Body', path: 'https://raw.githubusercontent.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Lower%20Body.glb', fallbackUrl: 'https://github.com/SuberBAbdi/DAC-using-PIC16F877A-Temperature-Scanner/raw/refs/heads/main/3D%20and%202D%20Models%20/3D%20Model%20of%20PCB/Lower%20Body.glb', visible: true }
       ],
       hoverDescription: 'A PIC16F877A temperature scanner and DAC project combining analogue front-end design, ADC sampling, Assembly firmware, LCD output and hardware verification.',
       overview: 'A PIC16F877A temperature scanner and DAC project combining analogue front-end design, ADC sampling, Assembly firmware, LCD output and hardware verification.',
@@ -2113,6 +2131,7 @@
       centerCol.classList.remove('lg:col-span-6', 'lg:col-span-8', 'lg:col-span-9', 'lg:col-span-11');
       const projectOpenNow = document.getElementById('projectDetailView').classList.contains('open');
       centerCol.classList.add(projectOpenNow ? 'lg:col-span-11' : 'lg:col-span-8');
+      centerCol.classList.toggle('project-detail-expanded', projectOpenNow);
       leftAside.dataset.collapsed = 'true';
       toggleBtn.classList.remove('top-4', 'right-0');
       toggleBtn.classList.add('top-0', 'left-1/2', '-translate-x-1/2');
@@ -2139,6 +2158,7 @@
       centerCol.classList.remove('lg:col-span-6', 'lg:col-span-8', 'lg:col-span-9', 'lg:col-span-11');
       const projectOpenNow = document.getElementById('projectDetailView').classList.contains('open');
       centerCol.classList.add(projectOpenNow ? 'lg:col-span-9' : 'lg:col-span-6');
+      centerCol.classList.toggle('project-detail-expanded', projectOpenNow);
       leftAside.dataset.collapsed = 'false';
       // BUGFIX: must re-add the button's expanded-state position classes here,
       // otherwise after a collapse->expand cycle the button loses its
@@ -2435,12 +2455,18 @@
     timeline.style.marginTop = '0px';
     const desiredTop = expHead.getBoundingClientRect().bottom;
     const delta = desiredTop - timeline.getBoundingClientRect().top;
-    timeline.style.marginTop = Math.max(0, delta) + 'px';
+    timeline.style.marginTop = delta + 'px';
   }
 
   window.addEventListener('resize', () => {
     requestAnimationFrame(alignHomelabToExperience);
     requestAnimationFrame(alignExperienceTimelineWithMainExperience);
+  });
+  window.addEventListener('load', () => {
+    requestAnimationFrame(() => {
+      alignHomelabToExperience();
+      alignExperienceTimelineWithMainExperience();
+    });
   });
 
   function renderProjectGrid() {
@@ -3087,33 +3113,41 @@ async function loadGithubProjectDocument(kind) {
     };
 
     inst.bodiesConfig.forEach(cfg => {
-      loader.load(
-        cfg.path,
-        gltf => {
-          const root = gltf.scene;
-          root.name = cfg.name;
-          root.visible = cfg.visible;
-          root.traverse(obj => {
-            if (!obj.isMesh) return;
-            obj.castShadow = true;
-            obj.receiveShadow = true;
-            // Preserve authored GLB materials. Only tune roughness/metalness
-            // where the source uses standard PBR materials.
-            if (obj.material && obj.material.isMeshStandardMaterial) {
-              obj.material.roughness = Math.max(obj.material.roughness ?? 0.45, 0.3);
-              obj.material.metalness = Math.min(obj.material.metalness ?? 0.05, 0.18);
-            }
-          });
-          inst.bodies[cfg.id] = root;
-          root.updateMatrixWorld(true);
-          bounds.expandByObject(root);
-          group.add(root);
-          anyLoaded = true;
-          finish();
-        },
-        undefined,
-        () => finish()
-      );
+      let settled = false;
+      const markFailure = () => {
+        if (settled) return;
+        settled = true;
+        finish();
+      };
+      const handleLoaded = gltf => {
+        if (settled) return;
+        settled = true;
+        const root = gltf.scene;
+        root.name = cfg.name;
+        root.visible = cfg.visible;
+        root.traverse(obj => {
+          if (!obj.isMesh) return;
+          obj.castShadow = true;
+          obj.receiveShadow = true;
+          // Preserve authored GLB materials. Only tune roughness/metalness
+          // where the source uses standard PBR materials.
+          if (obj.material && obj.material.isMeshStandardMaterial) {
+            obj.material.roughness = Math.max(obj.material.roughness ?? 0.45, 0.3);
+            obj.material.metalness = Math.min(obj.material.metalness ?? 0.05, 0.18);
+          }
+        });
+        inst.bodies[cfg.id] = root;
+        root.updateMatrixWorld(true);
+        bounds.expandByObject(root);
+        group.add(root);
+        anyLoaded = true;
+        finish();
+      };
+      const tryFallback = () => {
+        if (!cfg.fallbackUrl || cfg.fallbackUrl === cfg.path) return markFailure();
+        loader.load(cfg.fallbackUrl, handleLoaded, undefined, markFailure);
+      };
+      loader.load(cfg.path, handleLoaded, undefined, tryFallback);
     });
 
     const renderViewCube = initViewCube(camera, controls, container);
@@ -3740,7 +3774,12 @@ async function loadGithubProjectDocument(kind) {
       extraAssets += `
         <div class="mt-6 border border-line bg-panel p-4 rounded-sm">
           <div class="flex items-center justify-between mb-3">
-            <p class="font-mono text-xs text-dim uppercase tracking-wider">Interactive 3D Cad Model View</p>
+            <div class="min-w-0">
+              <p class="font-mono text-xs text-dim uppercase tracking-wider">Interactive 3D Cad Model View</p>
+              ${useGLBViewer ? `<div class="flex flex-wrap gap-x-3 gap-y-1 mt-1">
+                ${glbBodies.map(b => `<a href="${b.fallbackUrl || b.path}" target="_blank" rel="noopener noreferrer" class="font-mono text-[9px] uppercase tracking-wider text-faint hover:text-white underline underline-offset-2">${b.name} ↗</a>`).join('')}
+              </div>` : ''}
+            </div>
             <div class="flex items-center gap-2">
               <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">${useGLBViewer ? '3D GLB View' : '3D STL View'}</span>
               <div class="relative">
@@ -4137,6 +4176,7 @@ async function loadGithubProjectDocument(kind) {
       const centerCol = document.getElementById('centerColumn');
       centerCol.classList.remove('lg:col-span-6', 'lg:col-span-8', 'lg:col-span-9', 'lg:col-span-11');
       centerCol.classList.add(leftSidebarOpen ? 'lg:col-span-6' : 'lg:col-span-8');
+      centerCol.classList.remove('project-detail-expanded');
 
       const rightSidebarEl = document.getElementById('rightSidebar');
       rightSidebarEl.classList.remove('hidden');
