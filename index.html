@@ -1861,9 +1861,9 @@
         }
       ],
 
-      // The viewer resolves the PDF/PPTX files from this repository folder at
-      // runtime, so the user views the actual documents in-site rather than
-      // being sent to the GitHub directory.
+      // The DAC GLB files above are loaded directly by the interactive 3D
+      // viewer from the repository. They are not exposed as embedded/clickable
+      // document links; the viewer controls which model layers are visible.
       report: 'github-folder:University Submitted Documents',
       presentation: 'github-folder:University Submitted Documents',
       presentationEmbed: true,
@@ -3791,9 +3791,7 @@ async function loadGithubProjectDocument(kind) {
           <div class="flex items-center justify-between mb-3">
             <div class="min-w-0">
               <p class="font-mono text-xs text-dim uppercase tracking-wider">Interactive 3D Cad Model View</p>
-              ${useGLBViewer ? `<div class="flex flex-wrap gap-x-3 gap-y-1 mt-1">
-                ${(p.glbBodies || []).map(b => `<a href="${b.fallbackUrl || b.path}" target="_blank" rel="noopener noreferrer" class="font-mono text-[9px] uppercase tracking-wider text-faint hover:text-white underline underline-offset-2">${b.name} ↗</a>`).join('')}
-              </div>` : ''}
+              ${useGLBViewer ? `<p class="font-mono text-[9px] uppercase tracking-wider text-faint mt-1">Repository GLB files loaded directly into the 3D viewer</p>` : ''}
             </div>
             <div class="flex items-center gap-2">
               <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">${useGLBViewer ? '3D GLB View' : '3D STL View'}</span>
