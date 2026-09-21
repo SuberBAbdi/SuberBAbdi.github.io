@@ -883,6 +883,17 @@
     opacity:1 !important;
   }
 
+    #stlViewerContainer:fullscreen {
+      width: 100vw !important;
+      height: 100vh !important;
+      border: 0 !important;
+      border-radius: 0 !important;
+      background: #f3f3f2 !important;
+    }
+    #stlViewerContainer:fullscreen canvas {
+      width: 100% !important;
+      height: 100% !important;
+    }
 </style>
 
 <style id="bottom-right-grey-gradient">
@@ -2950,11 +2961,64 @@ async function loadGithubProjectDocument(kind) {
     });
     cubeRenderer.domElement.addEventListener('mouseleave', clearHover);
 
+    let viewTransitionFrame = null;
+
     function snapTo(dir) {
-      const dist = mainCamera.position.length() || 150;
-      mainCamera.position.copy(dir.clone().multiplyScalar(dist));
-      mainCamera.lookAt(0, 0, 0);
-      if (mainControls) mainControls.update();
+      const target = mainCamera.userData.modelCenter
+        ? mainCamera.userData.modelCenter.clone()
+        : new THREE.Vector3(0, 0, 0);
+
+      // Keep the current viewing distance, but move to an exact axis/edge/corner
+      // direction. This makes clicking FRONT behave like a CAD view cube rather
+      // than preserving a diagonal component from the previous camera angle.
+      const currentDistance = mainCamera.position.distanceTo(target) || 10;
+      const destination = target.clone().add(dir.clone().normalize().multiplyScalar(currentDistance));
+
+      if (viewTransitionFrame) cancelAnimationFrame(viewTransitionFrame);
+
+      const startPosition = mainCamera.position.clone();
+      const startTarget = (mainControls && mainControls.target)
+        ? mainControls.target.clone()
+        : target.clone();
+      const duration = 480;
+      const startTime = performance.now();
+
+      if (mainControls) mainControls.enabled = false;
+
+      function easeInOutCubic(t) {
+        return t < 0.5
+          ? 4 * t * t * t
+          : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      }
+
+      function animateView(now) {
+        const raw = Math.min(1, (now - startTime) / duration);
+        const t = easeInOutCubic(raw);
+
+        mainCamera.position.lerpVectors(startPosition, destination, t);
+        const animatedTarget = startTarget.clone().lerp(target, t);
+        mainCamera.lookAt(animatedTarget);
+
+        if (mainControls) {
+          mainControls.target.copy(animatedTarget);
+          mainControls.update();
+        }
+
+        if (raw < 1) {
+          viewTransitionFrame = requestAnimationFrame(animateView);
+        } else {
+          viewTransitionFrame = null;
+          mainCamera.position.copy(destination);
+          mainCamera.lookAt(target);
+          if (mainControls) {
+            mainControls.target.copy(target);
+            mainControls.enabled = true;
+            mainControls.update();
+          }
+        }
+      }
+
+      viewTransitionFrame = requestAnimationFrame(animateView);
     }
 
     cubeRenderer.domElement.addEventListener('click', (e) => {
@@ -2975,12 +3039,47 @@ async function loadGithubProjectDocument(kind) {
     homeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
       const home = mainCamera.userData.homePosition;
+      const homeTarget = mainCamera.userData.homeTarget || mainCamera.userData.modelCenter || new THREE.Vector3(0, 0, 0);
       if (home) {
-        mainCamera.position.copy(home);
-        mainCamera.lookAt(0, 0, 0);
-        if (mainControls) mainControls.update();
+        if (viewTransitionFrame) cancelAnimationFrame(viewTransitionFrame);
+
+        const startPosition = mainCamera.position.clone();
+        const startTarget = mainControls ? mainControls.target.clone() : homeTarget.clone();
+        const duration = 480;
+        const startTime = performance.now();
+
+        if (mainControls) mainControls.enabled = false;
+
+        function easeHome(t) {
+          return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        }
+
+        function animateHome(now) {
+          const raw = Math.min(1, (now - startTime) / duration);
+          const t = easeHome(raw);
+          mainCamera.position.lerpVectors(startPosition, home, t);
+          const target = startTarget.clone().lerp(homeTarget, t);
+          mainCamera.lookAt(target);
+          if (mainControls) {
+            mainControls.target.copy(target);
+            mainControls.update();
+          }
+          if (raw < 1) {
+            viewTransitionFrame = requestAnimationFrame(animateHome);
+          } else {
+            viewTransitionFrame = null;
+            mainCamera.position.copy(home);
+            mainCamera.lookAt(homeTarget);
+            if (mainControls) {
+              mainControls.target.copy(homeTarget);
+              mainControls.enabled = true;
+              mainControls.update();
+            }
+          }
+        }
+        viewTransitionFrame = requestAnimationFrame(animateHome);
       } else {
-        snapTo(new THREE.Vector3(1, 1, 1)); // fallback: default isometric-style corner
+        snapTo(new THREE.Vector3(1, 1, 1));
       }
     });
     cubeWrap.appendChild(homeBtn);
@@ -2998,6 +3097,20 @@ async function loadGithubProjectDocument(kind) {
   // `layerToggleBtn-${containerId}` / `layerDropdown-${containerId}` so that
   // two 3D viewers can both be open on the same project page without their
   // dropdowns colliding.
+  async function toggle3DViewerFullscreen(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    try {
+      if (document.fullscreenElement === container) {
+        await document.exitFullscreen();
+      } else if (container.requestFullscreen) {
+        await container.requestFullscreen();
+      }
+    } catch (error) {
+      console.warn('3D viewer fullscreen is unavailable:', error);
+    }
+  }
+
   function toggleLayerDropdown(e, containerId) {
     if (e) e.stopPropagation();
     const dd = document.getElementById('layerDropdown-' + containerId);
@@ -3053,43 +3166,55 @@ async function loadGithubProjectDocument(kind) {
     const inst = {
       animationId: null,
       bodies: {},
-      bodiesConfig: glbBodies.map(b => ({...b, visible: b.visible !== false}))
+      bodiesConfig: glbBodies.map(b => ({ ...b, visible: b.visible !== false }))
     };
     viewer3DInstances[containerId] = inst;
 
     const width = container.clientWidth || 800;
     const height = container.clientHeight || 576;
     const scene = new THREE.Scene();
+
+    // Fusion-360-like neutral workbench background.
     scene.background = new THREE.Color(0xf3f3f2);
 
     const camera = new THREE.PerspectiveCamera(45, width / height, 0.01, 5000);
-    camera.position.set(0, 0, 150);
+    camera.position.set(0, 0, 10);
     camera.up.set(0, 1, 0);
     camera.lookAt(0, 0, 0);
     camera.userData.homePosition = camera.position.clone();
 
-    const renderer = new THREE.WebGLRenderer({antialias:true});
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
     renderer.setSize(width, height);
     renderer.outputEncoding = THREE.sRGBEncoding;
     container.appendChild(renderer.domElement);
 
-    scene.add(new THREE.HemisphereLight(0xffffff, 0x777777, 1.35));
-    const key = new THREE.DirectionalLight(0xffffff, 1.25);
-    key.position.set(3, 5, 6);
+    // Soft CAD/workbench lighting.
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x6f7378, 1.55));
+    const key = new THREE.DirectionalLight(0xffffff, 1.35);
+    key.position.set(4, 7, 8);
     scene.add(key);
-    const fill = new THREE.DirectionalLight(0xffffff, 0.55);
-    fill.position.set(-4, 2, -3);
+    const fill = new THREE.DirectionalLight(0xd9dde2, 0.7);
+    fill.position.set(-5, 2, -4);
     scene.add(fill);
 
     const group = new THREE.Group();
+
+    // Reorient the DAC so the model's current BACK face becomes the viewer's
+    // FRONT (+Z).  The extra 180° turn around Y inverts the previous
+    // front/back assignment while keeping the model upright.
+    group.rotation.set(-Math.PI / 2, Math.PI, 0);
     scene.add(group);
 
     const controls = THREE.OrbitControls ? new THREE.OrbitControls(camera, renderer.domElement) : null;
     if (controls) {
       controls.enableDamping = true;
-      controls.dampingFactor = 0.06;
-      controls.minDistance = 0.05;
+      controls.dampingFactor = 0.08;
+      controls.rotateSpeed = 0.72;
+      controls.zoomSpeed = 0.9;
+      controls.panSpeed = 0.65;
+      controls.enablePan = false;
+      controls.minDistance = 0.01;
       controls.maxDistance = 5000;
     }
 
@@ -3105,7 +3230,98 @@ async function loadGithubProjectDocument(kind) {
     let loaded = 0;
     let anyLoaded = false;
 
-    const finish = () => {
+    function makeFusionPlastic(hex) {
+      return new THREE.MeshPhysicalMaterial({
+        color: hex,
+        roughness: 0.48,
+        metalness: 0.02,
+        clearcoat: 0.08,
+        clearcoatRoughness: 0.65
+      });
+    }
+
+    function applyFusionAppearance(root, cfg) {
+      const projectName = String(cfg.name || '').toLowerCase();
+      const isCover = projectName.includes('cover');
+      const isLower = projectName.includes('lower');
+      const isFull = projectName.includes('full') || projectName.includes('pcb');
+
+      root.traverse(obj => {
+        if (!obj.isMesh) return;
+
+        obj.castShadow = true;
+        obj.receiveShadow = true;
+
+        const objectName = String(obj.name || '').toLowerCase();
+        const materialName = obj.material && obj.material.name
+          ? String(obj.material.name).toLowerCase()
+          : '';
+
+        // Silkscreen is white in the physical/Fusion-style PCB view.
+        // If the exported GLB contains silkscreen geometry, force its
+        // material to white so it is not rendered as KiCad-style yellow.
+        const isSilk =
+          objectName.includes('silk') ||
+          objectName.includes('silkscreen') ||
+          materialName.includes('silk') ||
+          materialName.includes('silkscreen');
+
+        if (isSilk) {
+          obj.userData.isSilkscreen = true;
+          obj.material = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            roughness: 0.72,
+            metalness: 0
+          });
+          return;
+        }
+
+        if (Array.isArray(obj.material)) {
+          obj.material = obj.material.map(m => m.clone ? m.clone() : m);
+        } else if (obj.material && obj.material.clone) {
+          obj.material = obj.material.clone();
+        }
+
+        const material = obj.material;
+        if (!material || !material.color) return;
+
+        // Preserve non-white authored GLB colours. Only supply Fusion-like
+        // appearance where the export has lost its appearance and is white.
+        const c = material.color;
+        const effectivelyWhite = c.r > 0.94 && c.g > 0.94 && c.b > 0.94;
+
+        if ((isCover || isLower) && effectivelyWhite) {
+          // Neutral Fusion-style printed-plastic grey rather than pure white.
+          material.color.setHex(isCover ? 0x6b7280 : 0x858b92);
+          material.roughness = 0.5;
+          material.metalness = 0.02;
+        } else if (isFull && effectivelyWhite) {
+          // If the PCB export lost its board appearance, use common Fusion
+          // electronics colours only for clearly named board/material meshes.
+          if (
+            objectName.includes('pcb') ||
+            objectName.includes('board') ||
+            materialName.includes('pcb') ||
+            materialName.includes('board')
+          ) {
+            material.color.setHex(0x176b45);
+            material.roughness = 0.55;
+            material.metalness = 0.02;
+          } else {
+            // Components remain a neutral dark CAD/plastic colour rather than
+            // turning the entire assembly pure white.
+            material.color.setHex(0x3f444a);
+            material.roughness = 0.42;
+            material.metalness = 0.04;
+          }
+        }
+
+        if ('roughness' in material && material.roughness == null) material.roughness = 0.45;
+        if ('metalness' in material && material.metalness == null) material.metalness = 0.04;
+      });
+    }
+
+    function finish() {
       loaded++;
       if (loaded < inst.bodiesConfig.length) return;
 
@@ -3114,43 +3330,79 @@ async function loadGithubProjectDocument(kind) {
         bounds.getSize(size);
         const centre = new THREE.Vector3();
         bounds.getCenter(centre);
-        const distance = Math.max(size.length() * 0.95, 20);
-        camera.position.set(centre.x, centre.y, centre.z + distance);
-        camera.lookAt(centre);
+
+        // OrbitControls must target the model's CENTER AFTER the assembly
+        // reorientation. Targeting the pre-rotation center makes the model
+        // appear to swing around the screen instead of the camera orbiting
+        // around the model like Fusion 360.
+        group.updateMatrixWorld(true);
+        const worldCentre = centre.clone().applyMatrix4(group.matrixWorld);
+
+        // Tight initial framing. The previous bounding-sphere calculation
+        // used size.length(), which overestimated the required camera distance
+        // and made the model start much too far away. Fit against the largest
+        // visible dimension instead and deliberately use a close CAD framing.
+        const maxDim = Math.max(size.x, size.y, size.z, 0.001);
+        const fovRadians = THREE.MathUtils.degToRad(camera.fov);
+        const verticalFit = (maxDim * 0.5) / Math.tan(fovRadians * 0.5);
+        const horizontalFit = (maxDim * 0.5) / (Math.tan(fovRadians * 0.5) * Math.max(camera.aspect, 0.5));
+        const fitDistance = Math.max(verticalFit, horizontalFit);
+        // Deliberately tighter than the previous framing. The viewer opens
+        // close to the model like a CAD application rather than making the
+        // user zoom in from a distant overview.
+        const distance = Math.max(fitDistance * 0.52, maxDim * 0.54, 0.5);
+
+        // FRONT (+Z) now corresponds to the model's previous BACK face.
+        camera.position.copy(worldCentre).add(new THREE.Vector3(0, 0, distance));
+        camera.lookAt(worldCentre);
         camera.userData.homePosition = camera.position.clone();
-        camera.userData.homeTarget = centre.clone();
-        if (controls) controls.target.copy(centre);
+        camera.userData.homeTarget = worldCentre.clone();
+        camera.userData.modelCenter = worldCentre.clone();
+
+        if (controls) {
+          controls.target.copy(worldCentre);
+          controls.minDistance = Math.max(maxDim * 0.04, 0.01);
+          controls.maxDistance = Math.max(maxDim * 10, distance * 7);
+          controls.update();
+        }
+
         if (loading) loading.remove();
       } else {
         loading.textContent = '3D CAD model could not be loaded';
       }
+
       renderLayerDropdown(containerId);
-    };
+    }
 
     inst.bodiesConfig.forEach(cfg => {
       let settled = false;
+
       const markFailure = () => {
         if (settled) return;
         settled = true;
         finish();
       };
+
       const handleLoaded = gltf => {
         if (settled) return;
         settled = true;
+
         const root = gltf.scene;
         root.name = cfg.name;
         root.visible = cfg.visible;
+
+        applyFusionAppearance(root, cfg);
+
+        // Record the source silkscreen meshes without inventing geometry when
+        // the GLB itself does not contain them.
         root.traverse(obj => {
-          if (!obj.isMesh) return;
-          obj.castShadow = true;
-          obj.receiveShadow = true;
-          // Preserve authored GLB materials. Only tune roughness/metalness
-          // where the source uses standard PBR materials.
-          if (obj.material && obj.material.isMeshStandardMaterial) {
-            obj.material.roughness = Math.max(obj.material.roughness ?? 0.45, 0.3);
-            obj.material.metalness = Math.min(obj.material.metalness ?? 0.05, 0.18);
+          if (!obj.name) return;
+          const n = String(obj.name).toLowerCase();
+          if (n.includes('silk') || n.includes('silkscreen')) {
+            obj.userData.isSilkscreen = true;
           }
         });
+
         inst.bodies[cfg.id] = root;
         root.updateMatrixWorld(true);
         bounds.expandByObject(root);
@@ -3158,10 +3410,12 @@ async function loadGithubProjectDocument(kind) {
         anyLoaded = true;
         finish();
       };
+
       const tryFallback = () => {
         if (!cfg.fallbackUrl || cfg.fallbackUrl === cfg.path) return markFailure();
         loader.load(cfg.fallbackUrl, handleLoaded, undefined, markFailure);
       };
+
       loader.load(cfg.path, handleLoaded, undefined, tryFallback);
     });
 
@@ -3771,6 +4025,9 @@ async function loadGithubProjectDocument(kind) {
             <p class="font-mono text-xs text-dim uppercase tracking-wider">${p.title} - PCB 3D Model</p>
             <div class="flex items-center gap-2">
               <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">${useGLBViewer ? '3D GLB View' : '3D STL View'}</span>
+              <button id="fullscreenBtn-stlViewerContainer" onclick="toggle3DViewerFullscreen('stlViewerContainer')" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Full screen 3D viewer" aria-label="Full screen 3D viewer">
+                <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+              </button>
               <div class="relative">
                 <button id="layerToggleBtn-pcbViewerContainer" onclick="toggleLayerDropdown(event,'pcbViewerContainer')" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Toggle model layers" aria-label="Toggle model layers">
                   <i data-lucide="layers" class="w-3.5 h-3.5"></i>
@@ -3791,10 +4048,13 @@ async function loadGithubProjectDocument(kind) {
           <div class="flex items-center justify-between mb-3">
             <div class="min-w-0">
               <p class="font-mono text-xs text-dim uppercase tracking-wider">Interactive 3D Cad Model View</p>
-              ${useGLBViewer ? `<p class="font-mono text-[9px] uppercase tracking-wider text-faint mt-1">Repository GLB files loaded directly into the 3D viewer</p>` : ''}
+              
             </div>
             <div class="flex items-center gap-2">
               <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">${useGLBViewer ? '3D GLB View' : '3D STL View'}</span>
+              <button id="fullscreenBtn-stlViewerContainer" onclick="toggle3DViewerFullscreen('stlViewerContainer')" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Full screen 3D viewer" aria-label="Full screen 3D viewer">
+                <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
+              </button>
               <div class="relative">
                 <button id="layerToggleBtn-stlViewerContainer" onclick="toggleLayerDropdown(event,'stlViewerContainer')" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Toggle model layers" aria-label="Toggle model layers">
                   <i data-lucide="layers" class="w-3.5 h-3.5"></i>
@@ -4128,7 +4388,6 @@ async function loadGithubProjectDocument(kind) {
         } else {
           init3DViewer('stlViewerContainer', p.stlBodies || []);
         }
-        addClickToInteractOverlay('stlViewerContainer', 'Click to Interact');
       }, 50);
     }
     if (p.kicadSchematic) {
@@ -4148,7 +4407,6 @@ async function loadGithubProjectDocument(kind) {
         init3DViewer('pcbViewerContainer', [
           { id: 'pcb-solo', name: p.pcbModel.label || 'PCB', path: p.pcbModel.path, visible: true }
         ]);
-        addClickToInteractOverlay('pcbViewerContainer', 'Click to Interact');
       }, 50);
     }
 
