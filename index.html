@@ -8,35 +8,11 @@
 <script src="https://cdn.tailwindcss.com"></script>
 <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
 
-<!-- Modern Three.js CAD viewer stack (ES modules, Three.js 0.186) -->
-<script type="importmap">
-{
-  "imports": {
-    "three": "https://cdn.jsdelivr.net/npm/three@0.186.0/build/three.module.js",
-    "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/"
-  }
-}
-</script>
-<script>
-  window.CadViewerReady = new Promise(resolve => { window.__resolveCadViewer = resolve; });
-</script>
-<script type="module">
-  import * as THREE from 'three';
-  import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-  import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-  import { STLLoader } from 'three/addons/loaders/STLLoader.js';
-  import { DRACOLoader } from 'three/addons/loaders/DRACOLoader.js';
-  import { MeshoptDecoder } from 'three/addons/libs/meshopt_decoder.module.js';
-
-  // Keep compatibility with the portfolio's existing project renderer while
-  // exposing the modern loaders/controls to the encapsulated CadViewer.
-  window.THREE = THREE;
-  window.THREE.OrbitControls = OrbitControls;
-  window.THREE.GLTFLoader = GLTFLoader;
-  window.THREE.STLLoader = STLLoader;
-  window.CadViewerDependencies = { THREE, OrbitControls, GLTFLoader, STLLoader, DRACOLoader, MeshoptDecoder };
-  window.__resolveCadViewer?.(window.CadViewerDependencies);
-</script>
+<!-- Three.js Libraries for 3D Model Rendering -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/GLTFLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/loaders/STLLoader.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
 
 <script>
   tailwind.config = {
@@ -918,16 +894,6 @@
       width: 100% !important;
       height: 100% !important;
     }
-
-    .cad-viewer-root .cad-tool-btn{background:#ffffffee;border:1px solid #bdbdb9;color:#242424;font:600 10px/1 ui-monospace,SFMono-Regular,Menlo,monospace;padding:7px 8px;cursor:pointer;box-shadow:0 1px 2px #0001}
-    .cad-viewer-root .cad-tool-btn:hover{background:#f4f4f2}
-    .cad-viewer-root .cad-cube-wrap{filter:drop-shadow(0 2px 5px #0002)}
-    .cad-viewer-root .cad-cube-home{position:absolute;left:-4px;top:-4px;width:24px;height:24px;background:#fff;border:1px solid #aaa;color:#222;cursor:pointer;font-weight:700}
-    .cad-viewer-root .cad-loading{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:10px;background:#f3f3f2dd;color:#555;font:11px ui-monospace,SFMono-Regular,Menlo,monospace;pointer-events:none}
-    .cad-viewer-root .cad-progress{width:min(360px,65%);height:4px;background:#d8d8d5;border-radius:2px;overflow:hidden}.cad-viewer-root .cad-progress span{display:block;height:100%;width:0;background:#555;transition:width .12s linear}
-    .cad-viewer-root .cad-error{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;background:#f3f3f2;color:#333;font:11px ui-monospace,SFMono-Regular,Menlo,monospace}.cad-viewer-root .cad-error button{border:1px solid #aaa;background:#fff;padding:6px 10px}
-    .cad-viewer-root .cad-options-panel{background:#ffffffed;border:1px solid #bdbdb9;padding:7px;box-shadow:0 2px 7px #0002;font:10px ui-monospace,SFMono-Regular,Menlo,monospace}.cad-panel-row{display:flex;gap:6px;align-items:center}.cad-panel-row+.cad-panel-row{margin-top:6px}.cad-panel-row button{border:1px solid #aaa;background:#fff;padding:4px 6px;font:10px ui-monospace,SFMono-Regular,Menlo,monospace}.cad-explode{width:130px}.cad-layer-action{border:1px solid #555;background:#171719;color:#ddd;padding:3px 6px;font:9px ui-monospace,SFMono-Regular,Menlo,monospace}.cad-layer-row{display:flex;gap:7px;align-items:center;padding:5px 2px;color:#ccc;font-size:10px}.cad-layer-row input{accent-color:#fff}
-    #stlViewerContainer:fullscreen,#pcbViewerContainer:fullscreen{background:#f3f3f2;width:100vw;height:100vh;border:0!important}.cad-viewer-root:fullscreen .cad-cube-wrap{top:16px;right:16px}
 </style>
 
 <style id="bottom-right-grey-gradient">
@@ -2823,371 +2789,671 @@ async function loadGithubProjectDocument(kind) {
     });
   }
 
-  // ---------------------------------------------------------------------------
-  // Professional CAD viewer
-  // ---------------------------------------------------------------------------
-  // Decision: Three.js is used rather than Babylon.js because this portfolio
-  // already uses GLB/GLTF and Three.js provides the required OrbitControls,
-  // GLTFLoader, DRACO and Meshopt support with a small, browser-native stack.
-  // The viewer is fully encapsulated per container; no camera/control state is
-  // shared between instances.
-  window.viewer3DInstances = window.viewer3DInstances || viewer3DInstances;
-
-  function escapeHtml(value) {
-    return String(value ?? '').replace(/[&<>'"]/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[ch]));
+  function makeViewCubeFaceTexture(label) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 128;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = '#e7e7e5';
+    ctx.fillRect(0, 0, 128, 128);
+    ctx.strokeStyle = '#0c0c0d';
+    ctx.lineWidth = 5;
+    ctx.strokeRect(2.5, 2.5, 123, 123);
+    ctx.fillStyle = '#0c0c0d';
+    ctx.font = '700 15px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(label, 64, 64);
+    return new THREE.CanvasTexture(c);
   }
 
-  class CadViewer {
-    constructor(container, options = {}) {
-      this.container = container;
-      this.options = options;
-      this.models = [];
-      this.modelRoots = [];
-      this.scene = null;
-      this.camera = null;
-      this.orthoCamera = null;
-      this.controls = null;
-      this.renderer = null;
-      this.cubeRenderer = null;
-      this.cubeScene = null;
-      this.cubeCamera = null;
-      this.cubeGroup = null;
-      this.cubeHitObjects = [];
-      this.cubeFaceObjects = [];
-      this.cubePointer = new THREE.Vector2();
-      this.raycaster = new THREE.Raycaster();
-      this.animationFrame = null;
-      this.cubeFrame = null;
-      this.observer = null;
-      this.resizeObserver = null;
-      this.visible = true;
-      this.destroyed = false;
-      this.isAnimatingView = false;
-      this.isOrthographic = false;
-      this.worldCenter = new THREE.Vector3();
-      this.modelSize = new THREE.Vector3(1, 1, 1);
-      this.homePosition = new THREE.Vector3(5, 4, 6);
-      this.homeTarget = new THREE.Vector3();
-      this.currentBounds = new THREE.Box3();
-      this.sectionPlane = null;
-      this.sectionEnabled = false;
-      this.explodeAmount = 0;
-      this.edgeObjects = [];
-      this.measureMode = false;
-      this.measurePoints = [];
-      this.reducedMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-      this.abort = new AbortController();
-      this.init();
+  // Small coloured letter sprite used for the X/Y/Z axis triad labels next
+  // to the view cube (mirrors makeViewCubeFaceTexture's canvas-texture approach).
+  function makeAxisLabelSprite(letter, colorHex) {
+    const c = document.createElement('canvas');
+    c.width = c.height = 64;
+    const ctx = c.getContext('2d');
+    ctx.fillStyle = colorHex;
+    ctx.font = '700 44px "JetBrains Mono", monospace';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+    ctx.fillText(letter, 32, 34);
+    const tex = new THREE.CanvasTexture(c);
+    const mat = new THREE.SpriteMaterial({ map: tex, transparent: true, depthTest: false });
+    const sprite = new THREE.Sprite(mat);
+    sprite.scale.set(0.32, 0.32, 1);
+    return sprite;
+  }
+
+  // ===== Fusion 360-style navigation cube =====
+  // Selectable regions: 6 faces + 12 edges + 8 corners = 26 total, matching
+  // the behaviour of Fusion 360's view cube (face = orthogonal view,
+  // edge/corner = diagonal/isometric-style view). Hovering any region
+  // highlights it, and there's a small RGB axis triad + Home button to
+  // round out the Fusion-360 look. To restyle the cube's colours, edit
+  // `faceBg`/`faceFg` (in makeViewCubeFaceTexture) and `bevelColor`/
+  // `hoverColor` below - everything else adapts automatically.
+  function initViewCube(mainCamera, mainControls, container) {
+    const size = 104; // was 64 - enlarged to be more visible/usable, like the Fusion 360 cube
+    const cubeWrap = document.createElement('div');
+    cubeWrap.className = 'absolute top-2 right-2 z-10';
+    cubeWrap.style.width = size + 'px';
+    cubeWrap.style.height = size + 'px';
+    container.appendChild(cubeWrap);
+
+    const cubeScene = new THREE.Scene();
+    const cubeCamera = new THREE.OrthographicCamera(-1.9, 1.9, 1.9, -1.9, 0.1, 10);
+    cubeCamera.position.set(0, 0, 4);
+
+    const cubeRenderer = new THREE.WebGLRenderer({ alpha: true, antialias: true });
+    cubeRenderer.setSize(size, size);
+    cubeRenderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    cubeRenderer.domElement.style.cursor = 'pointer';
+    cubeWrap.appendChild(cubeRenderer.domElement);
+
+    // --- Faces (6) ---
+    // Box face order in THREE.BoxGeometry is [+X, -X, +Y, -Y, +Z, -Z]
+    const faceLabels = ['RIGHT', 'LEFT', 'TOP', 'BOTTOM', 'FRONT', 'BACK'];
+    const faceDirs = [
+      new THREE.Vector3(1, 0, 0), new THREE.Vector3(-1, 0, 0),
+      new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, -1, 0),
+      new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0, -1)
+    ];
+    const cubeMaterials = faceLabels.map(l => new THREE.MeshBasicMaterial({ map: makeViewCubeFaceTexture(l) }));
+    const cubeMesh = new THREE.Mesh(new THREE.BoxGeometry(2, 2, 2), cubeMaterials);
+    cubeScene.add(cubeMesh);
+    cubeScene.add(new THREE.AmbientLight(0xffffff, 1.2));
+
+    // --- Edges (12) and corners (8) ---
+    // Small bevel blocks positioned on each edge/corner of the main cube.
+    // Each gets its OWN material instance (not shared) so it can be tinted
+    // individually on hover, and stores its snap direction in userData.dir
+    // so the click/hover handlers can treat faces/edges/corners uniformly.
+    const bevelColor = 0xcfcfcd; // slightly darker than the face bg (#e7e7e5) to read as a bevel
+    const half = 1.0;      // half-extent of the main 2x2x2 cube
+    const inset = 0.92;    // pull bevel blocks slightly in from the true corner so faces stay clickable
+    const extraMeshes = []; // all edge/corner meshes, for raycasting alongside cubeMesh
+
+    function addBevelBlock(dir, size) {
+      const mat = new THREE.MeshBasicMaterial({ color: bevelColor });
+      const mesh = new THREE.Mesh(new THREE.BoxGeometry(size[0], size[1], size[2]), mat);
+      mesh.position.set(dir.x * inset, dir.y * inset, dir.z * inset);
+      mesh.userData.dir = dir.clone().normalize();
+      mesh.userData.baseColor = bevelColor;
+      cubeScene.add(mesh);
+      extraMeshes.push(mesh);
     }
 
-    init() {
-      const w = Math.max(1, this.container.clientWidth || 900);
-      const h = Math.max(1, this.container.clientHeight || 560);
-      this.container.innerHTML = '';
-      this.container.classList.add('cad-viewer-root');
-      this.container.style.background = '#f3f3f2';
-      this.container.style.position = 'relative';
+    const edgeThick = 0.32, edgeLong = 1.55;
+    // Edges running along X (y,z fixed to corners)
+    [-1, 1].forEach(y => [-1, 1].forEach(z => addBevelBlock(new THREE.Vector3(0, y, z), [edgeLong, edgeThick, edgeThick])));
+    // Edges running along Y
+    [-1, 1].forEach(x => [-1, 1].forEach(z => addBevelBlock(new THREE.Vector3(x, 0, z), [edgeThick, edgeLong, edgeThick])));
+    // Edges running along Z
+    [-1, 1].forEach(x => [-1, 1].forEach(y => addBevelBlock(new THREE.Vector3(x, y, 0), [edgeThick, edgeThick, edgeLong])));
+    // Corners (8)
+    const cornerSize = 0.42;
+    [-1, 1].forEach(x => [-1, 1].forEach(y => [-1, 1].forEach(z =>
+      addBevelBlock(new THREE.Vector3(x, y, z), [cornerSize, cornerSize, cornerSize])
+    )));
 
-      this.scene = new THREE.Scene();
-      this.scene.background = new THREE.Color(0xf3f3f2);
-      this.scene.environment = null;
+    // --- RGB axis triad (X=red, Y=green, Z=blue), Fusion-360 style ---
+    // Small gizmo anchored just outside the cube's bottom-front-left corner;
+    // it's a child of cubeScene so it rotates together with the cube.
+    const axisGroup = new THREE.Group();
+    const axisOrigin = new THREE.Vector3(-1.4, -1.4, -1.4);
+    const axisLen = 0.6;
+    const axisDefs = [
+      { dir: new THREE.Vector3(1, 0, 0), color: 0xef4444, label: 'X' }, // red, matches site's map-pin red accent
+      { dir: new THREE.Vector3(0, 1, 0), color: 0x22c55e, label: 'Y' }, // green, matches site's "Open to Work" green
+      { dir: new THREE.Vector3(0, 0, 1), color: 0x3b82f6, label: 'Z' }  // blue
+    ];
+    axisDefs.forEach(a => {
+      const end = axisOrigin.clone().add(a.dir.clone().multiplyScalar(axisLen));
+      const geo = new THREE.BufferGeometry().setFromPoints([axisOrigin, end]);
+      const line = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: a.color }));
+      axisGroup.add(line);
+      const label = makeAxisLabelSprite(a.label, '#' + a.color.toString(16).padStart(6, '0'));
+      label.position.copy(end).add(a.dir.clone().multiplyScalar(0.22));
+      axisGroup.add(label);
+    });
+    cubeScene.add(axisGroup);
 
-      this.camera = new THREE.PerspectiveCamera(45, w / h, 0.001, 1000000);
-      this.orthoCamera = new THREE.OrthographicCamera(-1,1,1,-1,0.001,1000000);
-      this.camera.up.set(0,1,0);
-      this.orthoCamera.up.set(0,1,0);
-      this.activeCamera = this.camera;
+    // --- Hover highlighting ---
+    const hoverColor = 0x9fc9ff; // light blue highlight, same family as focus-ring/link accents
+    let hoveredFaceMat = null;
+    let hoveredExtraMesh = null;
 
-      this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance', preserveDrawingBuffer: true });
-      this.renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 2));
-      this.renderer.setSize(w, h, false);
-      this.renderer.outputColorSpace = THREE.SRGBColorSpace;
-      this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
-      this.renderer.toneMappingExposure = 1.05;
-      this.renderer.shadowMap.enabled = true;
-      this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
-      this.renderer.domElement.setAttribute('aria-label', 'Interactive CAD 3D model');
-      this.renderer.domElement.style.display = 'block';
-      this.renderer.domElement.style.width = '100%';
-      this.renderer.domElement.style.height = '100%';
-      this.container.appendChild(this.renderer.domElement);
-
-      this.addStudioLighting();
-      this.addGround();
-      this.createControls();
-      this.createToolbar();
-      this.createViewCube();
-      this.installContextRecovery();
-      this.installObservers();
-      this.loadModels();
+    function clearHover() {
+      if (hoveredFaceMat) { hoveredFaceMat.color.setHex(0xffffff); hoveredFaceMat = null; }
+      if (hoveredExtraMesh) { hoveredExtraMesh.material.color.setHex(hoveredExtraMesh.userData.baseColor); hoveredExtraMesh = null; }
     }
 
-    addStudioLighting() {
-      this.scene.add(new THREE.HemisphereLight(0xffffff, 0x72777d, 1.7));
-      const key = new THREE.DirectionalLight(0xffffff, 2.0);
-      key.position.set(5, 8, 7); key.castShadow = true;
-      key.shadow.mapSize.set(2048, 2048);
-      this.scene.add(key);
-      const fill = new THREE.DirectionalLight(0xdfe6ee, 1.15);
-      fill.position.set(-6, 3, -5); this.scene.add(fill);
-      const rim = new THREE.DirectionalLight(0xffffff, 0.8);
-      rim.position.set(0, -4, -7); this.scene.add(rim);
+    const raycaster = new THREE.Raycaster();
+    const ndc = new THREE.Vector2();
+
+    function pick(e) {
+      const rect = cubeRenderer.domElement.getBoundingClientRect();
+      ndc.x = ((e.clientX - rect.left) / rect.width) * 2 - 1;
+      ndc.y = -((e.clientY - rect.top) / rect.height) * 2 + 1;
+      raycaster.setFromCamera(ndc, cubeCamera);
+      const extraHit = raycaster.intersectObjects(extraMeshes)[0];
+      if (extraHit) return { kind: 'extra', object: extraHit.object };
+      const faceHit = raycaster.intersectObject(cubeMesh)[0];
+      if (faceHit) return { kind: 'face', material: cubeMesh.material[faceHit.face.materialIndex], dir: faceDirs[faceHit.face.materialIndex] };
+      return null;
     }
 
-    addGround() {
-      const ground = new THREE.Mesh(
-        new THREE.PlaneGeometry(200000, 200000),
-        new THREE.ShadowMaterial({ opacity: 0.11 })
-      );
-      ground.rotation.x = -Math.PI / 2;
-      ground.position.y = -0.01;
-      ground.receiveShadow = true;
-      ground.userData.cadGround = true;
-      this.scene.add(ground);
+    cubeRenderer.domElement.addEventListener('mousemove', (e) => {
+      const hit = pick(e);
+      if (!hit) { clearHover(); return; }
+      if (hit.kind === 'extra') {
+        if (hoveredExtraMesh === hit.object) return;
+        clearHover();
+        hoveredExtraMesh = hit.object;
+        hoveredExtraMesh.material.color.setHex(hoverColor);
+      } else {
+        if (hoveredFaceMat === hit.material) return;
+        clearHover();
+        hoveredFaceMat = hit.material;
+        hoveredFaceMat.color.setHex(hoverColor);
+      }
+    });
+    cubeRenderer.domElement.addEventListener('mouseleave', clearHover);
+
+    let viewTransitionFrame = null;
+
+    function snapTo(dir) {
+      const target = mainCamera.userData.modelCenter
+        ? mainCamera.userData.modelCenter.clone()
+        : new THREE.Vector3(0, 0, 0);
+
+      // Keep the current viewing distance, but move to an exact axis/edge/corner
+      // direction. This makes clicking FRONT behave like a CAD view cube rather
+      // than preserving a diagonal component from the previous camera angle.
+      const currentDistance = mainCamera.position.distanceTo(target) || 10;
+      const destination = target.clone().add(dir.clone().normalize().multiplyScalar(currentDistance));
+
+      if (viewTransitionFrame) cancelAnimationFrame(viewTransitionFrame);
+
+      const startPosition = mainCamera.position.clone();
+      const startTarget = (mainControls && mainControls.target)
+        ? mainControls.target.clone()
+        : target.clone();
+      const duration = 480;
+      const startTime = performance.now();
+
+      if (mainControls) mainControls.enabled = false;
+
+      function easeInOutCubic(t) {
+        return t < 0.5
+          ? 4 * t * t * t
+          : 1 - Math.pow(-2 * t + 2, 3) / 2;
+      }
+
+      function animateView(now) {
+        const raw = Math.min(1, (now - startTime) / duration);
+        const t = easeInOutCubic(raw);
+
+        mainCamera.position.lerpVectors(startPosition, destination, t);
+        const animatedTarget = startTarget.clone().lerp(target, t);
+        mainCamera.lookAt(animatedTarget);
+
+        if (mainControls) {
+          mainControls.target.copy(animatedTarget);
+          mainControls.update();
+        }
+
+        if (raw < 1) {
+          viewTransitionFrame = requestAnimationFrame(animateView);
+        } else {
+          viewTransitionFrame = null;
+          mainCamera.position.copy(destination);
+          mainCamera.lookAt(target);
+          if (mainControls) {
+            mainControls.target.copy(target);
+            mainControls.enabled = true;
+            mainControls.update();
+          }
+        }
+      }
+
+      viewTransitionFrame = requestAnimationFrame(animateView);
     }
 
-    createControls() {
-      const OrbitControls = window.CadViewerDependencies?.OrbitControls;
-      if (!OrbitControls) return;
-      this.controls = new OrbitControls(this.activeCamera, this.renderer.domElement);
-      this.controls.enableDamping = true;
-      this.controls.dampingFactor = 0.085;
-      this.controls.rotateSpeed = 0.72;
-      this.controls.zoomSpeed = 0.85;
-      this.controls.panSpeed = 0.7;
-      this.controls.enablePan = true;
-      this.controls.screenSpacePanning = true;
-      this.controls.zoomToCursor = true;
-      this.controls.minDistance = 0.001;
-      this.controls.maxDistance = 1000000;
-      this.controls.target.copy(this.worldCenter);
-      this.controls.addEventListener('change', () => { this.syncCube(); });
+    cubeRenderer.domElement.addEventListener('click', (e) => {
+      const hit = pick(e);
+      if (!hit) return;
+      snapTo(hit.kind === 'extra' ? hit.object.userData.dir : hit.dir);
+    });
+
+    // --- Home button (top-left of the widget) ---
+    // Resets the main camera to whichever position init3DViewer recorded
+    // as the model's default framing (camera.userData.homePosition).
+    const homeBtn = document.createElement('button');
+    homeBtn.setAttribute('aria-label', 'Reset view');
+    homeBtn.title = 'Reset view';
+    homeBtn.className = 'absolute -top-1 -left-1 w-5 h-5 flex items-center justify-center rounded-sm';
+    homeBtn.style.cssText = 'background:#fff;border:1px solid #c9c9c7;color:#0c0c0d;cursor:pointer;';
+    homeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M9 22V12h6v10"></path></svg>';
+    homeBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const home = mainCamera.userData.homePosition;
+      const homeTarget = mainCamera.userData.homeTarget || mainCamera.userData.modelCenter || new THREE.Vector3(0, 0, 0);
+      if (home) {
+        if (viewTransitionFrame) cancelAnimationFrame(viewTransitionFrame);
+
+        const startPosition = mainCamera.position.clone();
+        const startTarget = mainControls ? mainControls.target.clone() : homeTarget.clone();
+        const duration = 480;
+        const startTime = performance.now();
+
+        if (mainControls) mainControls.enabled = false;
+
+        function easeHome(t) {
+          return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
+        }
+
+        function animateHome(now) {
+          const raw = Math.min(1, (now - startTime) / duration);
+          const t = easeHome(raw);
+          mainCamera.position.lerpVectors(startPosition, home, t);
+          const target = startTarget.clone().lerp(homeTarget, t);
+          mainCamera.lookAt(target);
+          if (mainControls) {
+            mainControls.target.copy(target);
+            mainControls.update();
+          }
+          if (raw < 1) {
+            viewTransitionFrame = requestAnimationFrame(animateHome);
+          } else {
+            viewTransitionFrame = null;
+            mainCamera.position.copy(home);
+            mainCamera.lookAt(homeTarget);
+            if (mainControls) {
+              mainControls.target.copy(homeTarget);
+              mainControls.enabled = true;
+              mainControls.update();
+            }
+          }
+        }
+        viewTransitionFrame = requestAnimationFrame(animateHome);
+      } else {
+        snapTo(new THREE.Vector3(1, 1, 1));
+      }
+    });
+    cubeWrap.appendChild(homeBtn);
+
+    return function renderViewCube() {
+      // Rotating the whole cubeScene (not just cubeMesh) mirrors the main
+      // camera's orientation for the cube faces, edge/corner bevel blocks,
+      // AND the axis triad together, since they're all children of cubeScene.
+      cubeScene.quaternion.copy(mainCamera.quaternion).invert();
+      cubeRenderer.render(cubeScene, cubeCamera);
+    };
+  }
+
+  // NOTE: layer toggle/dropdown ids are namespaced per viewer as
+  // `layerToggleBtn-${containerId}` / `layerDropdown-${containerId}` so that
+  // two 3D viewers can both be open on the same project page without their
+  // dropdowns colliding.
+  async function toggle3DViewerFullscreen(containerId) {
+    const container = document.getElementById(containerId);
+    if (!container) return;
+    try {
+      if (document.fullscreenElement === container) {
+        await document.exitFullscreen();
+      } else if (container.requestFullscreen) {
+        await container.requestFullscreen();
+      }
+    } catch (error) {
+      console.warn('3D viewer fullscreen is unavailable:', error);
+    }
+  }
+
+  document.addEventListener('fullscreenchange', () => {
+    Object.keys(viewer3DInstances).forEach(id => {
+      const inst = viewer3DInstances[id];
+      if (inst && typeof inst.resize === 'function') inst.resize();
+    });
+  });
+
+  function toggleLayerDropdown(e, containerId) {
+    if (e) e.stopPropagation();
+    const dd = document.getElementById('layerDropdown-' + containerId);
+    if (dd) dd.classList.toggle('hidden');
+  }
+  document.addEventListener('click', (e) => {
+    // Close any open layer dropdown when clicking outside both it and its
+    // own toggle button - loop over all of them since a page can have more
+    // than one 3D viewer/dropdown pair now.
+    document.querySelectorAll('[id^="layerDropdown-"]').forEach((dd) => {
+      const containerId = dd.id.replace('layerDropdown-', '');
+      const btn = document.getElementById('layerToggleBtn-' + containerId);
+      if (!dd.classList.contains('hidden') && !dd.contains(e.target) && e.target !== btn && !btn?.contains(e.target)) {
+        dd.classList.add('hidden');
+      }
+    });
+  });
+
+  // Derives a human-readable label from an STL filename when a stlBodies
+  // entry doesn't set `name` explicitly, e.g. 'PCB_Rev2.stl' -> 'PCB Rev2'.
+  function deriveNameFromPath(path) {
+    const filename = (path || '').split('/').pop().replace(/\.stl$/i, '');
+    return filename.replace(/[_-]+/g, ' ').trim() || 'Body';
+  }
+
+  function renderLayerDropdown(containerId) {
+    const dd = document.getElementById('layerDropdown-' + containerId);
+    const inst = viewer3DInstances[containerId];
+    if (!dd || !inst) return;
+    dd.innerHTML = inst.bodiesConfig.map(b => `
+      <label class="flex items-center gap-2 px-2 py-1.5 text-xs text-dim hover:text-white cursor-pointer transition-colors">
+        <input type="checkbox" ${b.visible ? 'checked' : ''} onchange="toggle3DBody('${containerId}', '${b.id}', this.checked)" class="accent-white">
+        <span class="font-mono">${b.name || deriveNameFromPath(b.path)}</span>
+      </label>
+    `).join('');
+  }
+
+  function toggle3DBody(containerId, bodyId, visible) {
+    const inst = viewer3DInstances[containerId];
+    if (!inst) return;
+    const cfg = inst.bodiesConfig.find(b => b.id === bodyId);
+    if (cfg) cfg.visible = visible;
+    const mesh = inst.bodies[bodyId];
+    if (mesh) mesh.visible = visible;
+  }
+
+
+  function initGLBViewer(containerId, glbBodies) {
+    const container = document.getElementById(containerId);
+    if (!container || !Array.isArray(glbBodies) || !glbBodies.length || !THREE.GLTFLoader) return;
+
+    container.innerHTML = '';
+    const inst = {
+      animationId: null,
+      bodies: {},
+      bodiesConfig: glbBodies.map(b => ({ ...b, visible: b.visible !== false }))
+    };
+    viewer3DInstances[containerId] = inst;
+
+    const width = container.clientWidth || 800;
+    const height = container.clientHeight || 576;
+    const scene = new THREE.Scene();
+
+    // Fusion-360-like neutral workbench background.
+    scene.background = new THREE.Color(0xf3f3f2);
+
+    const camera = new THREE.PerspectiveCamera(45, width / height, 0.01, 5000);
+    camera.position.set(0, 0, 10);
+    camera.up.set(0, 1, 0);
+    camera.lookAt(0, 0, 0);
+    camera.userData.homePosition = camera.position.clone();
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(width, height);
+    renderer.outputEncoding = THREE.sRGBEncoding;
+    container.appendChild(renderer.domElement);
+
+    renderer.domElement.addEventListener('webglcontextlost', (event) => {
+      event.preventDefault();
+      renderer.setAnimationLoop?.(null);
+      if (loading) loading.textContent = 'WEBGL CONTEXT LOST — RESTORING…';
+    }, false);
+    renderer.domElement.addEventListener('webglcontextrestored', () => {
+      if (loading) loading.textContent = 'RESTORING 3D CAD MODEL…';
+      // Three.js restores the context; render immediately and let the normal
+      // animation loop continue without rebuilding application state.
+      renderer.render(scene, camera);
+    }, false);
+
+    // Soft CAD/workbench lighting.
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x6f7378, 1.55));
+    const key = new THREE.DirectionalLight(0xffffff, 1.35);
+    key.position.set(4, 7, 8);
+    scene.add(key);
+    const fill = new THREE.DirectionalLight(0xd9dde2, 0.7);
+    fill.position.set(-5, 2, -4);
+    scene.add(fill);
+
+    const group = new THREE.Group();
+
+    // The exported DAC model's current bottom face is the intended FRONT.
+    // Rotate the complete assembly so the viewer's FRONT (+Z) looks at that
+    // original bottom face, matching the requested Fusion-360 orientation.
+    group.rotation.x = -Math.PI / 2;
+    scene.add(group);
+
+    const controls = THREE.OrbitControls ? new THREE.OrbitControls(camera, renderer.domElement) : null;
+    if (controls) {
+      controls.enableDamping = true;
+      controls.dampingFactor = 0.08;
+      controls.enablePan = true;
+      controls.screenSpacePanning = true;
+      controls.minDistance = 0.01;
+      controls.maxDistance = 5000;
     }
 
-    createToolbar() {
-      const bar = document.createElement('div');
-      bar.className = 'absolute top-2 left-2 z-20 flex flex-wrap items-center gap-1';
-      const button = (label, title, fn) => {
-        const b = document.createElement('button');
-        b.type = 'button'; b.textContent = label; b.title = title; b.setAttribute('aria-label', title);
-        b.className = 'cad-tool-btn'; b.addEventListener('click', fn);
-        bar.appendChild(b); return b;
+    const loading = document.createElement('div');
+    loading.className = 'stl-loading absolute inset-0 flex items-center justify-center font-mono text-xs pointer-events-none';
+    loading.style.background = 'rgba(243,243,242,.72)';
+    loading.style.color = '#555554';
+    loading.textContent = 'LOADING 3D CAD MODEL...';
+    container.appendChild(loading);
+
+    const loader = new THREE.GLTFLoader();
+    if ('crossOrigin' in loader) loader.crossOrigin = 'anonymous';
+    const bounds = new THREE.Box3();
+    let loaded = 0;
+    let anyLoaded = false;
+
+    function makeFusionPlastic(hex) {
+      return new THREE.MeshPhysicalMaterial({
+        color: hex,
+        roughness: 0.48,
+        metalness: 0.02,
+        clearcoat: 0.08,
+        clearcoatRoughness: 0.65
+      });
+    }
+
+    function applyFusionAppearance(root, cfg) {
+      const projectName = String(cfg.name || '').toLowerCase();
+      const isCover = projectName.includes('cover');
+      const isLower = projectName.includes('lower');
+      const isFull = projectName.includes('full') || projectName.includes('pcb');
+
+      root.traverse(obj => {
+        if (!obj.isMesh) return;
+
+        obj.castShadow = true;
+        obj.receiveShadow = true;
+
+        const objectName = String(obj.name || '').toLowerCase();
+        const materialName = obj.material && obj.material.name
+          ? String(obj.material.name).toLowerCase()
+          : '';
+
+        // Silkscreen is white in the physical/Fusion-style PCB view.
+        // If the exported GLB contains silkscreen geometry, force its
+        // material to white so it is not rendered as KiCad-style yellow.
+        const isSilk =
+          objectName.includes('silk') ||
+          objectName.includes('silkscreen') ||
+          materialName.includes('silk') ||
+          materialName.includes('silkscreen');
+
+        if (isSilk) {
+          obj.userData.isSilkscreen = true;
+          obj.material = new THREE.MeshStandardMaterial({
+            color: 0xffffff,
+            roughness: 0.72,
+            metalness: 0
+          });
+          return;
+        }
+
+        if (Array.isArray(obj.material)) {
+          obj.material = obj.material.map(m => m.clone ? m.clone() : m);
+        } else if (obj.material && obj.material.clone) {
+          obj.material = obj.material.clone();
+        }
+
+        const material = obj.material;
+        if (!material || !material.color) return;
+
+        // Preserve non-white authored GLB colours. Only supply Fusion-like
+        // appearance where the export has lost its appearance and is white.
+        const c = material.color;
+        const effectivelyWhite = c.r > 0.94 && c.g > 0.94 && c.b > 0.94;
+
+        if ((isCover || isLower) && effectivelyWhite) {
+          // Neutral Fusion-style printed-plastic grey rather than pure white.
+          material.color.setHex(isCover ? 0x6b7280 : 0x858b92);
+          material.roughness = 0.5;
+          material.metalness = 0.02;
+        } else if (isFull && effectivelyWhite) {
+          // If the PCB export lost its board appearance, use common Fusion
+          // electronics colours only for clearly named board/material meshes.
+          if (
+            objectName.includes('pcb') ||
+            objectName.includes('board') ||
+            materialName.includes('pcb') ||
+            materialName.includes('board')
+          ) {
+            material.color.setHex(0x176b45);
+            material.roughness = 0.55;
+            material.metalness = 0.02;
+          } else {
+            // Components remain a neutral dark CAD/plastic colour rather than
+            // turning the entire assembly pure white.
+            material.color.setHex(0x3f444a);
+            material.roughness = 0.42;
+            material.metalness = 0.04;
+          }
+        }
+
+        if ('roughness' in material && material.roughness == null) material.roughness = 0.45;
+        if ('metalness' in material && material.metalness == null) material.metalness = 0.04;
+      });
+    }
+
+    function finish() {
+      loaded++;
+      if (loaded < inst.bodiesConfig.length) return;
+
+      if (anyLoaded) {
+        // Recalculate bounds from the transformed assembly so the camera,
+        // orbit target and view-cube all use the actual displayed orientation.
+        group.updateMatrixWorld(true);
+        const displayBounds = new THREE.Box3().setFromObject(group);
+        const size = new THREE.Vector3();
+        displayBounds.getSize(size);
+        const centre = new THREE.Vector3();
+        displayBounds.getCenter(centre);
+
+        // Tight initial framing. The previous bounding-sphere calculation
+        // used size.length(), which overestimated the required camera distance
+        // and made the model start much too far away. Fit against the largest
+        // visible dimension instead and deliberately use a close CAD framing.
+        const maxDim = Math.max(size.x, size.y, size.z, 0.001);
+        const fovRadians = THREE.MathUtils.degToRad(camera.fov);
+        const verticalFit = (maxDim * 0.5) / Math.tan(fovRadians * 0.5);
+        const horizontalFit = (maxDim * 0.5) / (Math.tan(fovRadians * 0.5) * Math.max(camera.aspect, 0.5));
+        const fitDistance = Math.max(verticalFit, horizontalFit);
+        // Deliberately tighter than the previous framing. The viewer opens
+        // close to the model like a CAD application rather than making the
+        // user zoom in from a distant overview.
+        const distance = Math.max(fitDistance * 0.68, maxDim * 0.62, 0.5);
+
+        // FRONT (+Z) now corresponds to the model's original BOTTOM face.
+        camera.position.set(centre.x, centre.y, centre.z + distance);
+        camera.lookAt(centre);
+        camera.userData.homePosition = camera.position.clone();
+        camera.userData.homeTarget = centre.clone();
+        camera.userData.modelCenter = centre.clone();
+
+        if (controls) {
+          controls.target.copy(centre);
+          controls.minDistance = Math.max(maxDim * 0.04, 0.01);
+          controls.maxDistance = Math.max(maxDim * 10, distance * 7);
+          controls.update();
+        }
+
+        if (loading) loading.remove();
+      } else {
+        loading.textContent = '3D CAD model could not be loaded';
+      }
+
+      renderLayerDropdown(containerId);
+    }
+
+    inst.bodiesConfig.forEach(cfg => {
+      let settled = false;
+
+      const markFailure = () => {
+        if (settled) return;
+        settled = true;
+        finish();
       };
-      button('⌂', 'Home / zoom to fit', () => this.goHome());
-      button('FIT', 'Zoom to fit visible geometry', () => this.fitView());
-      button('P', 'Toggle perspective / orthographic', () => this.toggleProjection());
-      button('EDGES', 'Toggle shaded with edges', () => this.toggleEdges());
-      button('ISO', 'Isometric view', () => this.setStandardView('iso'));
-      button('SHOT', 'Export current view as PNG', () => this.screenshot());
-      button('FULL', 'Enter or exit fullscreen', () => this.toggleFullscreen());
-      this.toolbar = bar;
-      this.container.appendChild(bar);
 
-      const panel = document.createElement('div');
-      panel.className = 'absolute left-2 bottom-2 z-20 hidden cad-options-panel';
-      panel.innerHTML = `
-        <div class="cad-panel-row"><span>Explode</span><input class="cad-explode" type="range" min="0" max="100" value="0" aria-label="Exploded view"></div>
-        <div class="cad-panel-row"><button type="button" class="cad-section-btn">Section</button><button type="button" class="cad-measure-btn">Measure</button><button type="button" class="cad-all-btn">Show All</button></div>`;
-      this.container.appendChild(panel); this.optionsPanel = panel;
-      const range = panel.querySelector('.cad-explode');
-      range.addEventListener('input', e => this.setExplode(Number(e.target.value) / 100));
-      panel.querySelector('.cad-section-btn').addEventListener('click', () => this.toggleSection());
-      panel.querySelector('.cad-measure-btn').addEventListener('click', () => this.toggleMeasure());
-      panel.querySelector('.cad-all-btn').addEventListener('click', () => this.showAll());
-      const advanced = button('TOOLS', 'Show CAD tools', () => panel.classList.toggle('hidden'));
-    }
+      const handleLoaded = gltf => {
+        if (settled) return;
+        settled = true;
 
-    createViewCube() {
-      const wrap = document.createElement('div');
-      wrap.className = 'absolute top-2 right-2 z-20 cad-cube-wrap';
-      wrap.style.width = '112px'; wrap.style.height = '112px';
-      this.container.appendChild(wrap); this.cubeWrap = wrap;
-      this.cubeScene = new THREE.Scene();
-      this.cubeCamera = new THREE.OrthographicCamera(-2.15,2.15,2.15,-2.15,0.1,20);
-      this.cubeCamera.position.set(0,0,6);
-      this.cubeRenderer = new THREE.WebGLRenderer({ alpha:true, antialias:true });
-      this.cubeRenderer.setPixelRatio(Math.min(window.devicePixelRatio || 1,2));
-      this.cubeRenderer.setSize(112,112,false);
-      this.cubeRenderer.domElement.setAttribute('aria-label','CAD ViewCube');
-      this.cubeRenderer.domElement.tabIndex = 0;
-      wrap.appendChild(this.cubeRenderer.domElement);
-      this.cubeGroup = new THREE.Group(); this.cubeScene.add(this.cubeGroup);
-      const labels = [['FRONT',new THREE.Vector3(0,0,1)],['BACK',new THREE.Vector3(0,0,-1)],['TOP',new THREE.Vector3(0,1,0)],['BOTTOM',new THREE.Vector3(0,-1,0)],['RIGHT',new THREE.Vector3(1,0,0)],['LEFT',new THREE.Vector3(-1,0,0)]];
-      const colors = [0xe9e9e7,0xe9e9e7,0xf1f1ef,0xd9d9d6,0xe3e3e1,0xe3e3e1];
-      labels.forEach(([label,dir],i)=>{
-        const geo = new THREE.PlaneGeometry(1.7,1.7);
-        const tex = this.makeFaceTexture(label);
-        const mat = new THREE.MeshBasicMaterial({map:tex,side:THREE.DoubleSide,transparent:true});
-        const mesh = new THREE.Mesh(geo,mat); mesh.userData.dir=dir; mesh.userData.label=label;
-        if (dir.x) { mesh.rotation.y = dir.x>0 ? Math.PI/2 : -Math.PI/2; mesh.position.x=dir.x; }
-        if (dir.y) { mesh.rotation.x = dir.y>0 ? -Math.PI/2 : Math.PI/2; mesh.position.y=dir.y; }
-        if (dir.z) { mesh.position.z=dir.z; }
-        this.cubeGroup.add(mesh); this.cubeFaceObjects.push(mesh); this.cubeHitObjects.push(mesh);
-      });
-      this.cubeGroup.add(new THREE.AmbientLight(0xffffff,1));
-      const home = document.createElement('button');
-      home.className='cad-cube-home'; home.textContent='⌂'; home.title='Home / isometric'; home.setAttribute('aria-label','Home / isometric');
-      home.addEventListener('click',e=>{e.stopPropagation();this.goHome();}); wrap.appendChild(home);
-      const ray = this.raycaster, ndc=this.cubePointer;
-      const pick = e => { const r=this.cubeRenderer.domElement.getBoundingClientRect(); ndc.x=((e.clientX-r.left)/r.width)*2-1; ndc.y=-((e.clientY-r.top)/r.height)*2+1; ray.setFromCamera(ndc,this.cubeCamera); return ray.intersectObjects(this.cubeHitObjects,false)[0]; };
-      this.cubeRenderer.domElement.addEventListener('click',e=>{ const hit=pick(e); if(hit) this.setViewDirection(hit.object.userData.dir); });
-      this.cubeRenderer.domElement.addEventListener('pointerdown',e=>{ this.cubeDrag={x:e.clientX,y:e.clientY}; });
-      this.cubeRenderer.domElement.addEventListener('pointerup',e=>{ if(!this.cubeDrag)return; const dx=e.clientX-this.cubeDrag.x,dy=e.clientY-this.cubeDrag.y; this.cubeDrag=null; if(Math.hypot(dx,dy)>10){ this.orbitByScreenDelta(dx,dy); } });
-    }
+        const root = gltf.scene;
+        root.name = cfg.name;
+        root.visible = cfg.visible;
 
-    makeFaceTexture(label) {
-      const c=document.createElement('canvas'); c.width=c.height=256; const x=c.getContext('2d');
-      x.fillStyle='#e7e7e5'; x.fillRect(0,0,256,256); x.strokeStyle='#9b9b98'; x.lineWidth=5; x.strokeRect(3,3,250,250);
-      x.fillStyle='#222'; x.font='700 27px Arial'; x.textAlign='center'; x.textBaseline='middle'; x.fillText(label,128,128);
-      return new THREE.CanvasTexture(c);
-    }
+        applyFusionAppearance(root, cfg);
 
-    loadModels() {
-      const deps=window.CadViewerDependencies; if(!deps){ this.showError('Three.js failed to initialise.'); return; }
-      this.showLoading(0);
-      const loader=new deps.GLTFLoader();
-      const draco=new deps.DRACOLoader(); draco.setDecoderPath('https://cdn.jsdelivr.net/npm/three@0.186.0/examples/jsm/libs/draco/'); loader.setDRACOLoader(draco); loader.setMeshoptDecoder(deps.MeshoptDecoder);
-      const list=this.options.bodies || [];
-      if(!list.length){this.showError('No CAD models were supplied.');return;}
-      let done=0;
-      list.forEach(cfg=>{
-        const body={id:cfg.id || `body-${done}`,name:cfg.name || cfg.id || 'Body',config:cfg,root:null,basePosition:new THREE.Vector3(),nodeState:[]};
-        this.models.push(body);
-        loader.load(cfg.path, gltf=>{ body.root=gltf.scene; body.root.name=body.name; this.prepareModel(body); done++; this.showLoading(done/list.length); if(done===list.length)this.finishLoad(); }, xhr=>this.showLoading(xhr.lengthComputable ? (done + xhr.loaded/xhr.total)/list.length : done/list.length), ()=>{
-          if(cfg.fallbackUrl && cfg.fallbackUrl!==cfg.path) loader.load(cfg.fallbackUrl,gltf=>{body.root=gltf.scene;body.root.name=body.name;this.prepareModel(body);done++;this.showLoading(done/list.length);if(done===list.length)this.finishLoad();},undefined,()=>{done++;if(done===list.length)this.finishLoad();}); else {done++;if(done===list.length)this.finishLoad();}
+        // Record the source silkscreen meshes without inventing geometry when
+        // the GLB itself does not contain them.
+        root.traverse(obj => {
+          if (!obj.name) return;
+          const n = String(obj.name).toLowerCase();
+          if (n.includes('silk') || n.includes('silkscreen')) {
+            obj.userData.isSilkscreen = true;
+          }
         });
-      });
+
+        inst.bodies[cfg.id] = root;
+        root.updateMatrixWorld(true);
+        bounds.expandByObject(root);
+        group.add(root);
+        anyLoaded = true;
+        finish();
+      };
+
+      const tryFallback = () => {
+        if (!cfg.fallbackUrl || cfg.fallbackUrl === cfg.path) return markFailure();
+        loader.load(cfg.fallbackUrl, handleLoaded, undefined, markFailure);
+      };
+
+      loader.load(cfg.path, handleLoaded, undefined, tryFallback);
+    });
+
+    const renderViewCube = initViewCube(camera, controls, container);
+
+    function animate() {
+      inst.animationId = requestAnimationFrame(animate);
+      if (controls) controls.update();
+      renderer.render(scene, camera);
+      renderViewCube();
     }
+    animate();
 
-    prepareModel(body) {
-      const root=body.root; root.visible=body.config.visible!==false;
-      // Current DAC convention: the model's original BOTTOM (-Y) is the viewer FRONT (+Z).
-      root.rotation.x = -Math.PI/2;
-      root.updateMatrixWorld(true);
-      root.traverse(obj=>{
-        if(!obj.isMesh)return;
-        obj.castShadow=true; obj.receiveShadow=true; obj.frustumCulled=true;
-        const mats=Array.isArray(obj.material)?obj.material:[obj.material];
-        mats.forEach(m=>{
-          if(!m)return;
-          const name=((obj.name||'')+' '+(m.name||'')).toLowerCase();
-          if(name.includes('silk')){ m.color.set(0xffffff); m.roughness=.72; m.metalness=0; }
-          else if(m.color && m.color.r>.94&&m.color.g>.94&&m.color.b>.94 && /cover|lower|body|enclosure/.test((body.name+' '+name).toLowerCase())) { m.color.set(body.name.toLowerCase().includes('cover')?0x697078:0x858c91); m.roughness=.42; m.metalness=.03; }
-          if('envMapIntensity' in m)m.envMapIntensity=1;
-        });
-        obj.userData.cadBody=body.id; obj.userData.cadOriginalPosition=obj.position.clone(); body.nodeState.push({obj,position:obj.position.clone(),visible:obj.visible,name:obj.name||'Mesh'});
-      });
-      this.scene.add(root); this.modelRoots.push(root); this.buildLayerPanel();
-    }
-
-    finishLoad(){
-      this.hideLoading(); this.fitView(true); this.buildLayerPanel(); this.syncCube();
-    }
-
-    computeBounds(){
-      this.currentBounds.makeEmpty();
-      this.modelRoots.forEach(root=>{if(root.visible)this.currentBounds.expandByObject(root);});
-      if(this.currentBounds.isEmpty()){this.currentBounds.set(new THREE.Vector3(-.5,-.5,-.5),new THREE.Vector3(.5,.5,.5));}
-      this.currentBounds.getCenter(this.worldCenter); this.currentBounds.getSize(this.modelSize);
-      const maxDim=Math.max(this.modelSize.x,this.modelSize.y,this.modelSize.z,.001); this.camera.near=Math.max(maxDim/100000,0.0001); this.camera.far=Math.max(maxDim*10000,100); this.camera.updateProjectionMatrix();
-      this.orthoCamera.near=this.camera.near; this.orthoCamera.far=this.camera.far;
-    }
-
-    fitView(initial=false){
-      this.computeBounds();
-      const maxDim=Math.max(this.modelSize.x,this.modelSize.y,this.modelSize.z,.001);
-      const fov=THREE.MathUtils.degToRad(this.camera.fov); const fit=(maxDim*.5)/Math.tan(fov*.5); const d=Math.max(fit*0.78,maxDim*.65,.05);
-      const dir=new THREE.Vector3(1,.75,1).normalize();
-      const pos=this.worldCenter.clone().add(dir.multiplyScalar(d));
-      if(initial||this.reducedMotion)this.setCameraInstant(pos,this.worldCenter);else this.animateCamera(pos,this.worldCenter,480);
-    }
-
-    setCameraInstant(pos,target){ this.activeCamera.position.copy(pos); this.activeCamera.lookAt(target); if(this.controls){this.controls.target.copy(target);this.controls.update();} this.homePosition=pos.clone();this.homeTarget=target.clone(); }
-    animateCamera(pos,target,duration=500){
-      if(this.viewTween)cancelAnimationFrame(this.viewTween); const start=this.activeCamera.position.clone(), st=this.controls?this.controls.target.clone():this.worldCenter.clone(), t0=performance.now(); this.isAnimatingView=true; if(this.controls)this.controls.enabled=false;
-      const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
-      const step=now=>{const p=Math.min(1,(now-t0)/duration),e=ease(p);this.activeCamera.position.lerpVectors(start,pos,e);const tar=st.clone().lerp(target,e);this.activeCamera.lookAt(tar);if(this.controls){this.controls.target.copy(tar);this.controls.update();}if(p<1)this.viewTween=requestAnimationFrame(step);else{this.isAnimatingView=false;if(this.controls){this.controls.enabled=true;this.controls.target.copy(target);this.controls.update();}}}; this.viewTween=requestAnimationFrame(step);
-    }
-
-    goHome(){ this.computeBounds(); const maxDim=Math.max(this.modelSize.x,this.modelSize.y,this.modelSize.z,.001); const d=maxDim*1.15; const dir=new THREE.Vector3(1,.75,1).normalize(); this.animateCamera(this.worldCenter.clone().add(dir.multiplyScalar(d)),this.worldCenter,this.reducedMotion?1:480); }
-
-    setViewDirection(dir){
-      this.computeBounds(); const maxDim=Math.max(this.modelSize.x,this.modelSize.y,this.modelSize.z,.001); const d=maxDim*1.15; const n=dir.clone().normalize();
-      let up=new THREE.Vector3(0,1,0); if(Math.abs(n.dot(up))>.92) up.set(0,0,1);
-      this.activeCamera.up.copy(up); this.animateCamera(this.worldCenter.clone().add(n.multiplyScalar(d)),this.worldCenter,this.reducedMotion?1:520);
-    }
-
-    setStandardView(which){
-      const map={front:new THREE.Vector3(0,0,1),back:new THREE.Vector3(0,0,-1),top:new THREE.Vector3(0,1,0),bottom:new THREE.Vector3(0,-1,0),left:new THREE.Vector3(-1,0,0),right:new THREE.Vector3(1,0,0),iso:new THREE.Vector3(1,.75,1)};
-      this.setViewDirection(map[which]||map.iso);
-    }
-
-    toggleProjection(){
-      const old=this.activeCamera, pos=old.position.clone(),target=this.controls?this.controls.target.clone():this.worldCenter.clone();
-      if(this.isOrthographic){this.activeCamera=this.camera;this.isOrthographic=false;}else{this.computeBounds();const aspect=Math.max(1e-3,this.container.clientWidth/Math.max(1,this.container.clientHeight));const half=Math.max(this.modelSize.x,this.modelSize.y,this.modelSize.z)*.8;this.orthoCamera.left=-half*aspect;this.orthoCamera.right=half*aspect;this.orthoCamera.top=half;this.orthoCamera.bottom=-half;this.orthoCamera.position.copy(pos);this.orthoCamera.up.copy(old.up);this.activeCamera=this.orthoCamera;this.isOrthographic=true;}
-      if(this.controls){this.controls.object=this.activeCamera;this.controls.target.copy(target);this.controls.update();} this.activeCamera.lookAt(target);
-    }
-
-    toggleEdges(){
-      this.edgeObjects.forEach(o=>this.scene.remove(o)); this.edgeObjects=[];
-      const enabled=!this.edgesEnabled; this.edgesEnabled=enabled; if(!enabled)return;
-      this.modelRoots.forEach(root=>root.traverse(obj=>{if(!obj.isMesh)return;const e=new THREE.LineSegments(new THREE.EdgesGeometry(obj.geometry,30),new THREE.LineBasicMaterial({color:0x3c3f42,transparent:true,opacity:.58}));e.position.copy(obj.position);e.rotation.copy(obj.rotation);e.scale.copy(obj.scale);obj.parent.add(e);this.edgeObjects.push(e);}));
-    }
-
-    setExplode(amount){this.explodeAmount=amount;this.models.forEach((body,i)=>{if(!body.root)return;const axis=new THREE.Vector3(i%3===0?1:0,i%3===1?1:0,i%3===2?1:0);const center=body.root.getWorldPosition(new THREE.Vector3()).sub(this.worldCenter).normalize();if(center.lengthSq()<1e-8)center.set(0,1,0);body.root.position.copy(axis.lengthSq()?axis:center).multiplyScalar(amount*Math.max(this.modelSize.x,this.modelSize.y,this.modelSize.z)*.35);});this.computeBounds();}
-    toggleSection(){ if(!this.sectionPlane){this.sectionPlane=new THREE.Plane(new THREE.Vector3(1,0,0),0);this.sectionEnabled=true;}else this.sectionEnabled=!this.sectionEnabled; this.renderer.clippingPlanes=this.sectionEnabled?[this.sectionPlane]:[]; this.renderer.localClippingEnabled=this.sectionEnabled; }
-    toggleMeasure(){this.measureMode=!this.measureMode;this.measurePoints=[];this.renderer.domElement.style.cursor=this.measureMode?'crosshair':'grab';}
-    showAll(){this.models.forEach(b=>{if(b.root)b.root.visible=true;b.nodeState.forEach(n=>n.obj.visible=n.visible);});this.buildLayerPanel();this.fitView(false);}
-
-    buildLayerPanel(){
-      const host=document.getElementById('layerDropdown-'+this.container.id); if(!host)return;
-      host.innerHTML='';
-      const actions=document.createElement('div'); actions.className='flex gap-1 mb-2';
-      [['All','Show all',()=>this.showAll()],['Iso','Isolate visible',()=>this.isolateVisible()]].forEach(([t,ttl,fn])=>{const b=document.createElement('button');b.type='button';b.textContent=t;b.title=ttl;b.className='cad-layer-action';b.addEventListener('click',fn);actions.appendChild(b);});host.appendChild(actions);
-      const tree=document.createElement('div'); tree.className='cad-layer-tree';
-      this.models.forEach(body=>{const row=document.createElement('label');row.className='cad-layer-row font-mono';row.innerHTML=`<input type="checkbox" ${body.root?.visible!==false?'checked':''} aria-label="Toggle ${escapeHtml(body.name)}"><span>${escapeHtml(body.name)}</span>`;row.querySelector('input').addEventListener('change',e=>{if(body.root)body.root.visible=e.target.checked;});tree.appendChild(row);});host.appendChild(tree);
-    }
-    isolateVisible(){this.models.forEach((b,i)=>{if(b.root)b.root.visible=i===0;});this.buildLayerPanel();}
-
-    screenshot(){const a=document.createElement('a');a.download='cad-view.png';a.href=this.renderer.domElement.toDataURL('image/png');a.click();}
-    async toggleFullscreen(){try{if(document.fullscreenElement===this.container)await document.exitFullscreen();else await this.container.requestFullscreen();}catch(e){console.warn(e);}}
-
-    showLoading(progress){let el=this.loading;if(!el){el=document.createElement('div');el.className='cad-loading';el.innerHTML='<div class="cad-loading-label">Loading CAD model…</div><div class="cad-progress"><span></span></div>';this.container.appendChild(el);this.loading=el;}el.querySelector('span').style.width=Math.max(2,Math.min(100,progress*100))+'%';}
-    hideLoading(){if(this.loading){this.loading.remove();this.loading=null;}}
-    showError(msg){this.hideLoading();const e=document.createElement('div');e.className='cad-error';e.innerHTML=`<strong>3D viewer error</strong><span>${escapeHtml(msg)}</span><button type="button">Retry</button>`;e.querySelector('button').onclick=()=>{e.remove();this.loadModels();};this.container.appendChild(e);}
-
-    orbitByScreenDelta(dx,dy){if(!this.controls)return;this.controls.rotateLeft(dx*.006);this.controls.rotateUp(dy*.006);this.controls.update();}
-    syncCube(){if(!this.cubeGroup||!this.activeCamera)return;const q=this.activeCamera.quaternion.clone();this.cubeGroup.quaternion.copy(q).invert();}
-
-    installContextRecovery(){this.renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();this.contextLost=true;});this.renderer.domElement.addEventListener('webglcontextrestored',()=>{this.contextLost=false;this.rebuildRenderer();});}
-    rebuildRenderer(){const old=this.renderer;const w=this.container.clientWidth||800,h=this.container.clientHeight||560;this.renderer=new THREE.WebGLRenderer({antialias:true,powerPreference:'high-performance',preserveDrawingBuffer:true});this.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));this.renderer.setSize(w,h,false);this.renderer.outputColorSpace=THREE.SRGBColorSpace;old.domElement.replaceWith(this.renderer.domElement);this.createControls();}
-    installObservers(){
-      this.resizeObserver=new ResizeObserver(()=>{clearTimeout(this.resizeTimer);this.resizeTimer=setTimeout(()=>this.resize(),50);});this.resizeObserver.observe(this.container);
-      this.observer=new IntersectionObserver(entries=>{this.visible=entries[0]?.isIntersecting!==false;}, {threshold:0.01});this.observer.observe(this.container);
-      document.addEventListener('fullscreenchange',()=>this.resize(),{signal:this.abort.signal});
-      window.addEventListener('keydown',e=>{if(this.destroyed)return;const k=e.key.toLowerCase();if(k==='home')this.goHome();else if(e.key==='1')this.setStandardView('front');else if(e.key==='2')this.setStandardView('back');else if(e.key==='3')this.setStandardView('top');else if(e.key==='4')this.setStandardView('bottom');else if(e.key==='5')this.setStandardView('left');else if(e.key==='6')this.setStandardView('right');else if(e.key==='0')this.setStandardView('iso');},{signal:this.abort.signal});
-    }
-    resize(){if(!this.renderer)return;const w=Math.max(1,this.container.clientWidth||800),h=Math.max(1,this.container.clientHeight||560);this.renderer.setSize(w,h,false);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();this.cubeRenderer?.setSize(Math.min(112,w),Math.min(112,w),false);}
-
-    render(){if(this.destroyed)return;this.animationFrame=requestAnimationFrame(()=>this.render());if(!this.visible||this.contextLost)return;if(this.controls&&!this.isAnimatingView)this.controls.update();this.renderer.render(this.scene,this.activeCamera);if(this.cubeRenderer&&this.cubeScene){this.syncCube();this.cubeRenderer.render(this.cubeScene,this.cubeCamera);}}
-    start(){this.render();}
-    dispose(){this.destroyed=true;if(this.animationFrame)cancelAnimationFrame(this.animationFrame);if(this.resizeObserver)this.resizeObserver.disconnect();if(this.observer)this.observer.disconnect();this.abort.abort();this.modelRoots.forEach(root=>root.traverse(o=>{if(o.geometry)o.geometry.dispose();const m=o.material;[].concat(m||[]).forEach(x=>{if(x?.map)x.map.dispose();if(x?.normalMap)x.normalMap.dispose();if(x?.roughnessMap)x.roughnessMap.dispose();x?.dispose?.();});}));this.renderer?.dispose();this.cubeRenderer?.dispose();this.container.innerHTML='';}
+    const resize = () => {
+      if (!container) return;
+      const w = container.clientWidth || 800;
+      const h = container.clientHeight || 576;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+    };
+    inst.resize = resize;
+    window.addEventListener('resize', resize);
   }
-
-  window.CadViewer = CadViewer;
-
-  function getCadViewer(containerId){return viewer3DInstances[containerId]?.viewer || null;}
-  async function initGLBViewer(containerId, glbBodies){
-    await (window.CadViewerReady || Promise.resolve());
-    const container=document.getElementById(containerId); if(!container)return;
-    viewer3DInstances[containerId]?.viewer?.dispose?.();
-    const viewer=new CadViewer(container,{bodies:glbBodies});
-    viewer3DInstances[containerId]={viewer,bodiesConfig:glbBodies}; viewer.start();
-  }
-
-  function toggle3DViewerFullscreen(containerId){ const v=getCadViewer(containerId); if(v)v.toggleFullscreen(); }
-  function toggleLayerDropdown(e,containerId){e?.stopPropagation();const dd=document.getElementById('layerDropdown-'+containerId);if(dd)dd.classList.toggle('hidden');}
-  function toggle3DBody(containerId,bodyId,visible){const v=getCadViewer(containerId);if(!v)return;const b=v.models.find(x=>x.id===bodyId);if(b?.root)b.root.visible=visible;}
 
   function init3DViewer(containerId, stlBodies) {
     const container = document.getElementById(containerId);
@@ -3786,7 +4052,7 @@ async function loadGithubProjectDocument(kind) {
             </div>
           </div>
           <div id="pcbViewerContainer" class="relative w-full h-[28rem] border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing" style="background:#f3f3f2;"></div>
-          <p class="font-mono text-[10px] text-faint mt-2">Click and drag to rotate model · Scroll to zoom · Click the view cube to snap views</p>
+          
         </div>
       `;
     }
@@ -3817,7 +4083,7 @@ async function loadGithubProjectDocument(kind) {
                scoped to the 3D canvas only via inline style, the rest of the
                site's dark styling is untouched. -->
           <div id="stlViewerContainer" class="relative w-full h-[36rem] border border-line rounded-sm overflow-hidden cursor-grab active:cursor-grabbing" style="background:#f3f3f2;"></div>
-          <p class="font-mono text-[10px] text-faint mt-2">Click and drag to rotate model · Scroll to zoom · Click the view cube to snap views</p>
+          
         </div>
       `;
     }
@@ -4137,6 +4403,7 @@ async function loadGithubProjectDocument(kind) {
         } else {
           init3DViewer('stlViewerContainer', p.stlBodies || []);
         }
+        addClickToInteractOverlay('stlViewerContainer', 'Click to Interact');
       }, 50);
     }
     if (p.kicadSchematic) {
@@ -4156,6 +4423,7 @@ async function loadGithubProjectDocument(kind) {
         init3DViewer('pcbViewerContainer', [
           { id: 'pcb-solo', name: p.pcbModel.label || 'PCB', path: p.pcbModel.path, visible: true }
         ]);
+        addClickToInteractOverlay('pcbViewerContainer', 'Click to Interact');
       }, 50);
     }
 
