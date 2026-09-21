@@ -817,6 +817,21 @@
     }
   }
 
+  /* ===== Final desktop grid state overrides =====
+     These rules intentionally come after the responsive 12-column base so
+     page-specific state (collapsed profile / project detail) is not reset by
+     the generic desktop layout. */
+  @media (min-width:1024px){
+    #leftSidebar:not(.is-collapsed){grid-column:span 3 !important;}
+    #leftSidebar.is-collapsed{grid-column:span 1 !important;}
+    #centerColumn{grid-column:span 6 !important;}
+    #leftSidebar.is-collapsed + #centerColumn{grid-column:span 8 !important;}
+    #leftSidebar:not(.is-collapsed) + #centerColumn.project-detail-expanded{grid-column:span 9 !important;}
+    #leftSidebar.is-collapsed + #centerColumn.project-detail-expanded{grid-column:span 11 !important;}
+    #rightSidebar{grid-column:span 3 !important;}
+    #rightSidebar.hidden{display:none !important;}
+  }
+
   @media (max-width:767px){
     .portfolio-grid{
       display:flex !important;
@@ -3777,7 +3792,7 @@ async function loadGithubProjectDocument(kind) {
             <div class="min-w-0">
               <p class="font-mono text-xs text-dim uppercase tracking-wider">Interactive 3D Cad Model View</p>
               ${useGLBViewer ? `<div class="flex flex-wrap gap-x-3 gap-y-1 mt-1">
-                ${glbBodies.map(b => `<a href="${b.fallbackUrl || b.path}" target="_blank" rel="noopener noreferrer" class="font-mono text-[9px] uppercase tracking-wider text-faint hover:text-white underline underline-offset-2">${b.name} ↗</a>`).join('')}
+                ${(p.glbBodies || []).map(b => `<a href="${b.fallbackUrl || b.path}" target="_blank" rel="noopener noreferrer" class="font-mono text-[9px] uppercase tracking-wider text-faint hover:text-white underline underline-offset-2">${b.name} ↗</a>`).join('')}
               </div>` : ''}
             </div>
             <div class="flex items-center gap-2">
@@ -4090,12 +4105,10 @@ async function loadGithubProjectDocument(kind) {
     setTimeout(() => { rightSidebarEl.classList.add('hidden'); }, 300);
     
     const centerCol = document.getElementById('centerColumn');
-    if(leftSidebarOpen) {
-        centerCol.classList.remove('lg:col-span-6', 'lg:col-span-8', 'lg:col-span-9', 'lg:col-span-11');
-        centerCol.classList.add('lg:col-span-9');
-    } else {
-        centerCol.classList.remove('lg:col-span-6', 'lg:col-span-8', 'lg:col-span-9', 'lg:col-span-11');
-        centerCol.classList.add('lg:col-span-9');
+    if (centerCol) {
+      centerCol.classList.remove('lg:col-span-6', 'lg:col-span-8', 'lg:col-span-9', 'lg:col-span-11');
+      centerCol.classList.add(leftSidebarOpen ? 'lg:col-span-9' : 'lg:col-span-11');
+      centerCol.classList.toggle('project-detail-expanded', true);
     }
 
     feedView.style.display = 'none';
