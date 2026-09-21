@@ -908,6 +908,14 @@
   }
   body > * { position: relative; z-index: 1; }
 </style>
+
+<style id="cad-viewer-fullscreen-fallback">
+  #stlViewerContainer.viewer-force-fullscreen {
+    position: fixed !important; inset: 0 !important; width: 100vw !important; height: 100vh !important;
+    z-index: 2147483000 !important; border: 0 !important; border-radius: 0 !important;
+  }
+  #stlViewerContainer.viewer-force-fullscreen canvas { width:100% !important; height:100% !important; }
+</style>
 </head>
 <body class="text-[#e6e6e4] antialiased min-h-screen flex flex-col justify-between">
 
@@ -2962,6 +2970,22 @@ async function loadGithubProjectDocument(kind) {
 
     let viewTransitionFrame = null;
 
+    function cancelViewTransitionForUserInput() {
+      if (viewTransitionFrame) {
+        cancelAnimationFrame(viewTransitionFrame);
+        viewTransitionFrame = null;
+        if (mainControls) {
+          mainControls.enabled = true;
+          mainControls.target.copy(mainCamera.userData.modelCenter || mainControls.target);
+          mainControls.update();
+        }
+      }
+    }
+    if (mainControls) {
+      mainControls.addEventListener('start', cancelViewTransitionForUserInput);
+    }
+    mainCamera.userData.cancelViewTransition = cancelViewTransitionForUserInput;
+
     function snapTo(dir) {
       const target = mainCamera.userData.modelCenter
         ? mainCamera.userData.modelCenter.clone()
@@ -3021,6 +3045,7 @@ async function loadGithubProjectDocument(kind) {
     }
 
     cubeRenderer.domElement.addEventListener('click', (e) => {
+      if (mainCamera.userData.cancelViewTransition) mainCamera.userData.cancelViewTransition();
       const hit = pick(e);
       if (!hit) return;
       snapTo(hit.kind === 'extra' ? hit.object.userData.dir : hit.dir);
@@ -3037,6 +3062,7 @@ async function loadGithubProjectDocument(kind) {
     homeBtn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><path d="M9 22V12h6v10"></path></svg>';
     homeBtn.addEventListener('click', (e) => {
       e.stopPropagation();
+      if (mainCamera.userData.cancelViewTransition) mainCamera.userData.cancelViewTransition();
       const home = mainCamera.userData.homePosition;
       const homeTarget = mainCamera.userData.homeTarget || mainCamera.userData.modelCenter || new THREE.Vector3(0, 0, 0);
       if (home) {
@@ -3099,23 +3125,40 @@ async function loadGithubProjectDocument(kind) {
   async function toggle3DViewerFullscreen(containerId) {
     const container = document.getElementById(containerId);
     if (!container) return;
+    const nativeFullscreen = document.fullscreenElement || document.webkitFullscreenElement;
     try {
-      if (document.fullscreenElement === container) {
-        await document.exitFullscreen();
-      } else if (container.requestFullscreen) {
-        await container.requestFullscreen();
+      if (nativeFullscreen === container) {
+        if (document.exitFullscreen) await document.exitFullscreen();
+        else if (document.webkitExitFullscreen) document.webkitExitFullscreen();
+        container.classList.remove('viewer-force-fullscreen');
+        return;
+      }
+      if (container.requestFullscreen) {
+        await container.requestFullscreen({ navigationUI: 'hide' });
+      } else if (container.webkitRequestFullscreen) {
+        container.webkitRequestFullscreen();
+      } else {
+        container.classList.toggle('viewer-force-fullscreen');
       }
     } catch (error) {
-      console.warn('3D viewer fullscreen is unavailable:', error);
+      console.warn('Native fullscreen unavailable; using viewer fallback:', error);
+      container.classList.toggle('viewer-force-fullscreen');
+      requestAnimationFrame(() => {
+        Object.values(viewer3DInstances).forEach(inst => inst?.resize?.());
+      });
     }
   }
 
-  document.addEventListener('fullscreenchange', () => {
-    Object.keys(viewer3DInstances).forEach(id => {
-      const inst = viewer3DInstances[id];
-      if (inst && typeof inst.resize === 'function') inst.resize();
-    });
-  });
+  function resizeAll3DViewers() {
+    requestAnimationFrame(() => requestAnimationFrame(() => {
+      Object.keys(viewer3DInstances).forEach(id => {
+        const inst = viewer3DInstances[id];
+        if (inst && typeof inst.resize === 'function') inst.resize();
+      });
+    }));
+  }
+  document.addEventListener('fullscreenchange', resizeAll3DViewers);
+  document.addEventListener('webkitfullscreenchange', resizeAll3DViewers);
 
   function toggleLayerDropdown(e, containerId) {
     if (e) e.stopPropagation();
@@ -3229,7 +3272,16 @@ async function loadGithubProjectDocument(kind) {
       controls.enableDamping = true;
       controls.dampingFactor = 0.08;
       controls.enablePan = true;
+      controls.enableRotate = true;
+      controls.enableZoom = true;
       controls.screenSpacePanning = true;
+      controls.rotateSpeed = 0.9;
+      controls.zoomSpeed = 0.9;
+      controls.panSpeed = 0.8;
+      controls.minPolarAngle = 0.001;
+      controls.maxPolarAngle = Math.PI - 0.001;
+      controls.minAzimuthAngle = -Infinity;
+      controls.maxAzimuthAngle = Infinity;
       controls.minDistance = 0.01;
       controls.maxDistance = 5000;
     }
@@ -3766,6 +3818,9 @@ async function loadGithubProjectDocument(kind) {
   let activeInteractiveOverlay = null; // the currently-active overlay element, if any
 
   function addClickToInteractOverlay(containerId, label) {
+    // 3D CAD viewers must always be directly interactive. The overlay is
+    // intentionally retained only for 2D document viewers.
+    if (containerId === 'stlViewerContainer' || containerId === 'pcbViewerContainer') return;
     const container = document.getElementById(containerId);
     if (!container) return;
 
@@ -4040,7 +4095,7 @@ async function loadGithubProjectDocument(kind) {
             <p class="font-mono text-xs text-dim uppercase tracking-wider">${p.title} - PCB 3D Model</p>
             <div class="flex items-center gap-2">
               <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">${useGLBViewer ? '3D GLB View' : '3D STL View'}</span>
-              <button id="fullscreenBtn-stlViewerContainer" onclick="toggle3DViewerFullscreen('stlViewerContainer')" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Full screen 3D viewer" aria-label="Full screen 3D viewer">
+              <button id="fullscreenBtn-stlViewerContainer" onclick="toggle3DViewerFullscreen('stlViewerContainer')" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Full screen 3D viewer" aria-label="Full screen 3D viewer" style="position:relative;z-index:50">
                 <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
               </button>
               <div class="relative">
@@ -4067,7 +4122,7 @@ async function loadGithubProjectDocument(kind) {
             </div>
             <div class="flex items-center gap-2">
               <span class="font-mono text-[10px] text-faint border border-line px-2 py-0.5 rounded uppercase">${useGLBViewer ? '3D GLB View' : '3D STL View'}</span>
-              <button id="fullscreenBtn-stlViewerContainer" onclick="toggle3DViewerFullscreen('stlViewerContainer')" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Full screen 3D viewer" aria-label="Full screen 3D viewer">
+              <button id="fullscreenBtn-stlViewerContainer" onclick="toggle3DViewerFullscreen('stlViewerContainer')" class="focus-ring w-7 h-7 flex items-center justify-center border border-line text-dim hover:text-white hover:border-faint transition-colors" title="Full screen 3D viewer" aria-label="Full screen 3D viewer" style="position:relative;z-index:50">
                 <i data-lucide="maximize-2" class="w-3.5 h-3.5"></i>
               </button>
               <div class="relative">
@@ -4403,7 +4458,6 @@ async function loadGithubProjectDocument(kind) {
         } else {
           init3DViewer('stlViewerContainer', p.stlBodies || []);
         }
-        addClickToInteractOverlay('stlViewerContainer', 'Click to Interact');
       }, 50);
     }
     if (p.kicadSchematic) {
@@ -4423,7 +4477,6 @@ async function loadGithubProjectDocument(kind) {
         init3DViewer('pcbViewerContainer', [
           { id: 'pcb-solo', name: p.pcbModel.label || 'PCB', path: p.pcbModel.path, visible: true }
         ]);
-        addClickToInteractOverlay('pcbViewerContainer', 'Click to Interact');
       }, 50);
     }
 
