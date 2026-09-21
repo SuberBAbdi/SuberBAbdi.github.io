@@ -3,7 +3,7 @@ name: Fetch GitHub Project Data
 on:
   workflow_dispatch:
   schedule:
-    - cron: '17 3 * * *' # Daily at 03:17 UTC
+    - cron: '17 */6 * * *' # Every 6 hours at 17 minutes past the hour (UTC)
 
 permissions:
   contents: write
