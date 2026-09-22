@@ -3275,11 +3275,11 @@ async function loadGithubProjectDocument(kind) {
       controls.enableRotate = true;
       controls.enableZoom = true;
       controls.screenSpacePanning = true;
-      controls.rotateSpeed = 0.9;
+      controls.rotateSpeed = 0.65;
       controls.zoomSpeed = 0.9;
       controls.panSpeed = 0.8;
-      controls.minPolarAngle = 0.001;
-      controls.maxPolarAngle = Math.PI - 0.001;
+      controls.minPolarAngle = 0;
+      controls.maxPolarAngle = Math.PI;
       controls.minAzimuthAngle = -Infinity;
       controls.maxAzimuthAngle = Infinity;
       controls.minDistance = 0.01;
@@ -3418,8 +3418,11 @@ async function loadGithubProjectDocument(kind) {
         // user zoom in from a distant overview.
         const distance = Math.max(fitDistance * 0.68, maxDim * 0.62, 0.5);
 
-        // FRONT (+Z) now corresponds to the model's original BOTTOM face.
-        camera.position.set(centre.x, centre.y, centre.z + distance);
+        // Start in a true TOP view.  The model itself keeps the requested
+        // orientation (its original BOTTOM is the viewer FRONT), while the
+        // camera starts looking straight down the viewer +Y axis.
+        camera.position.set(centre.x, centre.y + distance, centre.z);
+        camera.up.set(0, 0, -1);
         camera.lookAt(centre);
         camera.userData.homePosition = camera.position.clone();
         camera.userData.homeTarget = centre.clone();
@@ -3803,7 +3806,7 @@ async function loadGithubProjectDocument(kind) {
   // scrolled normally over it. Call this once, right after the viewer's own
   // init function has finished setting up its listeners on `containerId`.
   //
-  //   addClickToInteractOverlay('stlViewerContainer', 'Click to Interact');
+  //   addClickToInteractOverlay('stlViewerContainer', '');
   //
   // Behaviour:
   //   1. By default the overlay sits on top and swallows clicks/taps, but
