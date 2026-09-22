@@ -1192,7 +1192,7 @@
                  "View All Projects" button (see openAllProjectsModal) - lets
                  someone jump to a different project without returning to the
                  full portfolio page first. -->
-            <button onclick="openAllProjectsModal()" class="focus-ring inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white transition-colors">
+            <button id="projectDetailBackProjectList" onclick="openAllProjectsModal()" class="focus-ring inline-flex items-center gap-2 font-mono text-xs uppercase tracking-wider text-dim hover:text-white transition-colors">
               <i data-lucide="list" class="w-3.5 h-3.5"></i> Back to Project List
             </button>
           </div>
@@ -2486,10 +2486,10 @@
     // Reset the previous correction before measuring so repeated resize/zoom
     // passes do not accumulate offsets. The divider above the timeline is then
     // placed exactly on the bottom border of the main Experience heading.
-    timeline.style.marginTop = '0px';
+    timeline.style.removeProperty('margin-top');
     const desiredTop = expHead.getBoundingClientRect().bottom;
     const delta = desiredTop - timeline.getBoundingClientRect().top;
-    timeline.style.marginTop = delta + 'px';
+    timeline.style.setProperty('margin-top', delta + 'px', 'important');
   }
 
   window.addEventListener('resize', () => {
@@ -2740,7 +2740,8 @@ async function loadGithubProjectDocument(kind) {
 
   const feedView = document.getElementById('feedView');
   const detailView = document.getElementById('projectDetailView');
-  const detailContent = document.getElementById('projectDetailContent');
+  // #projectDetailContent is recreated whenever the detail shell is restored;
+  // openProject() therefore resolves it fresh for every navigation.
   // Immutable copy of the normal project-detail shell. Homelab is rendered
   // inside this shell so leaving Homelab can never destroy project controls.
   const projectDetailTemplate = detailView ? detailView.innerHTML : '';
@@ -4030,6 +4031,13 @@ async function loadGithubProjectDocument(kind) {
     if (!document.getElementById('projectDetailContent') && projectDetailTemplate) {
       detailView.innerHTML = projectDetailTemplate;
     }
+    const detailContent = document.getElementById('projectDetailContent');
+    if (!detailContent) return;
+
+    // Project pages can be opened after Homelab or after another project.
+    // Always restore the project-list control for real project pages.
+    const projectListBtn = document.getElementById('projectDetailBackProjectList');
+    if (projectListBtn) projectListBtn.style.display = 'inline-flex';
 
     // Cancel and clear every 3D viewer left running from a previously open
     // project page (there can be more than one now - see viewer3DInstances)
@@ -4511,6 +4519,7 @@ async function loadGithubProjectDocument(kind) {
     detailView.classList.add('closing');
     setTimeout(() => {
       detailView.classList.remove('open', 'closing');
+      detailView.style.display = 'none';
       // Always restore the canonical project shell after leaving Homelab or a project.
       if (projectDetailTemplate) detailView.innerHTML = projectDetailTemplate;
       feedView.style.display = 'flex';
@@ -4727,6 +4736,8 @@ function openHomelabPage() {
   // Restore the normal detail shell, then render Homelab only inside the
   // content region. This prevents the Homelab page from uncoupling projects.
   detailView.innerHTML = projectDetailTemplate;
+  const homelabListBtn = document.getElementById('projectDetailBackProjectList');
+  if (homelabListBtn) homelabListBtn.style.display = 'none';
   const homelabContent = document.getElementById('projectDetailContent');
   if (homelabContent) {
     homelabContent.innerHTML = `
