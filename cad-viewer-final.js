@@ -1,5 +1,6 @@
 /* Site stability layer. The CAD renderer itself lives in cad-viewer-fixes.js.
- * This loaded slot is retained for navigation/layout fixes only. */
+ * This loaded slot is retained for navigation/layout fixes and small CAD UI
+ * decoration only. */
 (function(){
   'use strict';
   const run=()=>{
@@ -41,12 +42,25 @@
     align();window.addEventListener('resize',align,{passive:true});
     const footer=document.querySelector('footer.footer-electronics-wrap');if(footer){footer.style.marginTop='auto';footer.style.paddingBottom='12px'}
 
-    // Reactivate the black click-to-interact shield when the user clicks
-    // anywhere outside the active CAD viewer. The toolbar/cube/layers stay
-    // interactive because they are descendants of the viewer container.
     if(!window.__cadOutsideShieldListener){
       document.addEventListener('click',e=>{const map=window.__canonicalCadViewerStates;if(!map)return;map.forEach(state=>{if(state?.ui?.shield&&!state.container.contains(e.target)){state.ui.shield.classList.remove('hidden');state.ui.menu?.classList.remove('open')}})},{passive:true});
       window.__cadOutsideShieldListener=true;
+    }
+
+    // Fusion-style cube labels and a small animated Home control are attached
+    // to the cube's own mini-scene, so they rotate with it rather than fighting
+    // the main canvas. This runs after each viewer is created.
+    if(!window.__cadCubeDecorationTimer){
+      const makeTextSprite=(text)=>{const c=document.createElement('canvas');c.width=256;c.height=96;const ctx=c.getContext('2d');ctx.clearRect(0,0,256,96);ctx.fillStyle='#202020';ctx.font='700 34px Arial';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(text,128,48);const tex=new THREE.CanvasTexture(c);const mat=new THREE.SpriteMaterial({map:tex,transparent:true,depthTest:true});const sp=new THREE.Sprite(mat);sp.scale.set(.78,.29,1);return sp};
+      const addCubeDecoration=(state)=>{
+        if(!state?.cubeScene||state.cubeScene.userData.portfolioDecorated)return;
+        const labels=[['RIGHT',new THREE.Vector3(1.03,0,0)],['LEFT',new THREE.Vector3(-1.03,0,0)],['TOP',new THREE.Vector3(0,1.03,0)],['BOTTOM',new THREE.Vector3(0,-1.03,0)],['FRONT',new THREE.Vector3(0,0,1.03)],['BACK',new THREE.Vector3(0,0,-1.03)]];
+        labels.forEach(([text,pos])=>{const s=makeTextSprite(text);s.position.copy(pos);state.cubeScene.add(s)});
+        const home=document.createElement('button');home.type='button';home.title='Home / Fit view';home.setAttribute('aria-label','Home / Fit view');home.textContent='⌂';home.style.cssText='position:absolute;left:2px;top:2px;width:27px;height:27px;border:1px solid #c7c7c5;background:rgba(255,255,255,.96);color:#222;font:18px Arial,sans-serif;line-height:25px;cursor:pointer;z-index:20;box-shadow:0 1px 3px rgba(0,0,0,.14)';
+        home.onclick=e=>{e.stopPropagation();const cam=state.camera,ctl=state.controls;if(!cam||!ctl||!cam.userData.homePosition)return;const sp=cam.position.clone(),st=ctl.target.clone(),su=cam.up.clone(),ep=cam.userData.homePosition.clone(),et=cam.userData.homeTarget?.clone()||state.target.clone(),eu=new THREE.Vector3(0,0,-1),start=performance.now(),duration=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?1:480;ctl.enabled=false;const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;const tick=now=>{const p=Math.min(1,(now-start)/duration),q=ease(p);cam.position.lerpVectors(sp,ep,q);ctl.target.lerpVectors(st,et,q);cam.up.lerpVectors(su,eu,q).normalize();cam.lookAt(ctl.target);ctl.update();if(p<1)requestAnimationFrame(tick);else{cam.position.copy(ep);ctl.target.copy(et);cam.up.copy(eu);cam.lookAt(et);ctl.enabled=true;ctl.update()}};requestAnimationFrame(tick)};
+        state.ui.nav.appendChild(home);state.cubeScene.userData.portfolioDecorated=true;
+      };
+      window.__cadCubeDecorationTimer=setInterval(()=>{const map=window.__canonicalCadViewerStates;if(!map)return;map.forEach(addCubeDecoration)},250);
     }
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
