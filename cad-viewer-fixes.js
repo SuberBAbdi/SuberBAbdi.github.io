@@ -1,292 +1,92 @@
-/* Portfolio + CAD stabilization layer.
- * Keeps the native Three.js OrbitControls and native Fusion-style ViewCube
- * from index.html. No second cube and no TrackballControls replacement.
+/* Canonical CAD viewer controller for the portfolio.
+ * One implementation only: GLB/STL loading, orbit camera, ViewCube,
+ * arrows, layers, click-to-interact shield, fullscreen, resize and cleanup.
+ * The file name is retained because the existing site loader references it.
  */
-(function(){
+(function () {
   'use strict';
-  const STYLE_ID='cad-final-css';
-  const states=new WeakMap();
-  const tweens=new WeakMap();
-  let siteFrame=0;
+  if (!window.THREE || !THREE.OrbitControls) return;
 
-  const icon={
+  const states = new Map();
+  const reduced = () => window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const ICON = {
     layers:'<svg viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5 9-5Z"/><path d="m3 12 9 5 9-5"/><path d="m3 17 9 5 9-5"/></svg>',
     expand:'<svg viewBox="0 0 24 24"><path d="M8 3H3v5M16 3h5v5M8 21H3v-5M21 16v5h-5"/><path d="m3 8 5-5M16 3l5 5M3 16l5 5M21 16l-5 5"/></svg>',
     shrink:'<svg viewBox="0 0 24 24"><path d="M9 3v6H3M15 3v6h6M9 21v-6H3M21 15h-6v6"/></svg>',
     mouse:'<svg viewBox="0 0 24 24"><path d="M12 3a6 6 0 0 0-6 6v6a6 6 0 0 0 12 0V9a6 6 0 0 0-6-6Z"/><path d="M12 3v7M9 7h6"/></svg>'
   };
 
-  function addCss(){
-    if(document.getElementById(STYLE_ID))return;
-    const s=document.createElement('style');s.id=STYLE_ID;s.textContent=`
-      #leftSidebar,#leftProfileContent{min-width:0!important;box-sizing:border-box;}
-      #leftProfileContent>p{white-space:normal!important;overflow-wrap:anywhere!important;word-break:normal!important;line-height:1.45!important;max-width:100%!important;padding-right:0!important;}
-      .modal-body{padding-bottom:30px!important}.modal-body>:last-child{margin-bottom:8px!important}.modal-section:last-child{padding-bottom:8px!important}
-      @media(min-width:1024px){
-        #centerColumn.project-detail-expanded{width:100%!important;min-width:0!important;max-width:none!important}
-        #rightSidebar.project-detail-hidden{display:none!important;width:0!important;min-width:0!important;padding:0!important;margin:0!important}
-        #leftSidebar.is-collapsed #leftToggleBtn{display:none!important;visibility:hidden!important}
-        #leftSidebar.is-collapsed #leftCollapsedIndicator{display:flex!important;visibility:visible!important;opacity:1!important}
-      }
-      [id$="ViewerContainer"]{position:relative;overflow:hidden;background:#f3f3f2}
-      [id$="ViewerContainer"]>canvas{display:block!important;width:100%!important;height:100%!important;max-width:none!important;touch-action:none!important}
-      [id$="ViewerContainer"]:fullscreen,[id$="ViewerContainer"].cad-force-fullscreen{background:#f3f3f2!important}
-      .cad-final-ui{position:absolute;inset:0;z-index:200;pointer-events:none;font-family:Arial,Helvetica,sans-serif}
-      .cad-final-toolbar{position:absolute;top:10px;right:10px;display:flex;gap:6px;z-index:220;pointer-events:auto}
-      .cad-final-toolbar button{width:34px;height:34px;padding:0;border:1px solid #c6c6c4;background:rgba(255,255,255,.97);color:#161616;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 1px 3px rgba(0,0,0,.16)}
-      .cad-final-toolbar button:hover{background:#fff;border-color:#777}.cad-final-toolbar svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-      .cad-final-layers{position:absolute;top:50px;right:calc(112px + 24px);width:240px;max-width:calc(100% - 150px);max-height:min(420px,calc(100% - 62px));overflow:auto;padding:7px;background:#101012;border:1px solid #3a3a3c;box-shadow:0 12px 28px rgba(0,0,0,.35);display:none;z-index:230;pointer-events:auto}
-      .cad-final-layers.open{display:block}.cad-final-layers-title{font-size:10px;text-transform:uppercase;letter-spacing:.1em;color:#888;padding:5px 6px 7px;border-bottom:1px solid #28282a;margin-bottom:3px}
-      .cad-final-layers label{display:flex;align-items:center;gap:8px;padding:7px;font-size:11px;color:#bbb;cursor:pointer}.cad-final-layers label:hover{background:#19191b;color:#fff}.cad-final-layers input{accent-color:#111}
-      .cad-final-shield{position:absolute;inset:0;z-index:150;display:flex;align-items:flex-end;justify-content:flex-start;padding:12px;pointer-events:auto;background:transparent}.cad-final-shield.hidden{display:none}
-      .cad-final-shield span{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border:1px solid rgba(80,80,80,.35);background:rgba(255,255,255,.94);color:#555;font:10px Arial,sans-serif;letter-spacing:.06em;text-transform:uppercase;box-shadow:0 1px 3px rgba(0,0,0,.12);cursor:pointer}.cad-final-shield svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-      /* Four navigation arrows surround the native ViewCube. The old large
-         cad-arrow-h/cad-arrow-v controls are intentionally gone. */
-      .cad-final-arrows{position:absolute;top:42px;right:2px;width:156px;height:156px;z-index:205;pointer-events:none}
-      .cad-final-arrows button{position:absolute;width:24px;height:24px;border:0;background:rgba(255,255,255,.72);padding:0;pointer-events:auto;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:2px}
-      .cad-final-arrows button:hover{background:#fff}.cad-final-arrows svg{width:18px;height:18px;overflow:visible}.cad-final-arrows path{fill:none;stroke:#777;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}.cad-final-arrows button:hover path{stroke:#222}
-      .cad-arrow-l{left:0;top:66px}.cad-arrow-r{right:0;top:66px}.cad-arrow-u{left:66px;top:0}.cad-arrow-d{left:66px;bottom:0}
-      .cad-roll-arrows{position:absolute;right:-3px;top:-31px;width:54px;height:26px;display:flex;gap:3px;pointer-events:none;z-index:220}
-      .cad-roll-arrows button{width:25px;height:25px;border:1px solid #c6c6c4;background:rgba(255,255,255,.97);color:#70706e;display:flex;align-items:center;justify-content:center;pointer-events:auto;cursor:pointer;padding:0;box-shadow:0 1px 3px rgba(0,0,0,.16)}
-      .cad-roll-arrows button:hover{color:#111;background:#fff}.cad-roll-arrows svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
-      [id$="ViewerContainer"]:fullscreen .cad-final-toolbar{top:14px;right:14px}[id$="ViewerContainer"]:fullscreen .cad-final-layers{top:54px;right:calc(112px + 28px)}
-      @media(max-width:700px){.cad-final-toolbar button{width:32px;height:32px}.cad-final-layers{width:220px;max-width:calc(100% - 20px);right:10px!important}.cad-final-arrows{transform:scale(.9);transform-origin:top right}}
-    `;document.head.appendChild(s);
+  function injectCss(){
+    if(document.getElementById('canonical-cad-viewer-css')) return;
+    const s=document.createElement('style'); s.id='canonical-cad-viewer-css';
+    s.textContent=`
+      .cadv-root{position:absolute!important;inset:0!important;z-index:100!important;font-family:Arial,Helvetica,sans-serif;pointer-events:none}
+      .cadv-toolbar{position:absolute;right:10px;top:10px;display:flex;gap:6px;z-index:400;pointer-events:auto}
+      .cadv-btn{width:34px;height:34px;padding:0;border:1px solid #c7c7c5;background:rgba(255,255,255,.97);color:#181818;display:flex;align-items:center;justify-content:center;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.16)}
+      .cadv-btn:hover{background:#fff;border-color:#777}.cadv-btn svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+      .cadv-layers{position:absolute;right:94px;top:50px;width:230px;max-height:min(420px,calc(100% - 70px));overflow:auto;padding:7px;background:#101012;border:1px solid #3b3b3d;box-shadow:0 14px 32px rgba(0,0,0,.42);display:none;z-index:410;pointer-events:auto;color:#bbb}
+      .cadv-layers.open{display:block}.cadv-layer-title{font:10px Arial,sans-serif;text-transform:uppercase;letter-spacing:.1em;color:#888;padding:5px 6px 8px;border-bottom:1px solid #29292b;margin-bottom:3px}
+      .cadv-layers label{display:flex;align-items:center;gap:8px;padding:7px 6px;font-size:11px;cursor:pointer}.cadv-layers label:hover{background:#19191b;color:#fff}.cadv-layers input{accent-color:#111}
+      .cadv-shield{position:absolute;inset:0;z-index:300;pointer-events:auto;background:rgba(0,0,0,.86);display:flex;align-items:center;justify-content:center;color:#fff}
+      .cadv-shield.hidden{display:none}.cadv-shield button{border:1px solid #666;background:#111;color:#fff;padding:10px 14px;font:11px Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;display:flex;gap:8px;align-items:center;cursor:pointer}.cadv-shield button:hover{background:#1b1b1b;border-color:#aaa}.cadv-shield svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+      .cadv-nav{position:absolute;right:7px;top:58px;width:190px;height:190px;z-index:350;pointer-events:none}
+      .cadv-cube{position:absolute;left:39px;top:39px;width:112px;height:112px;pointer-events:auto;filter:drop-shadow(0 2px 3px rgba(0,0,0,.16))}
+      .cadv-cube canvas{display:block;width:112px;height:112px;cursor:pointer}
+      .cadv-arrow{position:absolute;width:28px;height:28px;border:1px solid #c7c7c5;background:rgba(255,255,255,.94);color:#666;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;pointer-events:auto;box-shadow:0 1px 3px rgba(0,0,0,.12);font:20px Arial,sans-serif}
+      .cadv-arrow:hover{color:#111;background:#fff;border-color:#777}
+      .cadv-l{left:0;top:81px}.cadv-r{right:0;top:81px}.cadv-u{left:81px;top:0}.cadv-d{left:81px;bottom:0}
+      .cadv-roll{position:absolute;left:7px;top:7px;width:28px;height:28px}.cadv-roll-r{right:7px;top:7px;left:auto}.cadv-roll button{width:28px;height:28px}
+      [id$="ViewerContainer"]:fullscreen{background:#f3f3f2!important}[id$="ViewerContainer"]:fullscreen .cadv-toolbar{top:14px;right:14px}[id$="ViewerContainer"]:fullscreen .cadv-nav{right:11px;top:66px}
+      [id$="ViewerContainer"]>canvas{touch-action:none!important}
+      @media(max-width:700px){.cadv-nav{transform:scale(.88);transform-origin:top right}.cadv-layers{right:84px;width:215px}.cadv-btn{width:32px;height:32px}}
+    `;
+    document.head.appendChild(s);
   }
 
-  function cameraOf(c){return c.__cadCamera||window.__lastCadCamera||null}
-  function controlsOf(c){return c.__cadControls||window.__lastCadControls||null}
-  function rendererOf(c){return c.__cadRenderer||window.__lastCadRenderer||null}
-
-  function resize(c){
-    const camera=cameraOf(c),renderer=rendererOf(c);if(!camera)return;
-    const r=c.getBoundingClientRect();if(r.width<2||r.height<2)return;
-    if('aspect' in camera){camera.aspect=r.width/r.height;camera.updateProjectionMatrix()}
-    if(renderer?.setSize){renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2));renderer.setSize(Math.round(r.width),Math.round(r.height),false)}
-    const controls=controlsOf(c);controls?.handleResize?.();
+  function disposeObject(root){
+    if(!root) return;
+    root.traverse?.(o=>{o.geometry?.dispose?.();if(o.material){const mats=Array.isArray(o.material)?o.material:[o.material];mats.forEach(m=>{m.map?.dispose?.();m.normalMap?.dispose?.();m.roughnessMap?.dispose?.();m.metalnessMap?.dispose?.();m.dispose?.()})}});
   }
+  function modelBounds(state){const box=new THREE.Box3();let found=false;Object.values(state.bodies||{}).forEach(o=>{if(o?.visible){const b=new THREE.Box3().setFromObject(o);if(!b.isEmpty()){box.union(b);found=true}}});return found?box:null}
+  function ease(t){return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2}
+  function tweenCamera(state,destination,target,up){const {camera,controls}=state;if(!camera||!controls)return;if(state.tween)cancelAnimationFrame(state.tween);const startPos=camera.position.clone(),startTarget=controls.target.clone(),startUp=camera.up.clone(),duration=reduced()?1:480,start=performance.now();controls.enabled=false;const tick=now=>{const p=Math.min(1,(now-start)/duration),e=ease(p);camera.position.lerpVectors(startPos,destination,e);controls.target.lerpVectors(startTarget,target,e);camera.up.lerpVectors(startUp,up,e).normalize();camera.lookAt(controls.target);controls.update();if(p<1)state.tween=requestAnimationFrame(tick);else{camera.position.copy(destination);controls.target.copy(target);camera.up.copy(up).normalize();camera.lookAt(target);controls.enabled=true;controls.update();state.tween=null}};state.tween=requestAnimationFrame(tick)}
+  function uprightForDirection(dir){const d=dir.clone().normalize();let up=new THREE.Vector3(0,1,0);if(Math.abs(d.dot(up))>.94)up.set(0,0,-1);up.sub(d.clone().multiplyScalar(up.dot(d))).normalize();return up}
+  function goDirection(state,dir,rollUp){const target=state.target.clone(),distance=Math.max(state.camera.position.distanceTo(target),state.homeDistance||1),d=dir.clone().normalize();tweenCamera(state,target.clone().add(d.multiplyScalar(distance)),target,rollUp||uprightForDirection(d))}
+  function orbitStep(state,theta,phi){const {camera,controls}=state;if(!camera||!controls)return;const target=controls.target.clone(),sph=new THREE.Spherical().setFromVector3(camera.position.clone().sub(target));sph.theta+=theta;sph.phi=THREE.MathUtils.clamp(sph.phi+phi,.00001,Math.PI-.00001);tweenCamera(state,new THREE.Vector3().setFromSpherical(sph).add(target),target,camera.up.clone())}
+  function rollStep(state,angle){const {camera,controls}=state;if(!camera||!controls)return;const axis=camera.getWorldDirection(new THREE.Vector3()).normalize(),up=camera.up.clone().applyAxisAngle(axis,angle).normalize();tweenCamera(state,camera.position.clone(),controls.target.clone(),up)}
 
-  function registry(c){
-    try{return typeof viewer3DInstances!=='undefined'?viewer3DInstances[c.id]:null}catch(_){return null}
-  }
-
-  function fitOrbitTarget(c){
-    if(c.dataset.cadTargetFitted==='1')return true;
-    const controls=controlsOf(c),camera=cameraOf(c),inst=registry(c);if(!controls||!camera||!inst?.bodies)return false;
-    const box=new THREE.Box3();let found=false;
-    Object.values(inst.bodies).forEach(obj=>{if(obj?.visible){const b=new THREE.Box3().setFromObject(obj);if(!b.isEmpty()){box.union(b);found=true}}});
-    if(!found)return false;
-    const target=box.getCenter(new THREE.Vector3());
-    const oldTarget=controls.target?.clone()||new THREE.Vector3();
-    const delta=target.clone().sub(oldTarget);
-    camera.position.add(delta);
-    controls.target.copy(target);
-    camera.userData.modelCenter=target.clone();
-    controls.update?.();
-    c.dataset.cadTargetFitted='1';
-    return true;
+  function makeCube(state){
+    const wrap=document.createElement('div');wrap.className='cadv-cube';const renderer=new THREE.WebGLRenderer({alpha:true,antialias:true});renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));renderer.setSize(112,112,false);wrap.appendChild(renderer.domElement);
+    const scene=new THREE.Scene(),cam=new THREE.OrthographicCamera(-1.8,1.8,1.8,-1.8,.1,10);cam.position.set(0,0,4);scene.add(new THREE.AmbientLight(0xffffff,1.2));
+    const cube=new THREE.Mesh(new THREE.BoxGeometry(2,2,2),[0,1,2,3,4,5].map(()=>new THREE.MeshBasicMaterial({color:0xe7e7e5})));scene.add(cube);
+    const dirs=[new THREE.Vector3(1,0,0),new THREE.Vector3(-1,0,0),new THREE.Vector3(0,1,0),new THREE.Vector3(0,-1,0),new THREE.Vector3(0,0,1),new THREE.Vector3(0,0,-1)];const hits=[];
+    const addHit=(dir,size,pos,kind)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(...size),new THREE.MeshBasicMaterial({transparent:true,opacity:0}));m.position.copy(pos);m.userData.dir=dir.clone().normalize();m.userData.kind=kind;scene.add(m);hits.push(m)};const edge=.34,long=1.55,inset=.91;
+    [-1,1].forEach(y=>[-1,1].forEach(z=>addHit(new THREE.Vector3(0,y,z),[long,edge,edge],new THREE.Vector3(0,y*inset,z*inset),'edge')));[-1,1].forEach(x=>[-1,1].forEach(z=>addHit(new THREE.Vector3(x,0,z),[edge,long,edge],new THREE.Vector3(x*inset,0,z*inset),'edge')));[-1,1].forEach(x=>[-1,1].forEach(y=>addHit(new THREE.Vector3(x,y,0),[edge,edge,long],new THREE.Vector3(x*inset,y*inset,0),'edge')));[-1,1].forEach(x=>[-1,1].forEach(y=>[-1,1].forEach(z=>addHit(new THREE.Vector3(x,y,z),[.44,.44,.44],new THREE.Vector3(x*inset,y*inset,z*inset),'corner'))));
+    const ray=new THREE.Raycaster(),ndc=new THREE.Vector2();const pick=e=>{const r=renderer.domElement.getBoundingClientRect();ndc.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);ray.setFromCamera(ndc,cam);const ex=ray.intersectObjects(hits,false)[0];if(ex)return ex.object;const f=ray.intersectObject(cube,false)[0];if(f)return {userData:{dir:dirs[f.face.materialIndex]}};return null};
+    renderer.domElement.addEventListener('click',e=>{const h=pick(e);if(h)goDirection(state,h.userData.dir.clone(),uprightForDirection(h.userData.dir))});state.cubeRenderer=renderer;state.cubeScene=scene;state.cubeCamera=cam;state.renderCube=()=>{scene.quaternion.copy(state.camera.quaternion).invert();renderer.render(scene,cam)};return wrap;
   }
 
-  function stabilize(c){
-    const camera=cameraOf(c),controls=controlsOf(c);if(!camera||!controls)return false;
-    c.__cadCamera=camera;c.__cadControls=controls;
-    controls.enableRotate=true;controls.enablePan=true;controls.enableZoom=true;
-    if('enableDamping' in controls){controls.enableDamping=true;controls.dampingFactor=.075}
-    controls.rotateSpeed=.9;controls.zoomSpeed=.95;controls.panSpeed=.8;controls.screenSpacePanning=false;
-    if('minPolarAngle' in controls){controls.minPolarAngle=0;controls.maxPolarAngle=Math.PI;controls.minAzimuthAngle=-Infinity;controls.maxAzimuthAngle=Infinity;controls.minDistance=.001;controls.maxDistance=Infinity}
-    if('autoRotate' in controls)controls.autoRotate=false;
-    controls.update?.();resize(c);fitOrbitTarget(c);return true;
+  function buildUi(state){
+    const c=state.container;if(c.querySelector('.cadv-root'))return;const root=document.createElement('div');root.className='cadv-root';const toolbar=document.createElement('div');toolbar.className='cadv-toolbar';
+    const filter=document.createElement('button');filter.className='cadv-btn';filter.type='button';filter.title='Model layers';filter.setAttribute('aria-label','Model layers');filter.innerHTML=ICON.layers;const full=document.createElement('button');full.className='cadv-btn';full.type='button';full.title='Fullscreen';full.setAttribute('aria-label','Fullscreen');full.innerHTML=ICON.expand;toolbar.append(filter,full);
+    const menu=document.createElement('div');menu.className='cadv-layers';menu.innerHTML='<div class="cadv-layer-title">Model layers</div><div class="cadv-layer-content"></div>';const shield=document.createElement('div');shield.className='cadv-shield';shield.innerHTML='<button type="button">'+ICON.mouse+' Click to Interact</button>';
+    const nav=document.createElement('div');nav.className='cadv-nav';nav.innerHTML='<button class="cadv-arrow cadv-l" aria-label="Orbit left">‹</button><button class="cadv-arrow cadv-r" aria-label="Orbit right">›</button><button class="cadv-arrow cadv-u" aria-label="Orbit up">⌃</button><button class="cadv-arrow cadv-d" aria-label="Orbit down">⌄</button><div class="cadv-roll cadv-roll-l"><button class="cadv-arrow" aria-label="Roll counter-clockwise">↺</button></div><div class="cadv-roll cadv-roll-r"><button class="cadv-arrow" aria-label="Roll clockwise">↻</button></div>';
+    root.append(toolbar,menu,nav,shield);c.appendChild(root);state.ui={root,filter,full,menu,shield,nav,layerContent:menu.querySelector('.cadv-layer-content')};filter.addEventListener('click',e=>{e.stopPropagation();menu.classList.toggle('open');renderLayers(state)});full.addEventListener('click',e=>{e.stopPropagation();toggleFullscreen(state)});shield.querySelector('button').addEventListener('click',e=>{e.stopPropagation();activate(state)});
+    nav.querySelector('.cadv-l').onclick=e=>{e.stopPropagation();orbitStep(state,Math.PI/8,0)};nav.querySelector('.cadv-r').onclick=e=>{e.stopPropagation();orbitStep(state,-Math.PI/8,0)};nav.querySelector('.cadv-u').onclick=e=>{e.stopPropagation();orbitStep(state,0,-Math.PI/12)};nav.querySelector('.cadv-d').onclick=e=>{e.stopPropagation();orbitStep(state,0,Math.PI/12)};nav.querySelector('.cadv-roll-l button').onclick=e=>{e.stopPropagation();rollStep(state,-Math.PI/4)};nav.querySelector('.cadv-roll-r button').onclick=e=>{e.stopPropagation();rollStep(state,Math.PI/4)};
+    document.addEventListener('click',e=>{if(menu.classList.contains('open')&&!menu.contains(e.target)&&!filter.contains(e.target))menu.classList.remove('open')},{passive:true});document.addEventListener('fullscreenchange',()=>syncFullscreen(state));document.addEventListener('webkitfullscreenchange',()=>syncFullscreen(state));nav.appendChild(makeCube(state));activate(state);
   }
-
-  function animateSpherical(c,thetaDelta,phiDelta){
-    const camera=cameraOf(c),controls=controlsOf(c);if(!camera||!controls||!window.THREE)return;
-    const target=controls.target.clone();
-    const offset=camera.position.clone().sub(target);
-    const start=new THREE.Spherical().setFromVector3(offset);
-    const end=new THREE.Spherical(start.radius,
-      THREE.MathUtils.clamp(start.phi+phiDelta,.000001,Math.PI-.000001),
-      start.theta+thetaDelta);
-    const begin=performance.now(),old=tweens.get(c);if(old)cancelAnimationFrame(old);
-    const duration=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?1:360;
-    const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
-    controls.enabled=false;
-    const tick=now=>{
-      const p=Math.min(1,(now-begin)/duration),e=ease(p);
-      const s=new THREE.Spherical(start.radius,start.phi+(end.phi-start.phi)*e,start.theta+(end.theta-start.theta)*e);
-      camera.position.setFromSpherical(s).add(target);
-      controls.target.copy(target);controls.update?.();
-      if(p<1)tweens.set(c,requestAnimationFrame(tick));
-      else{tweens.delete(c);controls.enabled=true;controls.target.copy(target);controls.update?.()}
-    };
-    tweens.set(c,requestAnimationFrame(tick));
-  }
-
-  function roll(c,dir){
-    const camera=cameraOf(c),controls=controlsOf(c);if(!camera||!controls)return;
-    const target=controls.target.clone();
-    const axis=camera.getWorldDirection(new THREE.Vector3()).normalize();
-    const fromUp=camera.up.clone();
-    const toUp=fromUp.clone().applyQuaternion(new THREE.Quaternion().setFromAxisAngle(axis,dir*Math.PI/2)).normalize();
-    const begin=performance.now(),duration=window.matchMedia?.('(prefers-reduced-motion: reduce)').matches?1:360,old=tweens.get(c);if(old)cancelAnimationFrame(old);
-    controls.enabled=false;
-    const startUp=fromUp.clone();
-    const ease=t=>t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;
-    const tick=now=>{
-      const p=Math.min(1,(now-begin)/duration),e=ease(p);
-      camera.up.lerpVectors(startUp,toUp,e).normalize();camera.lookAt(target);controls.target.copy(target);controls.update?.();
-      if(p<1)tweens.set(c,requestAnimationFrame(tick));else{camera.up.copy(toUp);camera.lookAt(target);controls.enabled=true;controls.update?.();tweens.delete(c)}
-    };
-    tweens.set(c,requestAnimationFrame(tick));
-  }
-
-  function buildLayerRows(c,content){
-    const inst=registry(c);if(!inst?.bodiesConfig?.length)return false;
-    content.innerHTML='';
-    inst.bodiesConfig.forEach((b,index)=>{
-      const row=document.createElement('label');
-      const cb=document.createElement('input');cb.type='checkbox';cb.checked=b.visible!==false;cb.setAttribute('aria-label','Toggle '+(b.name||('Body '+(index+1))));
-      const name=document.createElement('span');name.textContent=b.name||b.path?.split('/').pop()||('Body '+(index+1));name.style.fontFamily='Arial,Helvetica,sans-serif';
-      row.append(cb,name);content.appendChild(row);
-      cb.addEventListener('change',()=>{
-        b.visible=cb.checked;const obj=inst.bodies[b.id];if(obj)obj.visible=cb.checked;
-        c.dataset.cadTargetFitted='';fitOrbitTarget(c);fitOrbitTarget(c);
-      });
-    });
-    return true;
-  }
-
-  function refreshLayers(c){
-    const state=states.get(c);if(!state)return false;
-    const source=document.getElementById('layerDropdown-'+c.id);
-    if(source && !state.menu.contains(source)){
-      source.classList.remove('hidden');source.style.cssText='display:block;position:static;width:100%;margin:0;box-shadow:none;background:transparent;border:0;padding:0;';
-      state.content.appendChild(source);
-    }
-    if(buildLayerRows(c,state.content))return true;
-    if(source && source.children.length)return true;
-    return false;
-  }
-
-  async function fullscreen(c,button){
-    try{
-      const fs=document.fullscreenElement||document.webkitFullscreenElement;
-      if(fs===c){if(document.exitFullscreen)await document.exitFullscreen();else document.webkitExitFullscreen?.()}
-      else if(c.requestFullscreen)await c.requestFullscreen({navigationUI:'hide'});
-      else if(c.webkitRequestFullscreen)c.webkitRequestFullscreen();
-      else c.classList.toggle('cad-force-fullscreen');
-    }catch(_){c.classList.toggle('cad-force-fullscreen')}
-    setTimeout(()=>{resize(c);syncFullscreen(c,button)},80);
-  }
-  function syncFullscreen(c,button){
-    if(!button)return;const active=document.fullscreenElement===c||document.webkitFullscreenElement===c||c.classList.contains('cad-force-fullscreen');button.innerHTML=icon[active?'shrink':'expand'];button.title=active?'Exit fullscreen':'Fullscreen';
-  }
-
-  function buildViewerUi(c){
-    if(c.querySelector('.cad-final-ui'))return;
-    const ui=document.createElement('div');ui.className='cad-final-ui';
-    const toolbar=document.createElement('div');toolbar.className='cad-final-toolbar';
-    const filter=document.createElement('button');filter.type='button';filter.title='Model layers';filter.setAttribute('aria-label','Model layers');filter.innerHTML=icon.layers;
-    const full=document.createElement('button');full.type='button';full.title='Fullscreen';full.setAttribute('aria-label','Fullscreen');full.innerHTML=icon.expand;toolbar.append(filter,full);
-    const menu=document.createElement('div');menu.className='cad-final-layers';menu.innerHTML='<div class="cad-final-layers-title">Model layers</div><div class="cad-final-layer-content"></div>';
-    ui.append(toolbar,menu);c.appendChild(ui);
-    const content=menu.querySelector('.cad-final-layer-content');
-    const source=document.getElementById('layerDropdown-'+c.id);
-    if(source){source.classList.remove('hidden');source.style.cssText='display:block;position:static;width:100%;margin:0;box-shadow:none;background:transparent;border:0;padding:0;';content.appendChild(source)}
-    const shield=document.createElement('div');shield.className='cad-final-shield';shield.innerHTML='<span>'+icon.mouse+' Click to Interact</span>';c.appendChild(shield);
-    shield.addEventListener('click',e=>{e.stopPropagation();shield.classList.add('hidden')});
-    c.addEventListener('pointerdown',()=>shield.classList.add('hidden'),{passive:true});
-    filter.addEventListener('click',e=>{e.stopPropagation();shield.classList.add('hidden');menu.classList.toggle('open');refreshLayers(c)});
-    full.addEventListener('click',e=>{e.stopPropagation();shield.classList.add('hidden');fullscreen(c,full)});
-    document.addEventListener('click',e=>{if(!menu.contains(e.target)&&!filter.contains(e.target))menu.classList.remove('open')},{passive:true});
-    document.addEventListener('fullscreenchange',()=>{syncFullscreen(c,full);resize(c)});
-    document.addEventListener('webkitfullscreenchange',()=>{syncFullscreen(c,full);resize(c)});
-    states.set(c,{ui:true,shield,menu,filter,full,content});
-  }
-
-  function nativeCube(c){return c.querySelector('div[style*="width: 104px"]')||c.querySelector('div.absolute.top-2.right-2')||null}
-
-  function addNavigationArrows(c,cube){
-    if(!cube||cube.querySelector('.cad-final-arrows'))return;
-    cube.style.position='absolute';cube.style.top='58px';cube.style.right='12px';cube.style.zIndex='180';
-    const wrap=document.createElement('div');wrap.className='cad-final-arrows';
-    wrap.innerHTML=`
-      <button class="cad-arrow-l" aria-label="Orbit left" title="Orbit left"><svg viewBox="0 0 24 24"><path d="m14 5-7 7 7 7"/></svg></button>
-      <button class="cad-arrow-r" aria-label="Orbit right" title="Orbit right"><svg viewBox="0 0 24 24"><path d="m10 5 7 7-7 7"/></svg></button>
-      <button class="cad-arrow-u" aria-label="Orbit up" title="Orbit up"><svg viewBox="0 0 24 24"><path d="m5 14 7-7 7 7"/></svg></button>
-      <button class="cad-arrow-d" aria-label="Orbit down" title="Orbit down"><svg viewBox="0 0 24 24"><path d="m5 10 7 7 7-7"/></svg></button>`;
-    cube.appendChild(wrap);
-    wrap.querySelector('.cad-arrow-l').onclick=e=>{e.stopPropagation();animateSpherical(c,Math.PI/2,0)};
-    wrap.querySelector('.cad-arrow-r').onclick=e=>{e.stopPropagation();animateSpherical(c,-Math.PI/2,0)};
-    wrap.querySelector('.cad-arrow-u').onclick=e=>{e.stopPropagation();animateSpherical(c,0,-Math.PI/6)};
-    wrap.querySelector('.cad-arrow-d').onclick=e=>{e.stopPropagation();animateSpherical(c,0,Math.PI/6)};
-
-    if(!cube.querySelector('.cad-roll-arrows')){
-      const rollWrap=document.createElement('div');rollWrap.className='cad-roll-arrows';
-      rollWrap.innerHTML=`<button class="cad-ccw" aria-label="Roll counter-clockwise" title="Roll counter-clockwise"><svg viewBox="0 0 24 24"><path d="M19 8a8 8 0 1 0 1 6"/><path d="M19 3v5h-5"/></svg></button><button class="cad-cw" aria-label="Roll clockwise" title="Roll clockwise"><svg viewBox="0 0 24 24"><path d="M5 8a8 8 0 1 1-1 6"/><path d="M5 3v5h5"/></svg></button>`;
-      cube.appendChild(rollWrap);
-      rollWrap.querySelector('.cad-ccw').onclick=e=>{e.stopPropagation();roll(c,-1)};
-      rollWrap.querySelector('.cad-cw').onclick=e=>{e.stopPropagation();roll(c,1)};
-    }
-  }
-
-  function viewerScan(c){
-    if(!c)return;
-    buildViewerUi(c);stabilize(c);
-    const cube=nativeCube(c);if(cube)addNavigationArrows(c,cube);
-    refreshLayers(c);
-    [120,350,800,1500].forEach(ms=>setTimeout(()=>{if(document.body.contains(c)){stabilize(c);refreshLayers(c)}},ms));
-  }
-
-  function sortToolchain(){
-    const box=document.getElementById('toolchain-container');if(!box)return;
-    const items=[...box.children].filter(x=>x.matches('span'));
-    const sorted=[...items].sort((a,b)=>a.textContent.trim().localeCompare(b.textContent.trim(),undefined,{sensitivity:'base'}));
-    if(sorted.some((x,i)=>x!==items[i]))sorted.forEach(x=>box.appendChild(x));
-  }
-  function renameTimeline(){document.querySelectorAll('#experienceTimelineSidebar p').forEach(p=>{if(p.textContent.trim()==='Experience Timeline')p.textContent='Career Timeline'})}
-  function syncSidebar(){
-    const left=document.getElementById('leftSidebar');if(!left)return;const collapsed=left.classList.contains('is-collapsed');
-    const profile=document.getElementById('leftProfileContent'),indicator=document.getElementById('leftCollapsedIndicator'),button=document.getElementById('leftToggleBtn');
-    if(collapsed){profile?.classList.add('opacity-0','pointer-events-none','-translate-x-2');profile?.setAttribute('aria-hidden','true');indicator?.classList.remove('hidden');indicator?.classList.add('visible');button&&(button.style.display='none')}
-    else{profile?.classList.remove('opacity-0','pointer-events-none','-translate-x-2');profile?.setAttribute('aria-hidden','false');indicator?.classList.add('hidden');indicator?.classList.remove('visible');button&&(button.style.display='flex')}
-  }
-  function projectLayout(){
-    const detail=document.getElementById('projectDetailView'),center=document.getElementById('centerColumn'),right=document.getElementById('rightSidebar'),left=document.getElementById('leftSidebar');if(!detail||!center)return;
-    const open=detail.classList.contains('open')&&!detail.classList.contains('closing');
-    if(open){
-      if(!detail.dataset.cadAutoCollapsed){detail.dataset.cadAutoCollapsed='1';if(left&&!left.classList.contains('is-collapsed'))left.classList.add('is-collapsed')}
-      center.classList.add('project-detail-expanded');center.classList.remove('lg:col-span-6','lg:col-span-8','lg:col-span-9');center.style.width='100%';center.style.maxWidth='none';
-      if(window.innerWidth>=1024)center.style.gridColumn=left?.classList.contains('is-collapsed')?'span 11':'span 9';
-      if(right){right.classList.add('project-detail-hidden');right.style.setProperty('display','none','important')}
-      detail.style.display='block';
-    }else{
-      delete detail.dataset.cadAutoCollapsed;center.classList.remove('project-detail-expanded');center.style.gridColumn='';center.style.width='';center.style.maxWidth='';
-      if(right){right.classList.remove('project-detail-hidden');right.style.removeProperty('display')}
-    }
-    syncSidebar();
-  }
-  function alignTimeline(){
-    const timeline=document.getElementById('experienceTimelineSidebar'),head=document.querySelector('#experienceSection .experience-section-head .scan-header'),home=document.getElementById('homelabSidebarSection');if(!timeline||!head||window.innerWidth<768)return;
-    if(home)home.style.paddingBottom='18px';timeline.style.marginTop='0';timeline.style.transform='translateY(0)';
-    const delta=head.getBoundingClientRect().bottom-timeline.getBoundingClientRect().top;timeline.style.transform=`translateY(${delta}px)`;
-  }
-  function sitePass(){
-    if(siteFrame)return;siteFrame=requestAnimationFrame(()=>{siteFrame=0;sortToolchain();renameTimeline();projectLayout();alignTimeline();document.querySelectorAll('[id$="ViewerContainer"]').forEach(viewerScan)})
-  }
-
-  addCss();sitePass();
-  document.addEventListener('DOMContentLoaded',sitePass,{once:true});
-  window.addEventListener('load',()=>{sitePass();setTimeout(sitePass,250);setTimeout(sitePass,900)},{passive:true});
-  window.addEventListener('resize',sitePass,{passive:true});
-  window.addEventListener('cadviewer:refresh',sitePass,{passive:true});
-  document.addEventListener('click',e=>{if(e.target.closest?.('#leftCollapsedIndicator'))setTimeout(syncSidebar,80)},{passive:true});
-  let observerTimer=0;
-  new MutationObserver(mutations=>{
-    let relevant=false;
-    for(const m of mutations){
-      if(m.type==='childList'&&[...m.addedNodes].some(n=>n.nodeType===1&&((n.id||'').endsWith('ViewerContainer')||n.querySelector?.('[id$="ViewerContainer"]')))){relevant=true;break}
-      if(m.type==='attributes'&&m.target.id==='projectDetailView'&&m.attributeName==='class'){relevant=true;break}
-    }
-    if(relevant){clearTimeout(observerTimer);observerTimer=setTimeout(sitePass,40)}
-  }).observe(document.documentElement,{childList:true,subtree:true,attributes:true,attributeFilter:['class']});
+  function activate(state){states.forEach(s=>{if(s.ui?.shield)s.ui.shield.classList.remove('hidden')});state.ui.shield.classList.add('hidden')}
+  function syncFullscreen(state){if(!state.ui)return;const active=document.fullscreenElement===state.container||document.webkitFullscreenElement===state.container;state.ui.full.innerHTML=active?ICON.shrink:ICON.expand;state.ui.full.title=active?'Exit fullscreen':'Fullscreen';setTimeout(()=>resize(state),80)}
+  async function toggleFullscreen(state){try{const active=document.fullscreenElement||document.webkitFullscreenElement;if(active===state.container){await(document.exitFullscreen?document.exitFullscreen():document.webkitExitFullscreen?.())}else if(state.container.requestFullscreen){await state.container.requestFullscreen({navigationUI:'hide'})}else if(state.container.webkitRequestFullscreen)state.container.webkitRequestFullscreen();else state.container.classList.toggle('viewer-force-fullscreen')}catch(_){state.container.classList.toggle('viewer-force-fullscreen')}setTimeout(()=>resize(state),100)}
+  function renderLayers(state){const content=state.ui.layerContent;content.innerHTML='';state.config.forEach((cfg,i)=>{const label=document.createElement('label'),cb=document.createElement('input'),name=document.createElement('span');cb.type='checkbox';cb.checked=cfg.visible!==false;name.textContent=cfg.name||cfg.path?.split('/').pop()||`Body ${i+1}`;label.append(cb,name);content.append(label);cb.addEventListener('change',()=>{cfg.visible=cb.checked;const o=state.bodies[cfg.id];if(o)o.visible=cb.checked;frameToVisible(state)})})}
+  function frameToVisible(state){const box=modelBounds(state);if(!box)return;const target=box.getCenter(new THREE.Vector3());state.target.copy(target);state.controls.target.copy(target);state.camera.userData.modelCenter=target.clone();state.controls.update()}
+  function resize(state){if(!state?.container||!state.renderer)return;const w=Math.max(2,state.container.clientWidth),h=Math.max(2,state.container.clientHeight);state.camera.aspect=w/h;state.camera.updateProjectionMatrix();state.renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));state.renderer.setSize(w,h,false)}
+  function setupCommon(state){const c=state.container;c.innerHTML='';c.style.background='#f3f3f2';const w=c.clientWidth||800,h=c.clientHeight||576;state.scene=new THREE.Scene();state.scene.background=new THREE.Color(0xf3f3f2);state.camera=new THREE.PerspectiveCamera(45,w/h,.001,100000);state.camera.position.set(0,0,10);state.camera.up.set(0,1,0);state.renderer=new THREE.WebGLRenderer({antialias:true});state.renderer.setPixelRatio(Math.min(devicePixelRatio||1,2));state.renderer.setSize(w,h,false);state.renderer.outputEncoding=THREE.sRGBEncoding;c.appendChild(state.renderer.domElement);state.renderer.domElement.addEventListener('webglcontextlost',e=>{e.preventDefault();state.contextLost=true},{passive:false});state.renderer.domElement.addEventListener('webglcontextrestored',()=>{state.contextLost=false;state.renderer.render(state.scene,state.camera)});state.scene.add(new THREE.HemisphereLight(0xffffff,0x555a60,1.6));const key=new THREE.DirectionalLight(0xffffff,1.5);key.position.set(4,7,8);state.scene.add(key);const fill=new THREE.DirectionalLight(0xd8dde3,.65);fill.position.set(-5,3,-4);state.scene.add(fill);state.controls=new THREE.OrbitControls(state.camera,state.renderer.domElement);Object.assign(state.controls,{enableDamping:true,dampingFactor:.075,enableRotate:true,enablePan:true,enableZoom:true,screenSpacePanning:true,rotateSpeed:.85,zoomSpeed:.9,panSpeed:.8,minPolarAngle:0,maxPolarAngle:Math.PI,minAzimuthAngle:-Infinity,maxAzimuthAngle:Infinity,minDistance:.0001,maxDistance:Infinity});state.controls.addEventListener('start',()=>{if(state.tween){cancelAnimationFrame(state.tween);state.tween=null;state.controls.enabled=true}});state.group=new THREE.Group();state.scene.add(state.group);state.bodies={};state.target=new THREE.Vector3();state.homeDistance=10;buildUi(state)}
+  function finishFraming(state){const box=modelBounds(state);if(!box)return;state.group.updateMatrixWorld(true);const display=new THREE.Box3().setFromObject(state.group),size=display.getSize(new THREE.Vector3()),center=display.getCenter(new THREE.Vector3()),maxDim=Math.max(size.x,size.y,size.z,.001),fov=THREE.MathUtils.degToRad(state.camera.fov),dist=Math.max((maxDim*.5)/Math.tan(fov*.5)*.82,maxDim*.55,.5);state.target.copy(center);state.homeDistance=dist;state.camera.position.copy(center).add(new THREE.Vector3(0,dist,0));state.camera.up.set(0,0,-1);state.camera.lookAt(center);state.controls.target.copy(center);state.controls.minDistance=Math.max(maxDim*.015,.001);state.controls.maxDistance=Math.max(maxDim*20,dist*10);state.camera.userData.modelCenter=center.clone();state.camera.userData.homePosition=state.camera.position.clone();state.camera.userData.homeTarget=center.clone();state.controls.update();state.renderCube?.()}
+  function applyMaterialPolicy(root,cfg){const n=String(cfg.name||'').toLowerCase(),isCover=n.includes('cover'),isLower=n.includes('lower');root.traverse(o=>{if(!o.isMesh)return;o.castShadow=true;o.receiveShadow=true;const mats=Array.isArray(o.material)?o.material:[o.material];o.material=mats.map(m=>{const x=m.clone?m.clone():m,mn=String(x.name||'').toLowerCase(),on=String(o.name||'').toLowerCase();if(on.includes('silk')||mn.includes('silk')||on.includes('silkscreen')||mn.includes('silkscreen')){x.color?.set(0xffffff);x.roughness=.7;x.metalness=0;return x}if(x.color&&(isCover||isLower)&&x.color.r>.94&&x.color.g>.94&&x.color.b>.94)x.color.setHex(isCover?0x6b7280:0x858b92);return x});if(o.material.length===1)o.material=o.material[0]})}
+  function loadGLB(state){const loader=new THREE.GLTFLoader();loader.crossOrigin='anonymous';let done=0;const complete=()=>{done++;if(done===state.config.length)finishFraming(state)};state.config.forEach(cfg=>{const loaded=g=>{const root=g.scene||g.scenes?.[0];if(!root)return complete();root.name=cfg.name||cfg.id;root.visible=cfg.visible!==false;applyMaterialPolicy(root,cfg);state.bodies[cfg.id]=root;state.group.add(root);complete()};const fail=()=>{if(cfg.fallbackUrl&&cfg.fallbackUrl!==cfg.path)loader.load(cfg.fallbackUrl,loaded,undefined,complete);else complete()};loader.load(cfg.path,loaded,undefined,fail)})}
+  function loadSTL(state){const loader=new THREE.STLLoader();let done=0;const material=new THREE.MeshStandardMaterial({color:0x6b7280,roughness:.48,metalness:.04});state.config.forEach(cfg=>loader.load(cfg.path,geo=>{geo.computeVertexNormals();const mesh=new THREE.Mesh(geo,material.clone());mesh.visible=cfg.visible!==false;mesh.name=cfg.name||cfg.id;state.bodies[cfg.id]=mesh;state.group.add(mesh);done++;if(done===state.config.length)finishFraming(state)},undefined,()=>{done++;if(done===state.config.length)finishFraming(state)}))}
+  function destroyState(state){if(!state)return;cancelAnimationFrame(state.raf);if(state.tween)cancelAnimationFrame(state.tween);state.resizeObserver?.disconnect();disposeObject(state.group);state.cubeRenderer?.dispose?.();state.renderer?.dispose?.();states.delete(state.container)}
+  function mount(containerId,config,isGLB){const c=document.getElementById(containerId);if(!c||!Array.isArray(config)||!config.length)return;destroyState(states.get(c));const state={container:c,config:config.map(x=>({...x,visible:x.visible!==false})),isGLB};states.set(c,state);setupCommon(state);if(isGLB)loadGLB(state);else loadSTL(state);state.resizeObserver=new ResizeObserver(()=>resize(state));state.resizeObserver.observe(c);const loop=()=>{if(!states.has(c))return;state.raf=requestAnimationFrame(loop);if(!state.contextLost){state.controls.update();state.renderer.render(state.scene,state.camera);state.renderCube?.()}};loop()}
+  window.initGLBViewer=(id,bodies)=>mount(id,bodies,true);window.init3DViewer=(id,bodies)=>mount(id,bodies,false);window.toggle3DViewerFullscreen=id=>{const s=states.get(document.getElementById(id));if(s)toggleFullscreen(s)};window.toggleLayerDropdown=(e,id)=>{e?.stopPropagation();const s=states.get(document.getElementById(id));if(s)s.ui.menu.classList.toggle('open')};window.toggle3DBody=(id,bodyId,visible)=>{const s=states.get(document.getElementById(id));if(!s)return;const cfg=s.config.find(x=>x.id===bodyId);if(cfg)cfg.visible=visible;const o=s.bodies[bodyId];if(o)o.visible=visible;frameToVisible(s)};window.__canonicalCadViewerStates=states;injectCss();
 })();
