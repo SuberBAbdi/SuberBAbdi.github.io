@@ -40,6 +40,14 @@
     const align=()=>{const t=document.getElementById('experienceTimelineSidebar'),h=document.querySelector('#experienceSection .experience-section-head .scan-header'),home=document.getElementById('homelabSidebarSection');if(!t||!h||window.innerWidth<768)return;if(home)home.style.marginBottom='18px';t.style.transform=`translateY(${h.getBoundingClientRect().top-t.getBoundingClientRect().top}px)`};
     align();window.addEventListener('resize',align,{passive:true});
     const footer=document.querySelector('footer.footer-electronics-wrap');if(footer){footer.style.marginTop='auto';footer.style.paddingBottom='12px'}
+
+    // Reactivate the black click-to-interact shield when the user clicks
+    // anywhere outside the active CAD viewer. The toolbar/cube/layers stay
+    // interactive because they are descendants of the viewer container.
+    if(!window.__cadOutsideShieldListener){
+      document.addEventListener('click',e=>{const map=window.__canonicalCadViewerStates;if(!map)return;map.forEach(state=>{if(state?.ui?.shield&&!state.container.contains(e.target)){state.ui.shield.classList.remove('hidden');state.ui.menu?.classList.remove('open')}})},{passive:true});
+      window.__cadOutsideShieldListener=true;
+    }
   };
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run,{once:true});else run();
   window.addEventListener('load',()=>setTimeout(run,100));
