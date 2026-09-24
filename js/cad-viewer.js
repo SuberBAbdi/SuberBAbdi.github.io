@@ -122,7 +122,7 @@
     buildShield(){
       this.shield=document.createElement('div');this.shield.className='cadx-shield';this.shield.innerHTML='<button type="button">'+ICON.mouse+' Click to Interact</button>';this.canvasWrap.appendChild(this.shield);
       this.shield.querySelector('button').onclick=e=>{e.stopPropagation();this.activate();};
-      document.addEventListener('pointerdown',this.outside=>(e=>{if(this.destroyed)return;if(!this.root.contains(e.target))this.activateShield();}));
+      this.outside = e => { if (this.destroyed) return; if (!this.root.contains(e.target)) this.activateShield(); }; document.addEventListener('pointerdown', this.outside);
     }
 
     activateShield(){this.shield?.classList.remove('hidden');this.active=false;}
