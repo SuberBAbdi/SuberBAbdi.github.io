@@ -43,11 +43,15 @@
       .cadx-cube{position:absolute;left:43px;top:54px;width:118px;height:118px;pointer-events:auto;filter:drop-shadow(0 2px 3px rgba(0,0,0,.22))}
       .cadx-cube canvas{width:118px!important;height:118px!important;display:block;cursor:pointer}
       .cadx-arrow,.cadx-roll,.cadx-home{position:absolute;width:30px;height:30px;border:1px solid #b9bab8;background:rgba(255,255,255,.96);color:#555;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;pointer-events:auto;box-shadow:0 1px 3px rgba(0,0,0,.16);font:20px Arial,sans-serif}
-      .cadx-arrow:hover,.cadx-roll:hover,.cadx-home:hover{color:#111;background:#fff;border-color:#777}.cadx-arrow{font-size:22px}.cadx-home{left:87px;top:2px}.cadx-left{left:1px;top:101px}.cadx-right{right:1px;top:101px}.cadx-up{left:87px;top:32px}.cadx-down{left:87px;bottom:1px}.cadx-roll-left{left:6px;top:18px}.cadx-roll-right{right:6px;top:18px}.cadx-roll svg,.cadx-home svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+      .cadx-arrow:hover,.cadx-roll:hover,.cadx-home:hover{color:#111;background:#fff;border-color:#777}.cadx-arrow{font-size:22px}
+      .cadx-toolbar .cadx-home{position:static;width:34px;height:34px;font-size:inherit;box-shadow:0 1px 4px rgba(0,0,0,.18)}
+      .cadx-left{left:1px;top:101px}.cadx-right{right:1px;top:101px}.cadx-up{left:87px;top:32px}.cadx-down{left:87px;bottom:1px}
+      .cadx-roll-left{left:22px;top:25px}.cadx-roll-right{right:22px;top:25px}
+      .cadx-roll svg,.cadx-home svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
       .cadx-status{position:absolute;left:12px;bottom:12px;z-index:70;padding:7px 9px;background:rgba(255,255,255,.88);border:1px solid #c8c9c7;color:#555;font-size:10px;letter-spacing:.06em;text-transform:uppercase;display:none}.cadx-status.show{display:block}
       .cadx-progress{position:absolute;left:12px;right:12px;bottom:0;height:3px;background:#c9cac8;z-index:71;overflow:hidden;display:none}.cadx-progress.show{display:block}.cadx-progress i{display:block;width:0;height:100%;background:#555;transition:width .12s linear}
       .cadx-root:fullscreen{background:#e8e9e7}.cadx-root:fullscreen .cadx-toolbar{right:16px;top:16px}.cadx-root:fullscreen .cadx-nav{right:12px;top:64px}
-      @media(max-width:700px){.cadx-nav{transform:scale(.9);transform-origin:top right}.cadx-layers{right:84px;width:215px}.cadx-toolbar{right:8px;top:8px}.cadx-btn{width:32px;height:32px}}
+      @media(max-width:700px){.cadx-nav{transform:scale(.9);transform-origin:top right}.cadx-layers{right:84px;width:215px}.cadx-toolbar{right:8px;top:8px}.cadx-btn{width:32px;height:32px}.cadx-toolbar .cadx-home{width:32px;height:32px}}
     `;
     document.head.appendChild(s);
   }
@@ -111,10 +115,12 @@
     }
 
     buildToolbar(){
-      const bar=document.createElement('div');bar.className='cadx-toolbar';
-      this.filterBtn=this.button(ICON.layers,'Model layers');this.fullBtn=this.button(ICON.expand,'Fullscreen');bar.append(this.filterBtn,this.fullBtn);this.root.appendChild(bar);
+      const bar=document.createElement('div');bar.className='cadx-toolbar';this.toolbar=bar;
+      this.filterBtn=this.button(ICON.layers,'Model layers');this.fullBtn=this.button(ICON.expand,'Fullscreen');
+      this.homeBtn=this.button(ICON.home,'Home / fit');this.homeBtn.classList.add('cadx-home');
+      bar.append(this.filterBtn,this.fullBtn,this.homeBtn);this.root.appendChild(bar);
       this.layerPanel=document.createElement('div');this.layerPanel.className='cadx-layers';this.layerPanel.innerHTML='<div class="cadx-layer-title">Model layers</div><div class="cadx-layer-list"></div>';this.root.appendChild(this.layerPanel);this.layerList=this.layerPanel.querySelector('.cadx-layer-list');
-      this.filterBtn.onclick=e=>{e.stopPropagation();this.layerPanel.classList.toggle('open');this.renderLayers();};this.fullBtn.onclick=e=>{e.stopPropagation();this.toggleFullscreen();};
+      this.filterBtn.onclick=e=>{e.stopPropagation();this.layerPanel.classList.toggle('open');this.renderLayers();};this.fullBtn.onclick=e=>{e.stopPropagation();this.toggleFullscreen();};this.homeBtn.onclick=e=>{e.stopPropagation();this.home();};
     }
 
     button(html,label){const b=document.createElement('button');b.type='button';b.className='cadx-btn';b.innerHTML=html;b.title=label;b.setAttribute('aria-label',label);return b;}
@@ -132,12 +138,10 @@
       this.nav=document.createElement('div');this.nav.className='cadx-nav';
       const mk=(cls,html,label)=>{const b=document.createElement('button');b.type='button';b.className=cls;b.innerHTML=html;b.title=label;b.setAttribute('aria-label',label);return b;};
       this.nav.append(
-        mk('cadx-home',ICON.home,'Home / fit'),
         mk('cadx-arrow cadx-left','‹','Rotate cube left'), mk('cadx-arrow cadx-right','›','Rotate cube right'),
         mk('cadx-arrow cadx-up','⌃','Rotate cube up'), mk('cadx-arrow cadx-down','⌄','Rotate cube down'),
         mk('cadx-roll cadx-roll-left','↺','Roll counter-clockwise'), mk('cadx-roll cadx-roll-right','↻','Roll clockwise')
       ); this.root.appendChild(this.nav);
-      this.nav.querySelector('.cadx-home').onclick=e=>{e.stopPropagation();this.home();};
       this.nav.querySelector('.cadx-left').onclick=e=>{e.stopPropagation();this.rotateCube(0,Math.PI/8);};
       this.nav.querySelector('.cadx-right').onclick=e=>{e.stopPropagation();this.rotateCube(0,-Math.PI/8);};
       this.nav.querySelector('.cadx-up').onclick=e=>{e.stopPropagation();this.rotateCube(Math.PI/8,0);};
@@ -166,7 +170,8 @@
     }
 
     pickCube(e){
-      const r=this.cubeRenderer.domElement.getBoundingClientRect();this.cubePointer.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);this.cubeRay.setFromCamera(this.cubePointer,this.cubeCamera);const hit=this.cubeRay.intersectObjects(this.cubeHits,false)[0];if(!hit)return;const worldDir=hit.object.userData.localDir.clone().applyQuaternion(this.cubeRoot.quaternion).normalize();this.viewDirection(worldDir);this.active=true;}
+      const r=this.cubeRenderer.domElement.getBoundingClientRect();this.cubePointer.set((e.clientX-r.left)/r.width*2-1,-((e.clientY-r.top)/r.height)*2+1);this.cubeRay.setFromCamera(this.cubePointer,this.cubeCamera);const hit=this.cubeRay.intersectObjects(this.cubeHits,false)[0];if(!hit)return;const worldDir=hit.object.userData.localDir.clone().applyQuaternion(this.cubeRoot.quaternion).normalize();this.viewDirection(worldDir);this.active=true;
+    }
 
     viewDirection(direction){
       const d=direction.clone().normalize(),up=this.upright(d),distance=this.distance;this.tweenCamera(this.center.clone().add(d.multiplyScalar(distance)),this.center.clone(),up);
@@ -209,7 +214,7 @@
 
     setStatus(text,show){this.status.textContent=text||'';this.status.classList.toggle('show',!!show&&!!text);}
 
-    async toggleFullscreen(){try{if(document.fullscreenElement===this.root){await document.exitFullscreen();}else if(this.root.requestFullscreen){await this.root.requestFullscreen({navigationUI:'hide'});}else{this.root.classList.toggle('viewer-force-fullscreen');}}catch(_){this.root.classList.toggle('viewer-force-fullscreen');}this.updateFullscreenIcon();}
+    async toggleFullscreen(){try{if(document.fullscreenElement===this.root){await document.exitFullscreen();}else if(this.root.requestFullscreen){await this.root.requestFullscreen({navigationUI:'hide');}else{this.root.classList.toggle('viewer-force-fullscreen');}}catch(_){this.root.classList.toggle('viewer-force-fullscreen');}this.updateFullscreenIcon();}
     updateFullscreenIcon(){const active=document.fullscreenElement===this.root;this.fullBtn.innerHTML=active?ICON.shrink:ICON.expand;this.fullBtn.title=active?'Exit fullscreen':'Fullscreen';this.fullBtn.setAttribute('aria-label',this.fullBtn.title);setTimeout(()=>this.resize(),60);}
 
     resize(){if(!this.renderer||this.destroyed)return;const w=Math.max(1,this.container.clientWidth),h=Math.max(1,this.container.clientHeight);this.renderer.setSize(w,h,false);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();this.cubeRenderer?.setSize(118,118,false);}
