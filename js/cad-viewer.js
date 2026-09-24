@@ -39,11 +39,11 @@
       .cadx-layers.open{display:block}.cadx-layer-title{font-size:10px;letter-spacing:.12em;text-transform:uppercase;color:#85878a;padding:5px 6px 9px;border-bottom:1px solid #292b2d;margin-bottom:3px}
       .cadx-layer{display:flex;align-items:center;gap:8px;padding:8px 6px;font-size:11px;cursor:pointer}.cadx-layer:hover{background:#1a1b1d;color:#fff}.cadx-layer input{accent-color:#ddd}.cadx-empty{font-size:11px;color:#777;padding:10px 6px}
       .cadx-shield{position:absolute;inset:0;z-index:60;background:rgba(0,0,0,.84);display:flex;align-items:center;justify-content:center;color:#fff}.cadx-shield.hidden{display:none}.cadx-shield button{border:1px solid #777;background:#111;color:#fff;padding:10px 14px;font:11px Arial,sans-serif;letter-spacing:.08em;text-transform:uppercase;display:flex;gap:8px;align-items:center;cursor:pointer}.cadx-shield svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
-      .cadx-nav{position:absolute;right:7px;top:54px;width:204px;height:204px;z-index:75;pointer-events:none}
-      .cadx-cube{position:absolute;left:43px;top:48px;width:118px;height:118px;pointer-events:auto;filter:drop-shadow(0 2px 3px rgba(0,0,0,.22))}
+      .cadx-nav{position:absolute;right:7px;top:54px;width:204px;height:230px;z-index:75;pointer-events:none}
+      .cadx-cube{position:absolute;left:43px;top:54px;width:118px;height:118px;pointer-events:auto;filter:drop-shadow(0 2px 3px rgba(0,0,0,.22))}
       .cadx-cube canvas{width:118px!important;height:118px!important;display:block;cursor:pointer}
       .cadx-arrow,.cadx-roll,.cadx-home{position:absolute;width:30px;height:30px;border:1px solid #b9bab8;background:rgba(255,255,255,.96);color:#555;display:flex;align-items:center;justify-content:center;padding:0;cursor:pointer;pointer-events:auto;box-shadow:0 1px 3px rgba(0,0,0,.16);font:20px Arial,sans-serif}
-      .cadx-arrow:hover,.cadx-roll:hover,.cadx-home:hover{color:#111;background:#fff;border-color:#777}.cadx-arrow{font-size:22px}.cadx-home{left:87px;top:4px}.cadx-left{left:1px;top:92px}.cadx-right{right:1px;top:92px}.cadx-up{left:87px;top:40px}.cadx-down{left:87px;bottom:1px}.cadx-roll-left{left:6px;top:18px}.cadx-roll-right{right:6px;top:18px}.cadx-roll svg,.cadx-home svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+      .cadx-arrow:hover,.cadx-roll:hover,.cadx-home:hover{color:#111;background:#fff;border-color:#777}.cadx-arrow{font-size:22px}.cadx-home{left:87px;top:2px}.cadx-left{left:1px;top:101px}.cadx-right{right:1px;top:101px}.cadx-up{left:87px;top:32px}.cadx-down{left:87px;bottom:1px}.cadx-roll-left{left:6px;top:18px}.cadx-roll-right{right:6px;top:18px}.cadx-roll svg,.cadx-home svg{width:17px;height:17px;fill:none;stroke:currentColor;stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
       .cadx-status{position:absolute;left:12px;bottom:12px;z-index:70;padding:7px 9px;background:rgba(255,255,255,.88);border:1px solid #c8c9c7;color:#555;font-size:10px;letter-spacing:.06em;text-transform:uppercase;display:none}.cadx-status.show{display:block}
       .cadx-progress{position:absolute;left:12px;right:12px;bottom:0;height:3px;background:#c9cac8;z-index:71;overflow:hidden;display:none}.cadx-progress.show{display:block}.cadx-progress i{display:block;width:0;height:100%;background:#555;transition:width .12s linear}
       .cadx-root:fullscreen{background:#e8e9e7}.cadx-root:fullscreen .cadx-toolbar{right:16px;top:16px}.cadx-root:fullscreen .cadx-nav{right:12px;top:64px}
@@ -82,7 +82,7 @@
       this.root.appendChild(this.canvasWrap);
       this.status=document.createElement('div'); this.status.className='cadx-status'; this.root.appendChild(this.status);
       this.progress=document.createElement('div'); this.progress.className='cadx-progress'; this.progress.innerHTML='<i></i>'; this.root.appendChild(this.progress);
-      this.buildToolbar(); this.buildNav(); this.buildShield(); this.container.innerHTML=''; this.container.appendChild(this.root);
+      this.container.innerHTML=''; this.container.appendChild(this.root); this.buildToolbar(); this.buildNav(); this.buildShield();
 
       this.renderer=new THREE.WebGLRenderer({antialias:true,alpha:false,preserveDrawingBuffer:true});
       this.renderer.setPixelRatio(Math.min(window.devicePixelRatio||1,2)); this.renderer.setClearColor(0xe8e9e7,1); this.renderer.outputEncoding=THREE.sRGBEncoding;
@@ -160,7 +160,7 @@
       labels.forEach(([t,p])=>{const sp=new THREE.Sprite(new THREE.SpriteMaterial({map:labelTexture(t),transparent:true,depthTest:false}));sp.position.copy(p);sp.scale.set(.82,.31,1);this.cubeRoot.add(sp);});
       const hitMat=new THREE.MeshBasicMaterial({transparent:true,opacity:0,depthWrite:false});this.cubeHits=[];
       const addHit=(kind,dir,pos,size)=>{const m=new THREE.Mesh(new THREE.BoxGeometry(size.x,size.y,size.z),hitMat);m.position.copy(pos);m.userData={kind,localDir:dir.clone().normalize()};this.cubeRoot.add(m);this.cubeHits.push(m);};
-      addHit('face',new THREE.Vector3(0,0,1),new THREE.Vector3(0,0,1.01),new THREE.Vector3(1.7,1.7,.08));addHit('face',new THREE.Vector3(0,0,-1),new THREE.Vector3(0,0,-1.01),new THREE.Vector3(1.7,1.7,.08));addHit('face',new THREE.Vector3(0,1,0),new THREE.Vector3(0,1.01,0),new THREE.Vector3(1.7,.08,1.7));addHit('face',new THREE.Vector3(0,-1,0),new THREE.Vector3(0,-1.01,0),new THREE.Vector3(1.7,.08,1.7));addHit('face',new THREE.Vector3(1,0,0),new THREE.Vector3(1.01,0,0),new THREE.Vector3(.08,1.7,1.7));addHit('face',new THREE.Vector3(-1,0,0),new THREE.Vector3(-1.01,0,0),new THREE.Vector3(.08,1.7,1.7));
+      addHit('face',new THREE.Vector3(0,0,1),new THREE.Vector3(0,0,1.01),new THREE.Vector3(1.5,1.5,.08));addHit('face',new THREE.Vector3(0,0,-1),new THREE.Vector3(0,0,-1.01),new THREE.Vector3(1.5,1.5,.08));addHit('face',new THREE.Vector3(0,1,0),new THREE.Vector3(0,1.01,0),new THREE.Vector3(1.5,.08,1.5));addHit('face',new THREE.Vector3(0,-1,0),new THREE.Vector3(0,-1.01,0),new THREE.Vector3(1.5,.08,1.5));addHit('face',new THREE.Vector3(1,0,0),new THREE.Vector3(1.01,0,0),new THREE.Vector3(.08,1.5,1.5));addHit('face',new THREE.Vector3(-1,0,0),new THREE.Vector3(-1.01,0,0),new THREE.Vector3(.08,1.5,1.5));
       const edge=.18;for(let y of [-1,1])for(let z of [-1,1])addHit('edge',new THREE.Vector3(0,y,z),new THREE.Vector3(0,y*.91,z*.91),new THREE.Vector3(1.7,edge,edge));for(let x of [-1,1])for(let z of [-1,1])addHit('edge',new THREE.Vector3(x,0,z),new THREE.Vector3(x*.91,0,z*.91),new THREE.Vector3(edge,1.7,edge));for(let x of [-1,1])for(let y of [-1,1])addHit('edge',new THREE.Vector3(x,y,0),new THREE.Vector3(x*.91,y*.91,0),new THREE.Vector3(edge,edge,1.7));for(let x of [-1,1])for(let y of [-1,1])for(let z of [-1,1])addHit('corner',new THREE.Vector3(x,y,z),new THREE.Vector3(x*.91,y*.91,z*.91),new THREE.Vector3(.34,.34,.34));
       this.cubeRay=new THREE.Raycaster();this.cubePointer=new THREE.Vector2();this.cubeRenderer.domElement.addEventListener('click',e=>this.pickCube(e));
     }
@@ -201,6 +201,7 @@
     }
 
     recenter(){
+      this.modelRoot.position.set(0,0,0);
       const box=new THREE.Box3(),tmp=new THREE.Box3();let any=false;Object.values(this.models).forEach(m=>{if(m.root.visible){tmp.setFromObject(m.root);if(!tmp.isEmpty()){box.union(tmp);any=true;}}});if(!any)return;box.getCenter(this.center);const size=box.getSize(new THREE.Vector3());this.radius=Math.max(size.x,size.y,size.z)*.5;this.modelRoot.position.sub(this.center);this.center.set(0,0,0);this.fit(false);
     }
 
@@ -213,9 +214,9 @@
 
     resize(){if(!this.renderer||this.destroyed)return;const w=Math.max(1,this.container.clientWidth),h=Math.max(1,this.container.clientHeight);this.renderer.setSize(w,h,false);this.camera.aspect=w/h;this.camera.updateProjectionMatrix();this.cubeRenderer?.setSize(118,118,false);}
 
-    loop(){if(this.destroyed)return;requestAnimationFrame(()=>this.loop());if(!this.active)return;this.controls.update();this.renderer.render(this.scene,this.camera);this.syncCube();this.cubeRenderer.render(this.cubeScene,this.cubeCamera);}
+    loop(){if(this.destroyed)return;if(!this.container.isConnected){this.destroy();return;}requestAnimationFrame(()=>this.loop());if(this.active){this.controls.update();this.renderer.render(this.scene,this.camera);}this.syncCube();this.cubeRenderer.render(this.cubeScene,this.cubeCamera);}
 
-    destroy(){this.destroyed=true;this.resizeObserver?.disconnect();window.removeEventListener('resize',this.onResize);Object.values(this.models).forEach(m=>dispose(m.root));this.renderer?.dispose();this.cubeRenderer?.dispose();this.anim&&cancelAnimationFrame(this.anim);this.root?.remove();}
+    destroy(){this.destroyed=true;this.resizeObserver?.disconnect();window.removeEventListener('resize',this.onResize);if(this.outside)document.removeEventListener('pointerdown',this.outside);Object.values(this.models).forEach(m=>dispose(m.root));this.renderer?.dispose();this.cubeRenderer?.dispose();this.anim&&cancelAnimationFrame(this.anim);this.root?.remove();}
   }
 
   function findContainer(){return document.getElementById('stlViewerContainer');}
