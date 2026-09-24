@@ -1,0 +1,77 @@
+name: Organize CAD viewer scripts
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: write
+
+jobs:
+  organize:
+    if: github.actor != 'github-actions[bot]'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v5
+        with:
+          fetch-depth: 1
+
+      - name: Organize scripts and wire viewer
+        shell: bash
+        run: |
+          set -euo pipefail
+          mkdir -p js
+
+          # Keep every JavaScript source in one directory. The new contained
+          # viewer is already at js/cad-viewer.js; preserve the previous files
+          # under js/ so nothing is silently lost.
+          for f in cad-viewer-final.js cad-viewer-fixes.js cad-viewer-upright.js cad-viewer-v2.js; do
+            if [ -f "$f" ]; then git mv "$f" "js/$f"; fi
+          done
+          if [ -f cad-viewer.js ]; then git mv cad-viewer.js js/cad-viewer-legacy.js; fi
+
+          # Fix the pointer listener in the contained viewer.
+          python3 - <<'PY'
+          from pathlib import Path
+          p = Path('js/cad-viewer.js')
+          s = p.read_text()
+          bad = "document.addEventListener('pointerdown',this.outside=>(e=>{if(this.destroyed)return;if(!this.root.contains(e.target))this.activateShield();}));"
+          good = "this.outside = e => { if (this.destroyed) return; if (!this.root.contains(e.target)) this.activateShield(); }; document.addEventListener('pointerdown', this.outside);"
+          s = s.replace(bad, good)
+          p.write_text(s)
+          PY
+
+          # Remove all old CAD viewer script tags and load exactly one controller.
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+          p = Path('index.html')
+          s = p.read_text()
+          s = re.sub(r'\s*<script\b[^>]*src=["\'](?:\./)?(?:cad-viewer(?:-[^"\']+)?|cad-viewer)[.]js["\'][^>]*></script>', '', s, flags=re.I)
+          s = s.replace('  <script src="js/cad-viewer.js"></script>\n', '')
+          s = s.replace('<script src="js/cad-viewer.js"></script>', '')
+          marker = '</body>'
+          if marker in s:
+              s = s.replace(marker, '  <script src="js/cad-viewer.js"></script>\n' + marker, 1)
+          else:
+              s += '\n<script src="js/cad-viewer.js"></script>\n'
+          p.write_text(s)
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "refactor: organize CAD viewer scripts" || true
+          git push
+
+      - name: Remove one-time organizer
+        if: success()
+        shell: bash
+        run: |
+          set -euo pipefail
+          git rm .github/workflows/organize-cad-viewer.yml
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git commit -m "chore: remove one-time CAD organizer"
+          git push
